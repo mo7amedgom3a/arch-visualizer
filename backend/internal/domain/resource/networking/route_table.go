@@ -14,6 +14,7 @@ type Route struct {
 // RouteTable represents a cloud-agnostic route table
 type RouteTable struct {
 	ID      string
+	ARN     *string // Cloud-specific ARN (AWS, Azure, etc.) - optional
 	Name    string
 	VPCID   string
 	Routes  []Route

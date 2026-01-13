@@ -5,6 +5,7 @@ import "errors"
 // InternetGateway represents a cloud-agnostic internet gateway
 type InternetGateway struct {
 	ID    string
+	ARN   *string // Cloud-specific ARN (AWS, Azure, etc.) - optional
 	Name  string
 	VPCID string // Attached VPC
 }

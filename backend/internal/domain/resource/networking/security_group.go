@@ -30,6 +30,7 @@ type SecurityGroupRule struct {
 // SecurityGroup represents a cloud-agnostic security group
 type SecurityGroup struct {
 	ID          string
+	ARN         *string // Cloud-specific ARN (AWS, Azure, etc.) - optional
 	Name        string
 	Description string
 	VPCID       string

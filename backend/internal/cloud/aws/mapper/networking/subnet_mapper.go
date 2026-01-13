@@ -3,10 +3,11 @@ package networking
 import (
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
+	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 )
 
-// ToDomainSubnet converts AWS Subnet to domain Subnet
+// ToDomainSubnet converts AWS Subnet to domain Subnet (for backward compatibility)
 func ToDomainSubnet(awsSubnet *awsnetworking.Subnet) *domainnetworking.Subnet {
 	if awsSubnet == nil {
 		return nil
@@ -18,6 +19,30 @@ func ToDomainSubnet(awsSubnet *awsnetworking.Subnet) *domainnetworking.Subnet {
 		CIDR:            awsSubnet.CIDR,
 		AvailabilityZone: &awsSubnet.AvailabilityZone,
 		IsPublic:        awsSubnet.MapPublicIPOnLaunch,
+	}
+	
+	return domainSubnet
+}
+
+// ToDomainSubnetFromOutput converts AWS Subnet output to domain Subnet with ID and ARN
+func ToDomainSubnetFromOutput(output *awsoutputs.SubnetOutput) *domainnetworking.Subnet {
+	if output == nil {
+		return nil
+	}
+	
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+	
+	domainSubnet := &domainnetworking.Subnet{
+		ID:              output.ID,
+		ARN:             arn,
+		Name:            output.Name,
+		VPCID:           output.VPCID,
+		CIDR:            output.CIDR,
+		AvailabilityZone: &output.AvailabilityZone,
+		IsPublic:        output.MapPublicIPOnLaunch,
 	}
 	
 	return domainSubnet

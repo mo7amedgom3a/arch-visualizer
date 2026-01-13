@@ -5,6 +5,7 @@ import "errors"
 // NATGateway represents a cloud-agnostic NAT Gateway
 type NATGateway struct {
 	ID              string
+	ARN             *string // Cloud-specific ARN (AWS, Azure, etc.) - optional
 	Name            string
 	SubnetID        string // Must be in a public subnet
 	AllocationID   *string // Elastic IP allocation ID (optional)

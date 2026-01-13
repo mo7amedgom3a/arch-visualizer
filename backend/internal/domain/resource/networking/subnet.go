@@ -9,6 +9,7 @@ import (
 // Subnet represents a cloud-agnostic subnet
 type Subnet struct {
 	ID              string
+	ARN             *string // Cloud-specific ARN (AWS, Azure, etc.) - optional
 	Name            string
 	VPCID           string // Parent VPC
 	CIDR            string // IPv4 CIDR block (must be within VPC CIDR)

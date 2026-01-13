@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
+	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 )
@@ -25,65 +27,177 @@ type mockAWSNetworkingService struct {
 // Ensure mockAWSNetworkingService implements AWSNetworkingService
 var _ awsservice.AWSNetworkingService = (*mockAWSNetworkingService)(nil)
 
-func (m *mockAWSNetworkingService) CreateVPC(ctx context.Context, vpc *awsnetworking.VPC) (*awsnetworking.VPC, error) {
+// Helper function to convert VPC input to output
+func vpcToOutput(vpc *awsnetworking.VPC) *awsoutputs.VPCOutput {
+	if vpc == nil {
+		return nil
+	}
+	return &awsoutputs.VPCOutput{
+		ID:                 "vpc-mock-123",
+		ARN:                "arn:aws:ec2:us-east-1:123456789012:vpc/vpc-mock-123",
+		Name:               vpc.Name,
+		Region:             vpc.Region,
+		CIDR:               vpc.CIDR,
+		State:              "available",
+		IsDefault:          false,
+		CreationTime:       time.Now(),
+		OwnerID:            "123456789012",
+		EnableDNSHostnames: vpc.EnableDNSHostnames,
+		EnableDNSSupport:   vpc.EnableDNSSupport,
+		InstanceTenancy:    vpc.InstanceTenancy,
+		Tags:               vpc.Tags,
+	}
+}
+
+// Helper function to convert Subnet input to output
+func subnetToOutput(subnet *awsnetworking.Subnet) *awsoutputs.SubnetOutput {
+	if subnet == nil {
+		return nil
+	}
+	return &awsoutputs.SubnetOutput{
+		ID:                  "subnet-mock-123",
+		ARN:                 "arn:aws:ec2:us-east-1:123456789012:subnet/subnet-mock-123",
+		Name:                subnet.Name,
+		VPCID:               subnet.VPCID,
+		CIDR:                subnet.CIDR,
+		AvailabilityZone:    subnet.AvailabilityZone,
+		State:               "available",
+		AvailableIPCount:    250,
+		MapPublicIPOnLaunch: subnet.MapPublicIPOnLaunch,
+		CreationTime:        time.Now(),
+		Tags:                subnet.Tags,
+	}
+}
+
+// Helper function to convert InternetGateway input to output
+func igwToOutput(igw *awsnetworking.InternetGateway) *awsoutputs.InternetGatewayOutput {
+	if igw == nil {
+		return nil
+	}
+	return &awsoutputs.InternetGatewayOutput{
+		ID:              "igw-mock-123",
+		ARN:             "arn:aws:ec2:us-east-1:123456789012:internet-gateway/igw-mock-123",
+		Name:            igw.Name,
+		VPCID:           igw.VPCID,
+		State:           "available",
+		AttachmentState: "attached",
+		CreationTime:    time.Now(),
+		Tags:            igw.Tags,
+	}
+}
+
+// Helper function to convert RouteTable input to output
+func routeTableToOutput(rt *awsnetworking.RouteTable) *awsoutputs.RouteTableOutput {
+	if rt == nil {
+		return nil
+	}
+	return &awsoutputs.RouteTableOutput{
+		ID:           "rtb-mock-123",
+		ARN:          "arn:aws:ec2:us-east-1:123456789012:route-table/rtb-mock-123",
+		Name:         rt.Name,
+		VPCID:        rt.VPCID,
+		Routes:       rt.Routes,
+		Associations: []awsoutputs.RouteTableAssociation{},
+		CreationTime: time.Now(),
+		Tags:         rt.Tags,
+	}
+}
+
+// Helper function to convert SecurityGroup input to output
+func securityGroupToOutput(sg *awsnetworking.SecurityGroup) *awsoutputs.SecurityGroupOutput {
+	if sg == nil {
+		return nil
+	}
+	return &awsoutputs.SecurityGroupOutput{
+		ID:           "sg-mock-123",
+		ARN:          "arn:aws:ec2:us-east-1:123456789012:security-group/sg-mock-123",
+		Name:         sg.Name,
+		Description:  sg.Description,
+		VPCID:        sg.VPCID,
+		Rules:        sg.Rules,
+		CreationTime: time.Now(),
+		Tags:         sg.Tags,
+	}
+}
+
+// Helper function to convert NATGateway input to output
+func natGatewayToOutput(ngw *awsnetworking.NATGateway) *awsoutputs.NATGatewayOutput {
+	if ngw == nil {
+		return nil
+	}
+	return &awsoutputs.NATGatewayOutput{
+		ID:           "nat-mock-123",
+		ARN:          "arn:aws:ec2:us-east-1:123456789012:nat-gateway/nat-mock-123",
+		Name:         ngw.Name,
+		SubnetID:     ngw.SubnetID,
+		AllocationID: ngw.AllocationID,
+		State:        "available",
+		PublicIP:     "1.2.3.4",
+		PrivateIP:    "10.0.1.100",
+		CreationTime: time.Now(),
+		Tags:         ngw.Tags,
+	}
+}
+
+func (m *mockAWSNetworkingService) CreateVPC(ctx context.Context, vpc *awsnetworking.VPC) (*awsoutputs.VPCOutput, error) {
 	if m.createVPCError != nil {
 		return nil, m.createVPCError
 	}
 	m.vpc = vpc
-	return vpc, nil
+	return vpcToOutput(vpc), nil
 }
 
-func (m *mockAWSNetworkingService) GetVPC(ctx context.Context, id string) (*awsnetworking.VPC, error) {
+func (m *mockAWSNetworkingService) GetVPC(ctx context.Context, id string) (*awsoutputs.VPCOutput, error) {
 	if m.getVPCError != nil {
 		return nil, m.getVPCError
 	}
-	return m.vpc, nil
+	return vpcToOutput(m.vpc), nil
 }
 
-func (m *mockAWSNetworkingService) UpdateVPC(ctx context.Context, vpc *awsnetworking.VPC) (*awsnetworking.VPC, error) {
+func (m *mockAWSNetworkingService) UpdateVPC(ctx context.Context, vpc *awsnetworking.VPC) (*awsoutputs.VPCOutput, error) {
 	m.vpc = vpc
-	return vpc, nil
+	return vpcToOutput(vpc), nil
 }
 
 func (m *mockAWSNetworkingService) DeleteVPC(ctx context.Context, id string) error {
 	return nil
 }
 
-func (m *mockAWSNetworkingService) ListVPCs(ctx context.Context, region string) ([]*awsnetworking.VPC, error) {
+func (m *mockAWSNetworkingService) ListVPCs(ctx context.Context, region string) ([]*awsoutputs.VPCOutput, error) {
 	if m.vpc != nil {
-		return []*awsnetworking.VPC{m.vpc}, nil
+		return []*awsoutputs.VPCOutput{vpcToOutput(m.vpc)}, nil
 	}
-	return []*awsnetworking.VPC{}, nil
+	return []*awsoutputs.VPCOutput{}, nil
 }
 
-func (m *mockAWSNetworkingService) CreateSubnet(ctx context.Context, subnet *awsnetworking.Subnet) (*awsnetworking.Subnet, error) {
+func (m *mockAWSNetworkingService) CreateSubnet(ctx context.Context, subnet *awsnetworking.Subnet) (*awsoutputs.SubnetOutput, error) {
 	m.subnet = subnet
-	return subnet, nil
+	return subnetToOutput(subnet), nil
 }
 
-func (m *mockAWSNetworkingService) GetSubnet(ctx context.Context, id string) (*awsnetworking.Subnet, error) {
-	return m.subnet, nil
+func (m *mockAWSNetworkingService) GetSubnet(ctx context.Context, id string) (*awsoutputs.SubnetOutput, error) {
+	return subnetToOutput(m.subnet), nil
 }
 
-func (m *mockAWSNetworkingService) UpdateSubnet(ctx context.Context, subnet *awsnetworking.Subnet) (*awsnetworking.Subnet, error) {
+func (m *mockAWSNetworkingService) UpdateSubnet(ctx context.Context, subnet *awsnetworking.Subnet) (*awsoutputs.SubnetOutput, error) {
 	m.subnet = subnet
-	return subnet, nil
+	return subnetToOutput(subnet), nil
 }
 
 func (m *mockAWSNetworkingService) DeleteSubnet(ctx context.Context, id string) error {
 	return nil
 }
 
-func (m *mockAWSNetworkingService) ListSubnets(ctx context.Context, vpcID string) ([]*awsnetworking.Subnet, error) {
+func (m *mockAWSNetworkingService) ListSubnets(ctx context.Context, vpcID string) ([]*awsoutputs.SubnetOutput, error) {
 	if m.subnet != nil {
-		return []*awsnetworking.Subnet{m.subnet}, nil
+		return []*awsoutputs.SubnetOutput{subnetToOutput(m.subnet)}, nil
 	}
-	return []*awsnetworking.Subnet{}, nil
+	return []*awsoutputs.SubnetOutput{}, nil
 }
 
-func (m *mockAWSNetworkingService) CreateInternetGateway(ctx context.Context, igw *awsnetworking.InternetGateway) (*awsnetworking.InternetGateway, error) {
+func (m *mockAWSNetworkingService) CreateInternetGateway(ctx context.Context, igw *awsnetworking.InternetGateway) (*awsoutputs.InternetGatewayOutput, error) {
 	m.igw = igw
-	return igw, nil
+	return igwToOutput(igw), nil
 }
 
 func (m *mockAWSNetworkingService) AttachInternetGateway(ctx context.Context, igwID, vpcID string) error {
@@ -98,13 +212,13 @@ func (m *mockAWSNetworkingService) DeleteInternetGateway(ctx context.Context, id
 	return nil
 }
 
-func (m *mockAWSNetworkingService) CreateRouteTable(ctx context.Context, rt *awsnetworking.RouteTable) (*awsnetworking.RouteTable, error) {
+func (m *mockAWSNetworkingService) CreateRouteTable(ctx context.Context, rt *awsnetworking.RouteTable) (*awsoutputs.RouteTableOutput, error) {
 	m.rt = rt
-	return rt, nil
+	return routeTableToOutput(rt), nil
 }
 
-func (m *mockAWSNetworkingService) GetRouteTable(ctx context.Context, id string) (*awsnetworking.RouteTable, error) {
-	return m.rt, nil
+func (m *mockAWSNetworkingService) GetRouteTable(ctx context.Context, id string) (*awsoutputs.RouteTableOutput, error) {
+	return routeTableToOutput(m.rt), nil
 }
 
 func (m *mockAWSNetworkingService) AssociateRouteTable(ctx context.Context, rtID, subnetID string) error {
@@ -119,31 +233,31 @@ func (m *mockAWSNetworkingService) DeleteRouteTable(ctx context.Context, id stri
 	return nil
 }
 
-func (m *mockAWSNetworkingService) CreateSecurityGroup(ctx context.Context, sg *awsnetworking.SecurityGroup) (*awsnetworking.SecurityGroup, error) {
+func (m *mockAWSNetworkingService) CreateSecurityGroup(ctx context.Context, sg *awsnetworking.SecurityGroup) (*awsoutputs.SecurityGroupOutput, error) {
 	m.sg = sg
-	return sg, nil
+	return securityGroupToOutput(sg), nil
 }
 
-func (m *mockAWSNetworkingService) GetSecurityGroup(ctx context.Context, id string) (*awsnetworking.SecurityGroup, error) {
-	return m.sg, nil
+func (m *mockAWSNetworkingService) GetSecurityGroup(ctx context.Context, id string) (*awsoutputs.SecurityGroupOutput, error) {
+	return securityGroupToOutput(m.sg), nil
 }
 
-func (m *mockAWSNetworkingService) UpdateSecurityGroup(ctx context.Context, sg *awsnetworking.SecurityGroup) (*awsnetworking.SecurityGroup, error) {
+func (m *mockAWSNetworkingService) UpdateSecurityGroup(ctx context.Context, sg *awsnetworking.SecurityGroup) (*awsoutputs.SecurityGroupOutput, error) {
 	m.sg = sg
-	return sg, nil
+	return securityGroupToOutput(sg), nil
 }
 
 func (m *mockAWSNetworkingService) DeleteSecurityGroup(ctx context.Context, id string) error {
 	return nil
 }
 
-func (m *mockAWSNetworkingService) CreateNATGateway(ctx context.Context, ngw *awsnetworking.NATGateway) (*awsnetworking.NATGateway, error) {
+func (m *mockAWSNetworkingService) CreateNATGateway(ctx context.Context, ngw *awsnetworking.NATGateway) (*awsoutputs.NATGatewayOutput, error) {
 	m.nat = ngw
-	return ngw, nil
+	return natGatewayToOutput(ngw), nil
 }
 
-func (m *mockAWSNetworkingService) GetNATGateway(ctx context.Context, id string) (*awsnetworking.NATGateway, error) {
-	return m.nat, nil
+func (m *mockAWSNetworkingService) GetNATGateway(ctx context.Context, id string) (*awsoutputs.NATGatewayOutput, error) {
+	return natGatewayToOutput(m.nat), nil
 }
 
 func (m *mockAWSNetworkingService) DeleteNATGateway(ctx context.Context, id string) error {

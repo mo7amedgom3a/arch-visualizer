@@ -3,10 +3,11 @@ package networking
 import (
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
+	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 )
 
-// ToDomainSecurityGroup converts AWS Security Group to domain Security Group
+// ToDomainSecurityGroup converts AWS Security Group to domain Security Group (for backward compatibility)
 func ToDomainSecurityGroup(awsSG *awsnetworking.SecurityGroup) *domainnetworking.SecurityGroup {
 	if awsSG == nil {
 		return nil
@@ -35,6 +36,46 @@ func ToDomainSecurityGroup(awsSG *awsnetworking.SecurityGroup) *domainnetworking
 		Name:        awsSG.Name,
 		Description: awsSG.Description,
 		VPCID:       awsSG.VPCID,
+		Rules:       domainRules,
+	}
+}
+
+// ToDomainSecurityGroupFromOutput converts AWS Security Group output to domain Security Group with ID and ARN
+func ToDomainSecurityGroupFromOutput(output *awsoutputs.SecurityGroupOutput) *domainnetworking.SecurityGroup {
+	if output == nil {
+		return nil
+	}
+	
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+	
+	domainRules := make([]domainnetworking.SecurityGroupRule, len(output.Rules))
+	for i, awsRule := range output.Rules {
+		domainRule := domainnetworking.SecurityGroupRule{
+			Type:         awsRule.Type,
+			Protocol:     domainnetworking.Protocol(awsRule.Protocol),
+			FromPort:     awsRule.FromPort,
+			ToPort:       awsRule.ToPort,
+			CIDRBlocks:   awsRule.CIDRBlocks,
+			Description:  awsRule.Description,
+		}
+		
+		// Convert source security group ID to list
+		if awsRule.SourceSecurityGroupID != nil && *awsRule.SourceSecurityGroupID != "" {
+			domainRule.SourceGroupIDs = []string{*awsRule.SourceSecurityGroupID}
+		}
+		
+		domainRules[i] = domainRule
+	}
+	
+	return &domainnetworking.SecurityGroup{
+		ID:          output.ID,
+		ARN:         arn,
+		Name:        output.Name,
+		Description: output.Description,
+		VPCID:       output.VPCID,
 		Rules:       domainRules,
 	}
 }

@@ -3,11 +3,11 @@ package networking
 import (
 	"context"
 	"fmt"
-	
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+
+	awsmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/networking"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
-	awsmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/networking"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 )
 
 // AWSNetworkingAdapter adapts AWS-specific networking service to domain networking service
@@ -32,45 +32,45 @@ func (a *AWSNetworkingAdapter) CreateVPC(ctx context.Context, vpc *domainnetwork
 	if err := vpc.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsVPC := awsmapper.FromDomainVPC(vpc)
 	if err := awsVPC.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	createdAWSVPC, err := a.awsService.CreateVPC(ctx, awsVPC)
+
+	awsVPCOutput, err := a.awsService.CreateVPC(ctx, awsVPC)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainVPC(createdAWSVPC), nil
+
+	return awsmapper.ToDomainVPCFromOutput(awsVPCOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) GetVPC(ctx context.Context, id string) (*domainnetworking.VPC, error) {
-	awsVPC, err := a.awsService.GetVPC(ctx, id)
+	awsVPCOutput, err := a.awsService.GetVPC(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainVPC(awsVPC), nil
+
+	return awsmapper.ToDomainVPCFromOutput(awsVPCOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) UpdateVPC(ctx context.Context, vpc *domainnetworking.VPC) (*domainnetworking.VPC, error) {
 	if err := vpc.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsVPC := awsmapper.FromDomainVPC(vpc)
 	if err := awsVPC.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	updatedAWSVPC, err := a.awsService.UpdateVPC(ctx, awsVPC)
+
+	awsVPCOutput, err := a.awsService.UpdateVPC(ctx, awsVPC)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainVPC(updatedAWSVPC), nil
+
+	return awsmapper.ToDomainVPCFromOutput(awsVPCOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) DeleteVPC(ctx context.Context, id string) error {
@@ -81,16 +81,16 @@ func (a *AWSNetworkingAdapter) DeleteVPC(ctx context.Context, id string) error {
 }
 
 func (a *AWSNetworkingAdapter) ListVPCs(ctx context.Context, region string) ([]*domainnetworking.VPC, error) {
-	awsVPCs, err := a.awsService.ListVPCs(ctx, region)
+	awsVPCOutputs, err := a.awsService.ListVPCs(ctx, region)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	domainVPCs := make([]*domainnetworking.VPC, len(awsVPCs))
-	for i, awsVPC := range awsVPCs {
-		domainVPCs[i] = awsmapper.ToDomainVPC(awsVPC)
+
+	domainVPCs := make([]*domainnetworking.VPC, len(awsVPCOutputs))
+	for i, awsVPCOutput := range awsVPCOutputs {
+		domainVPCs[i] = awsmapper.ToDomainVPCFromOutput(awsVPCOutput)
 	}
-	
+
 	return domainVPCs, nil
 }
 
@@ -100,7 +100,7 @@ func (a *AWSNetworkingAdapter) CreateSubnet(ctx context.Context, subnet *domainn
 	if err := subnet.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	// Get VPC to determine availability zone if not provided
 	// For now, we'll require AZ to be set in the domain model
 	// In a real implementation, you might fetch the VPC to get available AZs
@@ -110,50 +110,50 @@ func (a *AWSNetworkingAdapter) CreateSubnet(ctx context.Context, subnet *domainn
 	} else {
 		return nil, fmt.Errorf("availability zone is required for subnet")
 	}
-	
+
 	awsSubnet := awsmapper.FromDomainSubnet(subnet, az)
 	if err := awsSubnet.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	createdAWSSubnet, err := a.awsService.CreateSubnet(ctx, awsSubnet)
+
+	awsSubnetOutput, err := a.awsService.CreateSubnet(ctx, awsSubnet)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainSubnet(createdAWSSubnet), nil
+
+	return awsmapper.ToDomainSubnetFromOutput(awsSubnetOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) GetSubnet(ctx context.Context, id string) (*domainnetworking.Subnet, error) {
-	awsSubnet, err := a.awsService.GetSubnet(ctx, id)
+	awsSubnetOutput, err := a.awsService.GetSubnet(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainSubnet(awsSubnet), nil
+
+	return awsmapper.ToDomainSubnetFromOutput(awsSubnetOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) UpdateSubnet(ctx context.Context, subnet *domainnetworking.Subnet) (*domainnetworking.Subnet, error) {
 	if err := subnet.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	az := ""
 	if subnet.AvailabilityZone != nil {
 		az = *subnet.AvailabilityZone
 	}
-	
+
 	awsSubnet := awsmapper.FromDomainSubnet(subnet, az)
 	if err := awsSubnet.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	updatedAWSSubnet, err := a.awsService.UpdateSubnet(ctx, awsSubnet)
+
+	awsSubnetOutput, err := a.awsService.UpdateSubnet(ctx, awsSubnet)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainSubnet(updatedAWSSubnet), nil
+
+	return awsmapper.ToDomainSubnetFromOutput(awsSubnetOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) DeleteSubnet(ctx context.Context, id string) error {
@@ -164,16 +164,16 @@ func (a *AWSNetworkingAdapter) DeleteSubnet(ctx context.Context, id string) erro
 }
 
 func (a *AWSNetworkingAdapter) ListSubnets(ctx context.Context, vpcID string) ([]*domainnetworking.Subnet, error) {
-	awsSubnets, err := a.awsService.ListSubnets(ctx, vpcID)
+	awsSubnetOutputs, err := a.awsService.ListSubnets(ctx, vpcID)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	domainSubnets := make([]*domainnetworking.Subnet, len(awsSubnets))
-	for i, awsSubnet := range awsSubnets {
-		domainSubnets[i] = awsmapper.ToDomainSubnet(awsSubnet)
+
+	domainSubnets := make([]*domainnetworking.Subnet, len(awsSubnetOutputs))
+	for i, awsSubnetOutput := range awsSubnetOutputs {
+		domainSubnets[i] = awsmapper.ToDomainSubnetFromOutput(awsSubnetOutput)
 	}
-	
+
 	return domainSubnets, nil
 }
 
@@ -183,18 +183,18 @@ func (a *AWSNetworkingAdapter) CreateInternetGateway(ctx context.Context, igw *d
 	if err := igw.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsIGW := awsmapper.FromDomainInternetGateway(igw)
 	if err := awsIGW.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	createdAWSIGW, err := a.awsService.CreateInternetGateway(ctx, awsIGW)
+
+	awsIGWOutput, err := a.awsService.CreateInternetGateway(ctx, awsIGW)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainInternetGateway(createdAWSIGW), nil
+
+	return awsmapper.ToDomainInternetGatewayFromOutput(awsIGWOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) AttachInternetGateway(ctx context.Context, igwID, vpcID string) error {
@@ -224,27 +224,27 @@ func (a *AWSNetworkingAdapter) CreateRouteTable(ctx context.Context, rt *domainn
 	if err := rt.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsRT := awsmapper.FromDomainRouteTable(rt)
 	if err := awsRT.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	createdAWSRT, err := a.awsService.CreateRouteTable(ctx, awsRT)
+
+	awsRTOutput, err := a.awsService.CreateRouteTable(ctx, awsRT)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainRouteTable(createdAWSRT), nil
+
+	return awsmapper.ToDomainRouteTableFromOutput(awsRTOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) GetRouteTable(ctx context.Context, id string) (*domainnetworking.RouteTable, error) {
-	awsRT, err := a.awsService.GetRouteTable(ctx, id)
+	awsRTOutput, err := a.awsService.GetRouteTable(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainRouteTable(awsRT), nil
+
+	return awsmapper.ToDomainRouteTableFromOutput(awsRTOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) AssociateRouteTable(ctx context.Context, rtID, subnetID string) error {
@@ -274,45 +274,45 @@ func (a *AWSNetworkingAdapter) CreateSecurityGroup(ctx context.Context, sg *doma
 	if err := sg.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsSG := awsmapper.FromDomainSecurityGroup(sg)
 	if err := awsSG.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	createdAWSSG, err := a.awsService.CreateSecurityGroup(ctx, awsSG)
+
+	awsSGOutput, err := a.awsService.CreateSecurityGroup(ctx, awsSG)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainSecurityGroup(createdAWSSG), nil
+
+	return awsmapper.ToDomainSecurityGroupFromOutput(awsSGOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) GetSecurityGroup(ctx context.Context, id string) (*domainnetworking.SecurityGroup, error) {
-	awsSG, err := a.awsService.GetSecurityGroup(ctx, id)
+	awsSGOutput, err := a.awsService.GetSecurityGroup(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainSecurityGroup(awsSG), nil
+
+	return awsmapper.ToDomainSecurityGroupFromOutput(awsSGOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) UpdateSecurityGroup(ctx context.Context, sg *domainnetworking.SecurityGroup) (*domainnetworking.SecurityGroup, error) {
 	if err := sg.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsSG := awsmapper.FromDomainSecurityGroup(sg)
 	if err := awsSG.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	updatedAWSSG, err := a.awsService.UpdateSecurityGroup(ctx, awsSG)
+
+	awsSGOutput, err := a.awsService.UpdateSecurityGroup(ctx, awsSG)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainSecurityGroup(updatedAWSSG), nil
+
+	return awsmapper.ToDomainSecurityGroupFromOutput(awsSGOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) DeleteSecurityGroup(ctx context.Context, id string) error {
@@ -328,27 +328,27 @@ func (a *AWSNetworkingAdapter) CreateNATGateway(ctx context.Context, ngw *domain
 	if err := ngw.Validate(); err != nil {
 		return nil, fmt.Errorf("domain validation failed: %w", err)
 	}
-	
+
 	awsNAT := awsmapper.FromDomainNATGateway(ngw)
 	if err := awsNAT.Validate(); err != nil {
 		return nil, fmt.Errorf("aws validation failed: %w", err)
 	}
-	
-	createdAWSNAT, err := a.awsService.CreateNATGateway(ctx, awsNAT)
+
+	awsNATOutput, err := a.awsService.CreateNATGateway(ctx, awsNAT)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainNATGateway(createdAWSNAT), nil
+
+	return awsmapper.ToDomainNATGatewayFromOutput(awsNATOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) GetNATGateway(ctx context.Context, id string) (*domainnetworking.NATGateway, error) {
-	awsNAT, err := a.awsService.GetNATGateway(ctx, id)
+	awsNATOutput, err := a.awsService.GetNATGateway(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("aws service error: %w", err)
 	}
-	
-	return awsmapper.ToDomainNATGateway(awsNAT), nil
+
+	return awsmapper.ToDomainNATGatewayFromOutput(awsNATOutput), nil
 }
 
 func (a *AWSNetworkingAdapter) DeleteNATGateway(ctx context.Context, id string) error {

@@ -10,6 +10,7 @@ import (
 // This is the domain model - no cloud-specific details
 type VPC struct {
 	ID               string
+	ARN              *string // Cloud-specific ARN (AWS, Azure, etc.) - optional
 	Name             string
 	Region           string
 	CIDR             string // IPv4 CIDR block (e.g., "10.0.0.0/16")
