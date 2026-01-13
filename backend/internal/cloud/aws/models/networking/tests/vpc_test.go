@@ -2,6 +2,8 @@ package tests
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
@@ -88,7 +90,7 @@ func TestVPC(t *testing.T) {
 				InstanceTenancy:    "default",
 				Tags:               []configs.Tag{{Key: "Name", Value: "test-vpc"}},
 			},
-			expectedError: nil, // Will check error message contains "invalid cidr"
+			expectedError: fmt.Errorf("invalid cidr format"), // Error message should contain "invalid cidr"
 		},
 	}
 
@@ -105,15 +107,13 @@ func TestVPC(t *testing.T) {
 				// Should have error
 				if err == nil {
 					t.Errorf("Expected error: %v, but got nil", test.expectedError)
-				} else if err.Error() != test.expectedError.Error() {
+				} else if test.name == "vpc-with-invalid-cidr-format" {
 					// For invalid CIDR format, check if error message contains expected text
-					if test.name == "vpc-with-invalid-cidr-format" {
-						if err.Error() == "" {
-							t.Errorf("Expected error message containing 'invalid cidr', but got: %v", err)
-						}
-					} else {
-						t.Errorf("Expected error: %v, but got: %v", test.expectedError, err)
+					if !strings.Contains(err.Error(), "invalid cidr") {
+						t.Errorf("Expected error message containing 'invalid cidr', but got: %v", err)
 					}
+				} else if err.Error() != test.expectedError.Error() {
+					t.Errorf("Expected error: %v, but got: %v", test.expectedError, err)
 				}
 			}
 		})
