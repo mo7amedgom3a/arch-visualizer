@@ -23,12 +23,16 @@ adapters/
 
 ## Architecture Flow
 
+### Complete Flow with Input and Output Models
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Domain Layer                            │
 │  (Cloud-Agnostic Business Logic)                            │
 │                                                             │
 │  NetworkingService Interface                               │
+│  - Domain models (no ID/ARN initially)                     │
+│  - Domain models (with ID/ARN after creation)              │
 └──────────────────────┬────────────────────────────────────┘
                         │
                         │ implements
@@ -42,6 +46,7 @@ adapters/
 │  - Implements NetworkingService                             │
 │  - Uses Mappers for conversion                              │
 │  - Handles validation at both layers                        │
+│  - Maps: Domain → AWS Input → AWS Output → Domain          │
 └──────────────────────┬────────────────────────────────────┘
                         │
                         │ uses
@@ -51,6 +56,8 @@ adapters/
 │  (Cloud-Specific Implementation)                            │
 │                                                             │
 │  AWSNetworkingService Interface                            │
+│  - Accepts: AWS Input Models                               │
+│  - Returns: AWS Output Models (with ID/ARN/State)          │
 └──────────────────────┬────────────────────────────────────┘
                         │
                         │ uses
@@ -58,7 +65,61 @@ adapters/
 ┌─────────────────────────────────────────────────────────────┐
 │              AWS Models & API                               │
 │  (AWS SDK, Terraform, etc.)                                 │
+│                                                             │
+│  Input Models:  Configuration only                          │
+│  Output Models: Configuration + AWS metadata               │
 └─────────────────────────────────────────────────────────────┘
+```
+
+### Detailed Flow Example: Creating a VPC
+
+```
+1. Domain Input (no ID/ARN)
+   ┌─────────────────────────┐
+   │ Domain VPC              │
+   │ - Name: "my-vpc"        │
+   │ - Region: "us-east-1"   │
+   │ - CIDR: "10.0.0.0/16"   │
+   │ - ID: "" (empty)        │
+   │ - ARN: nil              │
+   └───────────┬─────────────┘
+               │
+               │ [FromDomainVPC]
+               ▼
+2. AWS Input Model
+   ┌─────────────────────────┐
+   │ AWS VPC Input           │
+   │ - Name: "my-vpc"        │
+   │ - Region: "us-east-1"   │
+   │ - CIDR: "10.0.0.0/16"   │
+   │ - No ID/ARN fields      │
+   └───────────┬─────────────┘
+               │
+               │ [CreateVPC]
+               ▼
+3. AWS Output Model
+   ┌─────────────────────────┐
+   │ AWS VPC Output          │
+   │ - Name: "my-vpc"        │
+   │ - Region: "us-east-1"   │
+   │ - CIDR: "10.0.0.0/16"   │
+   │ - ID: "vpc-0a1b2c3..."  │ ← AWS-generated
+   │ - ARN: "arn:aws:..."    │ ← AWS-generated
+   │ - State: "available"    │ ← AWS metadata
+   │ - CreationTime: ...     │ ← AWS metadata
+   └───────────┬─────────────┘
+               │
+               │ [ToDomainVPCFromOutput]
+               ▼
+4. Domain Output (with ID/ARN)
+   ┌─────────────────────────┐
+   │ Domain VPC              │
+   │ - Name: "my-vpc"        │
+   │ - Region: "us-east-1"   │
+   │ - CIDR: "10.0.0.0/16"   │
+   │ - ID: "vpc-0a1b2c3..."  │ ← Populated!
+   │ - ARN: "arn:aws:..."    │ ← Populated!
+   └─────────────────────────┘
 ```
 
 ## Key Benefits
@@ -70,6 +131,8 @@ adapters/
 5. **Error Context**: Clear error messages with full context
 
 ## Usage Example
+
+### Basic Usage
 
 ```go
 // 1. Create AWS service implementation
@@ -84,6 +147,73 @@ var service domainnetworking.NetworkingService = adapter
 // 4. Domain layer uses service without knowing about AWS
 vpc, err := service.CreateVPC(ctx, domainVPC)
 ```
+
+### Complete Example with Output Models
+
+```go
+import (
+    "context"
+    domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+    awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/adapters/networking"
+)
+
+// 1. Create domain VPC (input - no ID/ARN)
+domainVPC := &domainnetworking.VPC{
+    Name:   "production-vpc",
+    Region: "us-east-1",
+    CIDR:   "10.0.0.0/16",
+    EnableDNS: true,
+}
+
+// 2. Create adapter
+adapter := networking.NewAWSNetworkingAdapter(awsService)
+
+// 3. Create VPC through adapter
+ctx := context.Background()
+createdVPC, err := adapter.CreateVPC(ctx, domainVPC)
+if err != nil {
+    // handle error
+}
+
+// 4. Created VPC now has ID and ARN populated!
+fmt.Printf("VPC ID: %s\n", createdVPC.ID)        // "vpc-0a1b2c3d4e5f6g7h8"
+fmt.Printf("VPC ARN: %s\n", *createdVPC.ARN)    // "arn:aws:ec2:us-east-1:..."
+
+// 5. Get VPC by ID (returns domain model with ID/ARN)
+retrievedVPC, err := adapter.GetVPC(ctx, createdVPC.ID)
+// retrievedVPC.ID and retrievedVPC.ARN are populated
+```
+
+## Input vs Output Models in Adapters
+
+### What Happens Inside the Adapter
+
+When you call `adapter.CreateVPC()`:
+
+1. **Input Conversion**: Domain model → AWS input model
+   ```go
+   awsVPCInput := awsmapper.FromDomainVPC(domainVPC)
+   // No ID/ARN in awsVPCInput
+   ```
+
+2. **Service Call**: AWS service creates resource
+   ```go
+   awsVPCOutput, err := awsService.CreateVPC(ctx, awsVPCInput)
+   // awsVPCOutput has ID, ARN, State, CreationTime, etc.
+   ```
+
+3. **Output Conversion**: AWS output model → Domain model
+   ```go
+   domainVPCWithID := awsmapper.ToDomainVPCFromOutput(awsVPCOutput)
+   // domainVPCWithID has ID and ARN populated
+   ```
+
+### Key Points
+
+- **Input Models**: Used for creation/update operations (no ID/ARN)
+- **Output Models**: Returned by AWS services (with ID/ARN/metadata)
+- **Adapter Handles Both**: Automatically converts between input/output models
+- **Domain Layer**: Always receives domain models, but with ID/ARN after operations
 
 ## Adding New Adapters
 
