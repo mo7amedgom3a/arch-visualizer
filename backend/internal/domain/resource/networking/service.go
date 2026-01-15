@@ -42,6 +42,24 @@ type NetworkingService interface {
 	CreateNATGateway(ctx context.Context, ngw *NATGateway) (*NATGateway, error)
 	GetNATGateway(ctx context.Context, id string) (*NATGateway, error)
 	DeleteNATGateway(ctx context.Context, id string) error
+	
+	// Elastic IP operations
+	AllocateElasticIP(ctx context.Context, eip *ElasticIP) (*ElasticIP, error)
+	GetElasticIP(ctx context.Context, id string) (*ElasticIP, error)
+	ReleaseElasticIP(ctx context.Context, id string) error
+	AssociateElasticIP(ctx context.Context, allocationID, instanceID string) error
+	DisassociateElasticIP(ctx context.Context, associationID string) error
+	ListElasticIPs(ctx context.Context, region string) ([]*ElasticIP, error)
+	
+	// Network ACL operations
+	CreateNetworkACL(ctx context.Context, acl *NetworkACL) (*NetworkACL, error)
+	GetNetworkACL(ctx context.Context, id string) (*NetworkACL, error)
+	DeleteNetworkACL(ctx context.Context, id string) error
+	AddNetworkACLRule(ctx context.Context, aclID string, rule ACLRule) error
+	RemoveNetworkACLRule(ctx context.Context, aclID string, ruleNumber int, ruleType ACLRuleType) error
+	AssociateNetworkACLWithSubnet(ctx context.Context, aclID, subnetID string) error
+	DisassociateNetworkACLFromSubnet(ctx context.Context, associationID string) error
+	ListNetworkACLs(ctx context.Context, vpcID string) ([]*NetworkACL, error)
 }
 
 // NetworkingRepository defines the interface for networking resource persistence

@@ -357,3 +357,165 @@ func (a *AWSNetworkingAdapter) DeleteNATGateway(ctx context.Context, id string) 
 	}
 	return nil
 }
+
+// Elastic IP Operations
+
+func (a *AWSNetworkingAdapter) AllocateElasticIP(ctx context.Context, eip *domainnetworking.ElasticIP) (*domainnetworking.ElasticIP, error) {
+	if err := eip.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsEIP := awsmapper.FromDomainElasticIP(eip)
+	if err := awsEIP.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsEIPOutput, err := a.awsService.AllocateElasticIP(ctx, awsEIP)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainElasticIPFromOutput(awsEIPOutput), nil
+}
+
+func (a *AWSNetworkingAdapter) GetElasticIP(ctx context.Context, id string) (*domainnetworking.ElasticIP, error) {
+	awsEIPOutput, err := a.awsService.GetElasticIP(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainElasticIPFromOutput(awsEIPOutput), nil
+}
+
+func (a *AWSNetworkingAdapter) ReleaseElasticIP(ctx context.Context, id string) error {
+	if err := a.awsService.ReleaseElasticIP(ctx, id); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) AssociateElasticIP(ctx context.Context, allocationID, instanceID string) error {
+	if err := a.awsService.AssociateElasticIP(ctx, allocationID, instanceID); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) DisassociateElasticIP(ctx context.Context, associationID string) error {
+	if err := a.awsService.DisassociateElasticIP(ctx, associationID); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) ListElasticIPs(ctx context.Context, region string) ([]*domainnetworking.ElasticIP, error) {
+	awsEIPOutputs, err := a.awsService.ListElasticIPs(ctx, region)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainEIPs := make([]*domainnetworking.ElasticIP, len(awsEIPOutputs))
+	for i, awsEIPOutput := range awsEIPOutputs {
+		domainEIPs[i] = awsmapper.ToDomainElasticIPFromOutput(awsEIPOutput)
+	}
+
+	return domainEIPs, nil
+}
+
+// Network ACL Operations
+
+func (a *AWSNetworkingAdapter) CreateNetworkACL(ctx context.Context, acl *domainnetworking.NetworkACL) (*domainnetworking.NetworkACL, error) {
+	if err := acl.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsACL := awsmapper.FromDomainNetworkACL(acl)
+	if err := awsACL.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsACLOutput, err := a.awsService.CreateNetworkACL(ctx, awsACL)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainNetworkACLFromOutput(awsACLOutput), nil
+}
+
+func (a *AWSNetworkingAdapter) GetNetworkACL(ctx context.Context, id string) (*domainnetworking.NetworkACL, error) {
+	awsACLOutput, err := a.awsService.GetNetworkACL(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainNetworkACLFromOutput(awsACLOutput), nil
+}
+
+func (a *AWSNetworkingAdapter) DeleteNetworkACL(ctx context.Context, id string) error {
+	if err := a.awsService.DeleteNetworkACL(ctx, id); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) AddNetworkACLRule(ctx context.Context, aclID string, rule domainnetworking.ACLRule) error {
+	// Validate rule
+	if rule.RuleNumber < 1 || rule.RuleNumber > 32766 {
+		return fmt.Errorf("rule number must be between 1 and 32766")
+	}
+	if rule.Protocol == "" {
+		return fmt.Errorf("protocol is required")
+	}
+	if rule.CIDR == "" {
+		return fmt.Errorf("cidr is required")
+	}
+	if rule.Action != domainnetworking.ACLRuleActionAllow && rule.Action != domainnetworking.ACLRuleActionDeny {
+		return fmt.Errorf("action must be 'allow' or 'deny'")
+	}
+
+	awsRule := awsmapper.ConvertDomainACLRuleToAWS(rule)
+	if err := a.awsService.AddNetworkACLRule(ctx, aclID, awsRule); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) RemoveNetworkACLRule(ctx context.Context, aclID string, ruleNumber int, ruleType domainnetworking.ACLRuleType) error {
+	if ruleNumber < 1 || ruleNumber > 32766 {
+		return fmt.Errorf("rule number must be between 1 and 32766")
+	}
+
+	awsRuleType := awsmapper.ConvertDomainACLRuleTypeToAWS(ruleType)
+	if err := a.awsService.RemoveNetworkACLRule(ctx, aclID, ruleNumber, awsRuleType); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) AssociateNetworkACLWithSubnet(ctx context.Context, aclID, subnetID string) error {
+	if err := a.awsService.AssociateNetworkACLWithSubnet(ctx, aclID, subnetID); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) DisassociateNetworkACLFromSubnet(ctx context.Context, associationID string) error {
+	if err := a.awsService.DisassociateNetworkACLFromSubnet(ctx, associationID); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) ListNetworkACLs(ctx context.Context, vpcID string) ([]*domainnetworking.NetworkACL, error) {
+	awsACLOutputs, err := a.awsService.ListNetworkACLs(ctx, vpcID)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainACLs := make([]*domainnetworking.NetworkACL, len(awsACLOutputs))
+	for i, awsACLOutput := range awsACLOutputs {
+		domainACLs[i] = awsmapper.ToDomainNetworkACLFromOutput(awsACLOutput)
+	}
+
+	return domainACLs, nil
+}

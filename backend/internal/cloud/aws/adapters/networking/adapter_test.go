@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
@@ -262,6 +263,126 @@ func (m *mockAWSNetworkingService) GetNATGateway(ctx context.Context, id string)
 
 func (m *mockAWSNetworkingService) DeleteNATGateway(ctx context.Context, id string) error {
 	return nil
+}
+
+func (m *mockAWSNetworkingService) AllocateElasticIP(ctx context.Context, eip *awsnetworking.ElasticIP) (*awsoutputs.ElasticIPOutput, error) {
+	return &awsoutputs.ElasticIPOutput{
+		ID:           "eipalloc-mock-123",
+		ARN:          "arn:aws:ec2:us-east-1:123456789012:elastic-ip/eipalloc-mock-123",
+		PublicIP:     "54.123.45.67",
+		Region:       eip.Region,
+		AllocationID: "eipalloc-mock-123",
+		State:        "available",
+		CreationTime: time.Now(),
+		Tags:         eip.Tags,
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) GetElasticIP(ctx context.Context, id string) (*awsoutputs.ElasticIPOutput, error) {
+	return &awsoutputs.ElasticIPOutput{
+		ID:           id,
+		ARN:          "arn:aws:ec2:us-east-1:123456789012:elastic-ip/" + id,
+		PublicIP:     "54.123.45.67",
+		Region:       "us-east-1",
+		AllocationID: id,
+		State:        "available",
+		CreationTime: time.Now(),
+		Tags:         []configs.Tag{},
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) ReleaseElasticIP(ctx context.Context, id string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) AssociateElasticIP(ctx context.Context, allocationID, instanceID string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) DisassociateElasticIP(ctx context.Context, associationID string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) ListElasticIPs(ctx context.Context, region string) ([]*awsoutputs.ElasticIPOutput, error) {
+	return []*awsoutputs.ElasticIPOutput{
+		{
+			ID:           "eipalloc-mock-123",
+			ARN:          "arn:aws:ec2:us-east-1:123456789012:elastic-ip/eipalloc-mock-123",
+			PublicIP:     "54.123.45.67",
+			Region:       region,
+			AllocationID: "eipalloc-mock-123",
+			State:        "available",
+			CreationTime: time.Now(),
+			Tags:         []configs.Tag{},
+		},
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) CreateNetworkACL(ctx context.Context, acl *awsnetworking.NetworkACL) (*awsoutputs.NetworkACLOutput, error) {
+	return &awsoutputs.NetworkACLOutput{
+		ID:            "acl-mock-123",
+		ARN:           "arn:aws:ec2:us-east-1:123456789012:network-acl/acl-mock-123",
+		Name:          acl.Name,
+		VPCID:         acl.VPCID,
+		InboundRules:  acl.InboundRules,
+		OutboundRules: acl.OutboundRules,
+		IsDefault:     false,
+		Associations:  []awsoutputs.NetworkACLAssociation{},
+		CreationTime:  time.Now(),
+		Tags:          acl.Tags,
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) GetNetworkACL(ctx context.Context, id string) (*awsoutputs.NetworkACLOutput, error) {
+	return &awsoutputs.NetworkACLOutput{
+		ID:            id,
+		ARN:           "arn:aws:ec2:us-east-1:123456789012:network-acl/" + id,
+		Name:          "test-acl",
+		VPCID:         "vpc-123",
+		InboundRules:  []awsnetworking.ACLRule{},
+		OutboundRules: []awsnetworking.ACLRule{},
+		IsDefault:     false,
+		Associations:  []awsoutputs.NetworkACLAssociation{},
+		CreationTime:  time.Now(),
+		Tags:          []configs.Tag{},
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) DeleteNetworkACL(ctx context.Context, id string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) AddNetworkACLRule(ctx context.Context, aclID string, rule awsnetworking.ACLRule) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) RemoveNetworkACLRule(ctx context.Context, aclID string, ruleNumber int, ruleType awsnetworking.ACLRuleType) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) AssociateNetworkACLWithSubnet(ctx context.Context, aclID, subnetID string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) DisassociateNetworkACLFromSubnet(ctx context.Context, associationID string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) ListNetworkACLs(ctx context.Context, vpcID string) ([]*awsoutputs.NetworkACLOutput, error) {
+	return []*awsoutputs.NetworkACLOutput{
+		{
+			ID:            "acl-mock-123",
+			ARN:           "arn:aws:ec2:us-east-1:123456789012:network-acl/acl-mock-123",
+			Name:          "test-acl",
+			VPCID:         vpcID,
+			InboundRules:  []awsnetworking.ACLRule{},
+			OutboundRules: []awsnetworking.ACLRule{},
+			IsDefault:     false,
+			Associations:  []awsoutputs.NetworkACLAssociation{},
+			CreationTime:  time.Now(),
+			Tags:          []configs.Tag{},
+		},
+	}, nil
 }
 
 func TestAWSNetworkingAdapter_CreateVPC(t *testing.T) {

@@ -278,6 +278,135 @@ func (s *realisticAWSNetworkingService) DeleteNATGateway(ctx context.Context, id
 	return nil
 }
 
+func (s *realisticAWSNetworkingService) AllocateElasticIP(ctx context.Context, eip *awsnetworking.ElasticIP) (*awsoutputs.ElasticIPOutput, error) {
+	allocationID := "eipalloc-0a1b2c3d4e5f6g7h8"
+	if eip.AllocationID != nil && *eip.AllocationID != "" {
+		allocationID = *eip.AllocationID
+	}
+	
+	return &awsoutputs.ElasticIPOutput{
+		ID:                allocationID,
+		ARN:               fmt.Sprintf("arn:aws:ec2:%s:123456789012:elastic-ip/%s", eip.Region, allocationID),
+		PublicIP:          "54.123.45.67",
+		Region:            eip.Region,
+		NetworkBorderGroup: eip.NetworkBorderGroup,
+		AllocationID:      allocationID,
+		State:             "available",
+		Domain:            "vpc",
+		CreationTime:      time.Now(),
+		Tags:              eip.Tags,
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) GetElasticIP(ctx context.Context, id string) (*awsoutputs.ElasticIPOutput, error) {
+	return &awsoutputs.ElasticIPOutput{
+		ID:           id,
+		ARN:          fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:elastic-ip/%s", id),
+		PublicIP:     "54.123.45.67",
+		Region:       "us-east-1",
+		AllocationID: id,
+		State:        "available",
+		Domain:       "vpc",
+		CreationTime: time.Now(),
+		Tags:         []configs.Tag{},
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) ReleaseElasticIP(ctx context.Context, id string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) AssociateElasticIP(ctx context.Context, allocationID, instanceID string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) DisassociateElasticIP(ctx context.Context, associationID string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) ListElasticIPs(ctx context.Context, region string) ([]*awsoutputs.ElasticIPOutput, error) {
+	return []*awsoutputs.ElasticIPOutput{
+		{
+			ID:           "eipalloc-0a1b2c3d4e5f6g7h8",
+			ARN:          fmt.Sprintf("arn:aws:ec2:%s:123456789012:elastic-ip/eipalloc-0a1b2c3d4e5f6g7h8", region),
+			PublicIP:     "54.123.45.67",
+			Region:       region,
+			AllocationID: "eipalloc-0a1b2c3d4e5f6g7h8",
+			State:        "available",
+			Domain:       "vpc",
+			CreationTime: time.Now(),
+			Tags:         []configs.Tag{},
+		},
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) CreateNetworkACL(ctx context.Context, acl *awsnetworking.NetworkACL) (*awsoutputs.NetworkACLOutput, error) {
+	return &awsoutputs.NetworkACLOutput{
+		ID:            "acl-0a1b2c3d4e5f6g7h8",
+		ARN:           fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:network-acl/acl-0a1b2c3d4e5f6g7h8"),
+		Name:          acl.Name,
+		VPCID:         acl.VPCID,
+		InboundRules:  acl.InboundRules,
+		OutboundRules: acl.OutboundRules,
+		IsDefault:     false,
+		Associations:  []awsoutputs.NetworkACLAssociation{},
+		CreationTime:  time.Now(),
+		Tags:          acl.Tags,
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) GetNetworkACL(ctx context.Context, id string) (*awsoutputs.NetworkACLOutput, error) {
+	return &awsoutputs.NetworkACLOutput{
+		ID:            id,
+		ARN:           fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:network-acl/%s", id),
+		Name:          "test-acl",
+		VPCID:         "vpc-123",
+		InboundRules:  []awsnetworking.ACLRule{},
+		OutboundRules: []awsnetworking.ACLRule{},
+		IsDefault:     false,
+		Associations:  []awsoutputs.NetworkACLAssociation{},
+		CreationTime:  time.Now(),
+		Tags:          []configs.Tag{},
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) DeleteNetworkACL(ctx context.Context, id string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) AddNetworkACLRule(ctx context.Context, aclID string, rule awsnetworking.ACLRule) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) RemoveNetworkACLRule(ctx context.Context, aclID string, ruleNumber int, ruleType awsnetworking.ACLRuleType) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) AssociateNetworkACLWithSubnet(ctx context.Context, aclID, subnetID string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) DisassociateNetworkACLFromSubnet(ctx context.Context, associationID string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) ListNetworkACLs(ctx context.Context, vpcID string) ([]*awsoutputs.NetworkACLOutput, error) {
+	return []*awsoutputs.NetworkACLOutput{
+		{
+			ID:            "acl-0a1b2c3d4e5f6g7h8",
+			ARN:           fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:network-acl/acl-0a1b2c3d4e5f6g7h8"),
+			Name:          "test-acl",
+			VPCID:         vpcID,
+			InboundRules:  []awsnetworking.ACLRule{},
+			OutboundRules: []awsnetworking.ACLRule{},
+			IsDefault:     false,
+			Associations:  []awsoutputs.NetworkACLAssociation{},
+			CreationTime:  time.Now(),
+			Tags:          []configs.Tag{},
+		},
+	}, nil
+}
+
 // TestFullFlow_VPC_CreateToDomain tests the complete flow: domain input → AWS service → output → domain with ID/ARN
 func TestFullFlow_VPC_CreateToDomain(t *testing.T) {
 	fmt.Printf("\n=== Running Integration Test: Full Flow VPC Creation ===\n")

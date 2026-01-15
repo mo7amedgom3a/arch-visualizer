@@ -23,6 +23,8 @@ var (
 	_ NetworkResource = (*RouteTable)(nil)
 	_ NetworkResource = (*SecurityGroup)(nil)
 	_ NetworkResource = (*NATGateway)(nil)
+	_ NetworkResource = (*ElasticIP)(nil)
+	_ NetworkResource = (*NetworkACL)(nil)
 )
 
 // Implement NetworkResource for VPC
@@ -54,3 +56,13 @@ func (sg *SecurityGroup) GetVPCID() string { return sg.VPCID }
 func (ngw *NATGateway) GetID() string    { return ngw.ID }
 func (ngw *NATGateway) GetName() string  { return ngw.Name }
 func (ngw *NATGateway) GetVPCID() string { return "" } // NAT Gateway is subnet-scoped, not directly VPC-scoped
+
+// Implement NetworkResource for ElasticIP
+func (eip *ElasticIP) GetID() string    { return eip.ID }
+func (eip *ElasticIP) GetName() string  { return "" } // Elastic IP doesn't have a name
+func (eip *ElasticIP) GetVPCID() string { return "" } // Elastic IP is region-scoped, not VPC-scoped
+
+// Implement NetworkResource for NetworkACL
+func (acl *NetworkACL) GetID() string    { return acl.ID }
+func (acl *NetworkACL) GetName() string  { return acl.Name }
+func (acl *NetworkACL) GetVPCID() string { return acl.VPCID }
