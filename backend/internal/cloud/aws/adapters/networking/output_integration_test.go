@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 )
 
 // realisticAWSNetworkingService is a realistic implementation that returns proper output models
@@ -85,33 +85,33 @@ func (s *realisticAWSNetworkingService) ListVPCs(ctx context.Context, region str
 
 func (s *realisticAWSNetworkingService) CreateSubnet(ctx context.Context, subnet *awsnetworking.Subnet) (*awsoutputs.SubnetOutput, error) {
 	return &awsoutputs.SubnetOutput{
-		ID:                 "subnet-0a1b2c3d4e5f6g7h8",
-		ARN:                "arn:aws:ec2:us-east-1:123456789012:subnet/subnet-0a1b2c3d4e5f6g7h8",
-		Name:               subnet.Name,
-		VPCID:              subnet.VPCID,
-		CIDR:               subnet.CIDR,
-		AvailabilityZone:   subnet.AvailabilityZone,
-		State:              "available",
-		AvailableIPCount:   250,
+		ID:                  "subnet-0a1b2c3d4e5f6g7h8",
+		ARN:                 "arn:aws:ec2:us-east-1:123456789012:subnet/subnet-0a1b2c3d4e5f6g7h8",
+		Name:                subnet.Name,
+		VPCID:               subnet.VPCID,
+		CIDR:                subnet.CIDR,
+		AvailabilityZone:    subnet.AvailabilityZone,
+		State:               "available",
+		AvailableIPCount:    250,
 		MapPublicIPOnLaunch: subnet.MapPublicIPOnLaunch,
-		CreationTime:       time.Now(),
-		Tags:               subnet.Tags,
+		CreationTime:        time.Now(),
+		Tags:                subnet.Tags,
 	}, nil
 }
 
 func (s *realisticAWSNetworkingService) GetSubnet(ctx context.Context, id string) (*awsoutputs.SubnetOutput, error) {
 	return &awsoutputs.SubnetOutput{
-		ID:                 id,
-		ARN:                fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:subnet/%s", id),
-		Name:               "test-subnet",
-		VPCID:              "vpc-123",
-		CIDR:               "10.0.1.0/24",
-		AvailabilityZone:   "us-east-1a",
-		State:              "available",
-		AvailableIPCount:   250,
+		ID:                  id,
+		ARN:                 fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:subnet/%s", id),
+		Name:                "test-subnet",
+		VPCID:               "vpc-123",
+		CIDR:                "10.0.1.0/24",
+		AvailabilityZone:    "us-east-1a",
+		State:               "available",
+		AvailableIPCount:    250,
 		MapPublicIPOnLaunch: true,
-		CreationTime:       time.Now(),
-		Tags:               []configs.Tag{},
+		CreationTime:        time.Now(),
+		Tags:                []configs.Tag{},
 	}, nil
 }
 
@@ -126,17 +126,17 @@ func (s *realisticAWSNetworkingService) DeleteSubnet(ctx context.Context, id str
 func (s *realisticAWSNetworkingService) ListSubnets(ctx context.Context, vpcID string) ([]*awsoutputs.SubnetOutput, error) {
 	return []*awsoutputs.SubnetOutput{
 		{
-			ID:                 "subnet-0a1b2c3d4e5f6g7h8",
-			ARN:                "arn:aws:ec2:us-east-1:123456789012:subnet/subnet-0a1b2c3d4e5f6g7h8",
-			Name:               "test-subnet",
-			VPCID:              vpcID,
-			CIDR:               "10.0.1.0/24",
-			AvailabilityZone:   "us-east-1a",
-			State:              "available",
-			AvailableIPCount:   250,
+			ID:                  "subnet-0a1b2c3d4e5f6g7h8",
+			ARN:                 "arn:aws:ec2:us-east-1:123456789012:subnet/subnet-0a1b2c3d4e5f6g7h8",
+			Name:                "test-subnet",
+			VPCID:               vpcID,
+			CIDR:                "10.0.1.0/24",
+			AvailabilityZone:    "us-east-1a",
+			State:               "available",
+			AvailableIPCount:    250,
 			MapPublicIPOnLaunch: true,
-			CreationTime:       time.Now(),
-			Tags:               []configs.Tag{},
+			CreationTime:        time.Now(),
+			Tags:                []configs.Tag{},
 		},
 	}, nil
 }
@@ -283,18 +283,18 @@ func (s *realisticAWSNetworkingService) AllocateElasticIP(ctx context.Context, e
 	if eip.AllocationID != nil && *eip.AllocationID != "" {
 		allocationID = *eip.AllocationID
 	}
-	
+
 	return &awsoutputs.ElasticIPOutput{
-		ID:                allocationID,
-		ARN:               fmt.Sprintf("arn:aws:ec2:%s:123456789012:elastic-ip/%s", eip.Region, allocationID),
-		PublicIP:          "54.123.45.67",
-		Region:            eip.Region,
+		ID:                 allocationID,
+		ARN:                fmt.Sprintf("arn:aws:ec2:%s:123456789012:elastic-ip/%s", eip.Region, allocationID),
+		PublicIP:           "54.123.45.67",
+		Region:             eip.Region,
 		NetworkBorderGroup: eip.NetworkBorderGroup,
-		AllocationID:      allocationID,
-		State:             "available",
-		Domain:            "vpc",
-		CreationTime:      time.Now(),
-		Tags:              eip.Tags,
+		AllocationID:       allocationID,
+		State:              "available",
+		Domain:             "vpc",
+		CreationTime:       time.Now(),
+		Tags:               eip.Tags,
 	}, nil
 }
 
@@ -343,7 +343,7 @@ func (s *realisticAWSNetworkingService) ListElasticIPs(ctx context.Context, regi
 func (s *realisticAWSNetworkingService) CreateNetworkACL(ctx context.Context, acl *awsnetworking.NetworkACL) (*awsoutputs.NetworkACLOutput, error) {
 	return &awsoutputs.NetworkACLOutput{
 		ID:            "acl-0a1b2c3d4e5f6g7h8",
-		ARN:           fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:network-acl/acl-0a1b2c3d4e5f6g7h8"),
+		ARN:           "arn:aws:ec2:us-east-1:123456789012:network-acl/acl-0a1b2c3d4e5f6g7h8",
 		Name:          acl.Name,
 		VPCID:         acl.VPCID,
 		InboundRules:  acl.InboundRules,
@@ -394,7 +394,7 @@ func (s *realisticAWSNetworkingService) ListNetworkACLs(ctx context.Context, vpc
 	return []*awsoutputs.NetworkACLOutput{
 		{
 			ID:            "acl-0a1b2c3d4e5f6g7h8",
-			ARN:           fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:network-acl/acl-0a1b2c3d4e5f6g7h8"),
+			ARN:           "arn:aws:ec2:us-east-1:123456789012:network-acl/acl-0a1b2c3d4e5f6g7h8",
 			Name:          "test-acl",
 			VPCID:         vpcID,
 			InboundRules:  []awsnetworking.ACLRule{},
@@ -403,6 +403,95 @@ func (s *realisticAWSNetworkingService) ListNetworkACLs(ctx context.Context, vpc
 			Associations:  []awsoutputs.NetworkACLAssociation{},
 			CreationTime:  time.Now(),
 			Tags:          []configs.Tag{},
+		},
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) CreateNetworkInterface(ctx context.Context, eni *awsnetworking.NetworkInterface) (*awsoutputs.NetworkInterfaceOutput, error) {
+	privateIP := "10.0.1.100"
+	if eni.PrivateIPv4Address != nil && *eni.PrivateIPv4Address != "" {
+		privateIP = *eni.PrivateIPv4Address
+	}
+
+	return &awsoutputs.NetworkInterfaceOutput{
+		ID:                   "eni-0a1b2c3d4e5f6g7h8",
+		ARN:                  "arn:aws:ec2:us-east-1:123456789012:network-interface/eni-0a1b2c3d4e5f6g7h8",
+		Description:          eni.Description,
+		SubnetID:             eni.SubnetID,
+		InterfaceType:        string(eni.InterfaceType),
+		SecurityGroupIDs:     eni.SecurityGroupIDs,
+		Status:               "available",
+		VPCID:                "vpc-123",
+		AvailabilityZone:     "us-east-1a",
+		OwnerID:              "123456789012",
+		RequesterManaged:     false,
+		SourceDestCheck:      true,
+		PrivateIPv4Address:   privateIP,
+		MACAddress:           "0a:ff:fe:97:e7:61",
+		IPv4PrefixDelegation: eni.IPv4PrefixDelegation,
+		CreationTime:         time.Now(),
+		Tags:                 eni.Tags,
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) GetNetworkInterface(ctx context.Context, id string) (*awsoutputs.NetworkInterfaceOutput, error) {
+	return &awsoutputs.NetworkInterfaceOutput{
+		ID:                 id,
+		ARN:                fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:network-interface/%s", id),
+		SubnetID:           "subnet-123",
+		InterfaceType:      "elastic",
+		SecurityGroupIDs:   []string{"sg-123"},
+		Status:             "available",
+		VPCID:              "vpc-123",
+		AvailabilityZone:   "us-east-1a",
+		OwnerID:            "123456789012",
+		RequesterManaged:   false,
+		SourceDestCheck:    true,
+		PrivateIPv4Address: "10.0.1.100",
+		MACAddress:         "0a:ff:fe:97:e7:61",
+		CreationTime:       time.Now(),
+		Tags:               []configs.Tag{},
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) DeleteNetworkInterface(ctx context.Context, id string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) AttachNetworkInterface(ctx context.Context, eniID, instanceID string, deviceIndex int) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) DetachNetworkInterface(ctx context.Context, attachmentID string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) AssignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) UnassignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error {
+	return nil
+}
+
+func (s *realisticAWSNetworkingService) ListNetworkInterfaces(ctx context.Context, subnetID string) ([]*awsoutputs.NetworkInterfaceOutput, error) {
+	return []*awsoutputs.NetworkInterfaceOutput{
+		{
+			ID:                 "eni-0a1b2c3d4e5f6g7h8",
+			ARN:                "arn:aws:ec2:us-east-1:123456789012:network-interface/eni-0a1b2c3d4e5f6g7h8",
+			SubnetID:           subnetID,
+			InterfaceType:      "elastic",
+			SecurityGroupIDs:   []string{"sg-123"},
+			Status:             "available",
+			VPCID:              "vpc-123",
+			AvailabilityZone:   "us-east-1a",
+			OwnerID:            "123456789012",
+			RequesterManaged:   false,
+			SourceDestCheck:    true,
+			PrivateIPv4Address: "10.0.1.100",
+			MACAddress:         "0a:ff:fe:97:e7:61",
+			CreationTime:       time.Now(),
+			Tags:               []configs.Tag{},
 		},
 	}, nil
 }

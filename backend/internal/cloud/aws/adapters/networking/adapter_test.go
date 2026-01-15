@@ -385,6 +385,89 @@ func (m *mockAWSNetworkingService) ListNetworkACLs(ctx context.Context, vpcID st
 	}, nil
 }
 
+func (m *mockAWSNetworkingService) CreateNetworkInterface(ctx context.Context, eni *awsnetworking.NetworkInterface) (*awsoutputs.NetworkInterfaceOutput, error) {
+	return &awsoutputs.NetworkInterfaceOutput{
+		ID:                 "eni-mock-123",
+		ARN:                "arn:aws:ec2:us-east-1:123456789012:network-interface/eni-mock-123",
+		Description:        eni.Description,
+		SubnetID:           eni.SubnetID,
+		InterfaceType:      string(eni.InterfaceType),
+		SecurityGroupIDs:   eni.SecurityGroupIDs,
+		Status:             "available",
+		VPCID:              "vpc-123",
+		AvailabilityZone:   "us-east-1a",
+		OwnerID:            "123456789012",
+		RequesterManaged:   false,
+		SourceDestCheck:    true,
+		PrivateIPv4Address: "10.0.1.100",
+		MACAddress:         "0a:ff:fe:97:e7:61",
+		CreationTime:       time.Now(),
+		Tags:               eni.Tags,
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) GetNetworkInterface(ctx context.Context, id string) (*awsoutputs.NetworkInterfaceOutput, error) {
+	return &awsoutputs.NetworkInterfaceOutput{
+		ID:                 id,
+		ARN:                "arn:aws:ec2:us-east-1:123456789012:network-interface/" + id,
+		SubnetID:           "subnet-123",
+		InterfaceType:      "elastic",
+		SecurityGroupIDs:   []string{"sg-123"},
+		Status:             "available",
+		VPCID:              "vpc-123",
+		AvailabilityZone:   "us-east-1a",
+		OwnerID:            "123456789012",
+		RequesterManaged:   false,
+		SourceDestCheck:    true,
+		PrivateIPv4Address: "10.0.1.100",
+		MACAddress:         "0a:ff:fe:97:e7:61",
+		CreationTime:       time.Now(),
+		Tags:               []configs.Tag{},
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) DeleteNetworkInterface(ctx context.Context, id string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) AttachNetworkInterface(ctx context.Context, eniID, instanceID string, deviceIndex int) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) DetachNetworkInterface(ctx context.Context, attachmentID string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) AssignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) UnassignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error {
+	return nil
+}
+
+func (m *mockAWSNetworkingService) ListNetworkInterfaces(ctx context.Context, subnetID string) ([]*awsoutputs.NetworkInterfaceOutput, error) {
+	return []*awsoutputs.NetworkInterfaceOutput{
+		{
+			ID:                 "eni-mock-123",
+			ARN:                "arn:aws:ec2:us-east-1:123456789012:network-interface/eni-mock-123",
+			SubnetID:           subnetID,
+			InterfaceType:      "elastic",
+			SecurityGroupIDs:   []string{"sg-123"},
+			Status:             "available",
+			VPCID:              "vpc-123",
+			AvailabilityZone:   "us-east-1a",
+			OwnerID:            "123456789012",
+			RequesterManaged:   false,
+			SourceDestCheck:    true,
+			PrivateIPv4Address: "10.0.1.100",
+			MACAddress:         "0a:ff:fe:97:e7:61",
+			CreationTime:       time.Now(),
+			Tags:               []configs.Tag{},
+		},
+	}, nil
+}
+
 func TestAWSNetworkingAdapter_CreateVPC(t *testing.T) {
 	mockService := &mockAWSNetworkingService{}
 	adapter := NewAWSNetworkingAdapter(mockService)

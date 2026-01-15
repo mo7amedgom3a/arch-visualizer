@@ -65,4 +65,14 @@ type AWSNetworkingService interface {
 	AssociateNetworkACLWithSubnet(ctx context.Context, aclID, subnetID string) error
 	DisassociateNetworkACLFromSubnet(ctx context.Context, associationID string) error
 	ListNetworkACLs(ctx context.Context, vpcID string) ([]*awsoutputs.NetworkACLOutput, error)
+
+	// Network Interface operations
+	CreateNetworkInterface(ctx context.Context, eni *awsnetworking.NetworkInterface) (*awsoutputs.NetworkInterfaceOutput, error)
+	GetNetworkInterface(ctx context.Context, id string) (*awsoutputs.NetworkInterfaceOutput, error)
+	DeleteNetworkInterface(ctx context.Context, id string) error
+	AttachNetworkInterface(ctx context.Context, eniID, instanceID string, deviceIndex int) error
+	DetachNetworkInterface(ctx context.Context, attachmentID string) error
+	AssignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error
+	UnassignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error
+	ListNetworkInterfaces(ctx context.Context, subnetID string) ([]*awsoutputs.NetworkInterfaceOutput, error)
 }

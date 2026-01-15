@@ -25,6 +25,7 @@ var (
 	_ NetworkResource = (*NATGateway)(nil)
 	_ NetworkResource = (*ElasticIP)(nil)
 	_ NetworkResource = (*NetworkACL)(nil)
+	_ NetworkResource = (*NetworkInterface)(nil)
 )
 
 // Implement NetworkResource for VPC
@@ -66,3 +67,13 @@ func (eip *ElasticIP) GetVPCID() string { return "" } // Elastic IP is region-sc
 func (acl *NetworkACL) GetID() string    { return acl.ID }
 func (acl *NetworkACL) GetName() string  { return acl.Name }
 func (acl *NetworkACL) GetVPCID() string { return acl.VPCID }
+
+// Implement NetworkResource for NetworkInterface
+func (eni *NetworkInterface) GetID() string { return eni.ID }
+func (eni *NetworkInterface) GetName() string {
+	if eni.Description != nil {
+		return *eni.Description
+	}
+	return ""
+}
+func (eni *NetworkInterface) GetVPCID() string { return eni.VPCID }

@@ -60,6 +60,16 @@ type NetworkingService interface {
 	AssociateNetworkACLWithSubnet(ctx context.Context, aclID, subnetID string) error
 	DisassociateNetworkACLFromSubnet(ctx context.Context, associationID string) error
 	ListNetworkACLs(ctx context.Context, vpcID string) ([]*NetworkACL, error)
+	
+	// Network Interface operations
+	CreateNetworkInterface(ctx context.Context, eni *NetworkInterface) (*NetworkInterface, error)
+	GetNetworkInterface(ctx context.Context, id string) (*NetworkInterface, error)
+	DeleteNetworkInterface(ctx context.Context, id string) error
+	AttachNetworkInterface(ctx context.Context, eniID, instanceID string, deviceIndex int) error
+	DetachNetworkInterface(ctx context.Context, attachmentID string) error
+	AssignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error
+	UnassignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error
+	ListNetworkInterfaces(ctx context.Context, subnetID string) ([]*NetworkInterface, error)
 }
 
 // NetworkingRepository defines the interface for networking resource persistence

@@ -519,3 +519,81 @@ func (a *AWSNetworkingAdapter) ListNetworkACLs(ctx context.Context, vpcID string
 
 	return domainACLs, nil
 }
+
+// Network Interface Operations
+
+func (a *AWSNetworkingAdapter) CreateNetworkInterface(ctx context.Context, eni *domainnetworking.NetworkInterface) (*domainnetworking.NetworkInterface, error) {
+	if err := eni.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsENI := awsmapper.FromDomainNetworkInterface(eni)
+	if err := awsENI.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsENIOutput, err := a.awsService.CreateNetworkInterface(ctx, awsENI)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainNetworkInterfaceFromOutput(awsENIOutput), nil
+}
+
+func (a *AWSNetworkingAdapter) GetNetworkInterface(ctx context.Context, id string) (*domainnetworking.NetworkInterface, error) {
+	awsENIOutput, err := a.awsService.GetNetworkInterface(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainNetworkInterfaceFromOutput(awsENIOutput), nil
+}
+
+func (a *AWSNetworkingAdapter) DeleteNetworkInterface(ctx context.Context, id string) error {
+	if err := a.awsService.DeleteNetworkInterface(ctx, id); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) AttachNetworkInterface(ctx context.Context, eniID, instanceID string, deviceIndex int) error {
+	if err := a.awsService.AttachNetworkInterface(ctx, eniID, instanceID, deviceIndex); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) DetachNetworkInterface(ctx context.Context, attachmentID string) error {
+	if err := a.awsService.DetachNetworkInterface(ctx, attachmentID); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) AssignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error {
+	if err := a.awsService.AssignPrivateIPAddress(ctx, eniID, privateIP); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) UnassignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error {
+	if err := a.awsService.UnassignPrivateIPAddress(ctx, eniID, privateIP); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSNetworkingAdapter) ListNetworkInterfaces(ctx context.Context, subnetID string) ([]*domainnetworking.NetworkInterface, error) {
+	awsENIOutputs, err := a.awsService.ListNetworkInterfaces(ctx, subnetID)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainENIs := make([]*domainnetworking.NetworkInterface, len(awsENIOutputs))
+	for i, awsENIOutput := range awsENIOutputs {
+		domainENIs[i] = awsmapper.ToDomainNetworkInterfaceFromOutput(awsENIOutput)
+	}
+
+	return domainENIs, nil
+}
