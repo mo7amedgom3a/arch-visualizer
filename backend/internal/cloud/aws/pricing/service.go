@@ -1,0 +1,67 @@
+package pricing
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+)
+
+// AWSPricingService implements the PricingService interface for AWS
+type AWSPricingService struct {
+	calculator *AWSPricingCalculator
+}
+
+// NewAWSPricingService creates a new AWS pricing service
+func NewAWSPricingService() *AWSPricingService {
+	service := &AWSPricingService{}
+	service.calculator = NewAWSPricingCalculator(service)
+	return service
+}
+
+// GetPricing retrieves the pricing information for a specific resource type
+func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string, provider string, region string) (*domainpricing.ResourcePricing, error) {
+	if provider != "aws" {
+		return nil, fmt.Errorf("unsupported provider: %s", provider)
+	}
+
+	switch resourceType {
+	case "nat_gateway":
+		return networking.GetNATGatewayPricing(region), nil
+	case "elastic_ip":
+		return networking.GetElasticIPPricing(region), nil
+	case "network_interface":
+		return networking.GetNetworkInterfacePricing(region), nil
+	case "data_transfer":
+		return networking.GetDataTransferPricing(region), nil
+	default:
+		return nil, fmt.Errorf("pricing not available for resource type: %s", resourceType)
+	}
+}
+
+// EstimateCost estimates the cost for a resource over a given duration
+func (s *AWSPricingService) EstimateCost(ctx context.Context, res *resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
+	return s.calculator.CalculateResourceCost(ctx, res, duration)
+}
+
+// EstimateArchitectureCost estimates the total cost for multiple resources over a given duration
+func (s *AWSPricingService) EstimateArchitectureCost(ctx context.Context, resources []*resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
+	return s.calculator.CalculateArchitectureCost(ctx, resources, duration)
+}
+
+// ListSupportedResources returns a list of resource types that have pricing information
+func (s *AWSPricingService) ListSupportedResources(ctx context.Context, provider string) ([]string, error) {
+	if provider != "aws" {
+		return nil, fmt.Errorf("unsupported provider: %s", provider)
+	}
+
+	return []string{
+		"nat_gateway",
+		"elastic_ip",
+		"network_interface",
+		"data_transfer",
+	}, nil
+}

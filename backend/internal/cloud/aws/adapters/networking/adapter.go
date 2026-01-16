@@ -3,11 +3,15 @@ package networking
 import (
 	"context"
 	"fmt"
+	"time"
 
 	awsmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/networking"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
+	awspricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 )
 
 // AWSNetworkingAdapter adapts AWS-specific networking service to domain networking service
@@ -596,4 +600,32 @@ func (a *AWSNetworkingAdapter) ListNetworkInterfaces(ctx context.Context, subnet
 	}
 
 	return domainENIs, nil
+}
+
+// Pricing Operations
+
+func (a *AWSNetworkingAdapter) EstimateResourceCost(ctx context.Context, resourceType string, config map[string]interface{}, duration time.Duration) (*domainpricing.CostEstimate, error) {
+	// Get region from config or use default
+	region := "us-east-1"
+	if r, ok := config["region"].(string); ok && r != "" {
+		region = r
+	}
+
+	// Create a resource object for pricing calculation
+	res := &resource.Resource{
+		Type: resource.ResourceType{
+			Name: resourceType,
+		},
+		Provider: "aws",
+		Region:   region,
+	}
+
+	// Create pricing service and calculate cost
+	pricingService := awspricing.NewAWSPricingService()
+	return pricingService.EstimateCost(ctx, res, duration)
+}
+
+func (a *AWSNetworkingAdapter) GetResourcePricing(ctx context.Context, resourceType string, region string) (*domainpricing.ResourcePricing, error) {
+	pricingService := awspricing.NewAWSPricingService()
+	return pricingService.GetPricing(ctx, resourceType, "aws", region)
 }
