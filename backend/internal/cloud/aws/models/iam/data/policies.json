@@ -1,0 +1,122 @@
+[
+  {
+    "arn": "arn:aws:iam::aws:policy/ReadOnlyAccess",
+    "name": "ReadOnlyAccess",
+    "description": "Provides read-only access to AWS services and resources",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"*\"],\"Resource\":\"*\"},{\"Effect\":\"Deny\",\"Action\":[\"*\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["general"],
+    "related_resources": ["ec2", "ebs", "vpc", "iam"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/PowerUserAccess",
+    "name": "PowerUserAccess",
+    "description": "Provides full access to AWS services and resources, but does not allow management of Users and groups",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"NotAction\":[\"iam:*\",\"organizations:*\",\"account:*\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"iam:CreateServiceLinkedRole\",\"iam:DeleteServiceLinkedRole\",\"iam:ListRoles\",\"iam:ListAttachedRolePolicies\",\"organizations:DescribeOrganization\",\"account:ListRegions\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["general"],
+    "related_resources": ["ec2", "ebs", "vpc"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AdministratorAccess",
+    "name": "AdministratorAccess",
+    "description": "Allows full access to all resources",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"*\",\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["general"],
+    "related_resources": ["ec2", "ebs", "vpc", "iam"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+    "name": "AmazonEC2FullAccess",
+    "description": "Provides full access to Amazon EC2 via the AWS Management Console",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"ec2:*\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":\"elasticloadbalancing:*\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":\"cloudwatch:*\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":\"autoscaling:*\",\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":\"iam:CreateServiceLinkedRole\",\"Resource\":\"*\",\"Condition\":{\"StringEquals\":{\"iam:AWSServiceName\":[\"autoscaling.amazonaws.com\",\"ec2scheduled.amazonaws.com\",\"elasticloadbalancing.amazonaws.com\",\"spot.amazonaws.com\",\"spotfleet.amazonaws.com\",\"transitgateway.amazonaws.com\"]}}}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["compute"],
+    "related_resources": ["ec2"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+    "name": "AmazonEC2ReadOnlyAccess",
+    "description": "Provides read-only access to Amazon EC2 via the AWS Management Console",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:Describe*\",\"ec2:GetConsole*\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["compute"],
+    "related_resources": ["ec2"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonElasticBlockStoreFullAccess",
+    "name": "AmazonElasticBlockStoreFullAccess",
+    "description": "Provides full access to Amazon EBS",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:AttachVolume\",\"ec2:CreateSnapshot\",\"ec2:CreateTags\",\"ec2:CreateVolume\",\"ec2:DeleteSnapshot\",\"ec2:DeleteTags\",\"ec2:DeleteVolume\",\"ec2:DescribeAvailabilityZones\",\"ec2:DescribeSnapshots\",\"ec2:DescribeTags\",\"ec2:DescribeVolumeAttribute\",\"ec2:DescribeVolumeStatus\",\"ec2:DescribeVolumes\",\"ec2:DetachVolume\",\"ec2:EnableVolumeIO\",\"ec2:ModifySnapshotAttribute\",\"ec2:ModifyVolumeAttribute\",\"ec2:ResetSnapshotAttribute\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["storage"],
+    "related_resources": ["ebs"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonElasticBlockStoreReadOnlyAccess",
+    "name": "AmazonElasticBlockStoreReadOnlyAccess",
+    "description": "Provides read-only access to Amazon EBS",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:DescribeAvailabilityZones\",\"ec2:DescribeSnapshots\",\"ec2:DescribeTags\",\"ec2:DescribeVolumeAttribute\",\"ec2:DescribeVolumeStatus\",\"ec2:DescribeVolumes\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["storage"],
+    "related_resources": ["ebs"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonVPCFullAccess",
+    "name": "AmazonVPCFullAccess",
+    "description": "Provides full access to Amazon VPC",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:AcceptVpcPeeringConnection\",\"ec2:AllocateAddress\",\"ec2:AssignPrivateIpAddresses\",\"ec2:AssociateAddress\",\"ec2:AssociateDhcpOptions\",\"ec2:AssociateRouteTable\",\"ec2:AttachClassicLinkVpc\",\"ec2:AttachInternetGateway\",\"ec2:AttachNetworkInterface\",\"ec2:AttachVpnGateway\",\"ec2:AuthorizeSecurityGroupEgress\",\"ec2:AuthorizeSecurityGroupIngress\",\"ec2:CreateCustomerGateway\",\"ec2:CreateDhcpOptions\",\"ec2:CreateInternetGateway\",\"ec2:CreateNetworkAcl\",\"ec2:CreateNetworkAclEntry\",\"ec2:CreateNetworkInterface\",\"ec2:CreateRoute\",\"ec2:CreateRouteTable\",\"ec2:CreateSecurityGroup\",\"ec2:CreateSubnet\",\"ec2:CreateTags\",\"ec2:CreateVpc\",\"ec2:CreateVpcPeeringConnection\",\"ec2:CreateVpnConnection\",\"ec2:CreateVpnConnectionRoute\",\"ec2:CreateVpnGateway\",\"ec2:DeleteCustomerGateway\",\"ec2:DeleteDhcpOptions\",\"ec2:DeleteInternetGateway\",\"ec2:DeleteNetworkAcl\",\"ec2:DeleteNetworkAclEntry\",\"ec2:DeleteNetworkInterface\",\"ec2:DeleteRoute\",\"ec2:DeleteRouteTable\",\"ec2:DeleteSecurityGroup\",\"ec2:DeleteSubnet\",\"ec2:DeleteTags\",\"ec2:DeleteVpc\",\"ec2:DeleteVpcPeeringConnection\",\"ec2:DeleteVpnConnection\",\"ec2:DeleteVpnConnectionRoute\",\"ec2:DeleteVpnGateway\",\"ec2:DescribeAccountAttributes\",\"ec2:DescribeAddresses\",\"ec2:DescribeAvailabilityZones\",\"ec2:DescribeClassicLinkInstances\",\"ec2:DescribeCustomerGateways\",\"ec2:DescribeDhcpOptions\",\"ec2:DescribeInternetGateways\",\"ec2:DescribeNetworkAcls\",\"ec2:DescribeNetworkInterfaceAttribute\",\"ec2:DescribeNetworkInterfaces\",\"ec2:DescribePrefixLists\",\"ec2:DescribeRouteTables\",\"ec2:DescribeSecurityGroupReferences\",\"ec2:DescribeSecurityGroups\",\"ec2:DescribeSecurityGroupRules\",\"ec2:DescribeSnapshotAttribute\",\"ec2:DescribeSnapshots\",\"ec2:DescribeSubnets\",\"ec2:DescribeTags\",\"ec2:DescribeVpcAttribute\",\"ec2:DescribeVpcClassicLink\",\"ec2:DescribeVpcClassicLinkDnsSupport\",\"ec2:DescribeVpcPeeringConnections\",\"ec2:DescribeVpcs\",\"ec2:DescribeVpnConnections\",\"ec2:DescribeVpnGateways\",\"ec2:DetachClassicLinkVpc\",\"ec2:DetachInternetGateway\",\"ec2:DetachNetworkInterface\",\"ec2:DetachVpnGateway\",\"ec2:DisableVpcClassicLink\",\"ec2:DisableVpcClassicLinkDnsSupport\",\"ec2:DisassociateAddress\",\"ec2:DisassociateRouteTable\",\"ec2:EnableVpcClassicLink\",\"ec2:EnableVpcClassicLinkDnsSupport\",\"ec2:ModifyNetworkInterfaceAttribute\",\"ec2:ModifySnapshotAttribute\",\"ec2:ModifySubnetAttribute\",\"ec2:ModifyVpcAttribute\",\"ec2:ModifyVpcPeeringConnectionOptions\",\"ec2:ModifyVpnConnectionAttribute\",\"ec2:ReleaseAddress\",\"ec2:ReplaceNetworkAclAssociation\",\"ec2:ReplaceNetworkAclEntry\",\"ec2:ReplaceRoute\",\"ec2:ReplaceRouteTableAssociation\",\"ec2:ResetNetworkInterfaceAttribute\",\"ec2:RevokeSecurityGroupEgress\",\"ec2:RevokeSecurityGroupIngress\",\"ec2:UnassignPrivateIpAddresses\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["networking"],
+    "related_resources": ["vpc"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess",
+    "name": "AmazonVPCReadOnlyAccess",
+    "description": "Provides read-only access to Amazon VPC",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:DescribeAccountAttributes\",\"ec2:DescribeAddresses\",\"ec2:DescribeAvailabilityZones\",\"ec2:DescribeClassicLinkInstances\",\"ec2:DescribeCustomerGateways\",\"ec2:DescribeDhcpOptions\",\"ec2:DescribeInternetGateways\",\"ec2:DescribeNetworkAcls\",\"ec2:DescribeNetworkInterfaceAttribute\",\"ec2:DescribeNetworkInterfaces\",\"ec2:DescribePrefixLists\",\"ec2:DescribeRouteTables\",\"ec2:DescribeSecurityGroupReferences\",\"ec2:DescribeSecurityGroups\",\"ec2:DescribeSecurityGroupRules\",\"ec2:DescribeSnapshotAttribute\",\"ec2:DescribeSnapshots\",\"ec2:DescribeSubnets\",\"ec2:DescribeTags\",\"ec2:DescribeVpcAttribute\",\"ec2:DescribeVpcClassicLink\",\"ec2:DescribeVpcClassicLinkDnsSupport\",\"ec2:DescribeVpcPeeringConnections\",\"ec2:DescribeVpcs\",\"ec2:DescribeVpnConnections\",\"ec2:DescribeVpnGateways\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["networking"],
+    "related_resources": ["vpc"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/IAMFullAccess",
+    "name": "IAMFullAccess",
+    "description": "Provides full access to AWS Identity and Access Management",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:*\",\"organizations:DescribeAccount\",\"organizations:DescribeOrganization\",\"organizations:DescribeOrganizationalUnit\",\"organizations:DescribePolicy\",\"organizations:ListChildren\",\"organizations:ListParents\",\"organizations:ListPoliciesForTarget\",\"organizations:ListRoots\",\"organizations:ListTargetsForPolicy\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["iam"],
+    "related_resources": ["iam"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/IAMReadOnlyAccess",
+    "name": "IAMReadOnlyAccess",
+    "description": "Provides read-only access to AWS Identity and Access Management",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:GenerateCredentialReport\",\"iam:GenerateServiceLastAccessedDetails\",\"iam:Get*\",\"iam:List*\",\"organizations:DescribeAccount\",\"organizations:DescribeOrganization\",\"organizations:DescribeOrganizationalUnit\",\"organizations:DescribePolicy\",\"organizations:ListChildren\",\"organizations:ListParents\",\"organizations:ListPoliciesForTarget\",\"organizations:ListRoots\",\"organizations:ListTargetsForPolicy\"],\"Resource\":\"*\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["iam"],
+    "related_resources": ["iam"]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/IAMUserChangePassword",
+    "name": "IAMUserChangePassword",
+    "description": "Allows users to change their own password",
+    "path": "/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:ChangePassword\"],\"Resource\":\"arn:aws:iam::*:user/${aws:username}\"}]}",
+    "is_aws_managed": true,
+    "resource_categories": ["iam"],
+    "related_resources": ["iam"]
+  }
+]

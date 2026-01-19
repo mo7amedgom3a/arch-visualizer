@@ -1,0 +1,613 @@
+[
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2FullAccess",
+    "name": "AmazonEC2FullAccess",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": \"ec2:*\",\n      \"Effect\": \"Allow\",\n      \"Resource\": \"*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"elasticloadbalancing:*\",\n      \"Resource\": \"*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"cloudwatch:*\",\n      \"Resource\": \"*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"autoscaling:*\",\n      \"Resource\": \"*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": \"iam:CreateServiceLinkedRole\",\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringEquals\": {\n          \"iam:AWSServiceName\": [\n            \"autoscaling.amazonaws.com\",\n            \"ec2scheduled.amazonaws.com\",\n            \"elasticloadbalancing.amazonaws.com\",\n            \"spot.amazonaws.com\",\n            \"spotfleet.amazonaws.com\",\n            \"transitgateway.amazonaws.com\"\n          ]\n        }\n      }\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role",
+    "name": "AmazonElasticMapReduceforEC2Role",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [{\n        \"Effect\": \"Allow\",\n        \"Resource\": \"*\",\n        \"Action\": [\n            \"cloudwatch:*\",\n            \"dynamodb:*\",\n            \"ec2:Describe*\",\n            \"elasticmapreduce:Describe*\",\n            \"elasticmapreduce:ListBootstrapActions\",\n            \"elasticmapreduce:ListClusters\",\n            \"elasticmapreduce:ListInstanceGroups\",\n            \"elasticmapreduce:ListInstances\",\n            \"elasticmapreduce:ListSteps\",\n            \"kinesis:CreateStream\",\n            \"kinesis:DeleteStream\",\n            \"kinesis:DescribeStream\",\n            \"kinesis:GetRecords\",\n            \"kinesis:GetShardIterator\",\n            \"kinesis:MergeShards\",\n            \"kinesis:PutRecord\",\n            \"kinesis:SplitShard\",\n            \"rds:Describe*\",\n            \"s3:*\",\n            \"sdb:*\",\n            \"sns:*\",\n            \"sqs:*\",\n            \"glue:CreateDatabase\",\n            \"glue:UpdateDatabase\",\n            \"glue:DeleteDatabase\",\n            \"glue:GetDatabase\",\n            \"glue:GetDatabases\",\n            \"glue:CreateTable\",\n            \"glue:UpdateTable\",\n            \"glue:DeleteTable\",\n            \"glue:GetTable\",\n            \"glue:GetTables\",\n            \"glue:GetTableVersions\",\n            \"glue:CreatePartition\",\n            \"glue:BatchCreatePartition\",\n            \"glue:UpdatePartition\",\n            \"glue:DeletePartition\",\n            \"glue:BatchDeletePartition\",\n            \"glue:GetPartition\",\n            \"glue:GetPartitions\",\n            \"glue:BatchGetPartition\",\n            \"glue:CreateUserDefinedFunction\",\n            \"glue:UpdateUserDefinedFunction\",\n            \"glue:DeleteUserDefinedFunction\",\n            \"glue:GetUserDefinedFunction\",\n            \"glue:GetUserDefinedFunctions\"\n        ]\n    }]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole",
+    "name": "AmazonEC2RoleforDataPipelineRole",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [{\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"cloudwatch:*\",\n        \"datapipeline:*\",\n        \"dynamodb:*\",\n        \"ec2:Describe*\",\n        \"elasticmapreduce:AddJobFlowSteps\",\n        \"elasticmapreduce:Describe*\",\n        \"elasticmapreduce:ListInstance*\",\n        \"elasticmapreduce:ModifyInstanceGroups\",\n        \"rds:Describe*\",\n        \"redshift:DescribeClusters\",\n        \"redshift:DescribeClusterSecurityGroups\",\n        \"s3:*\",\n        \"sdb:*\",\n        \"sns:*\",\n        \"sqs:*\"\n      ],\n      \"Resource\": [\"*\"]\n    }]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+    "name": "AmazonEC2ContainerServiceforEC2Role",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeTags\",\n\t\t\t\t\"ecs:CreateCluster\",\n\t\t\t\t\"ecs:DeregisterContainerInstance\",\n\t\t\t\t\"ecs:DiscoverPollEndpoint\",\n\t\t\t\t\"ecs:Poll\",\n\t\t\t\t\"ecs:RegisterContainerInstance\",\n\t\t\t\t\"ecs:StartTelemetrySession\",\n\t\t\t\t\"ecs:UpdateContainerInstancesState\",\n\t\t\t\t\"ecs:Submit*\",\n\t\t\t\t\"ecr:GetAuthorizationToken\",\n\t\t\t\t\"ecr:BatchCheckLayerAvailability\",\n\t\t\t\t\"ecr:GetDownloadUrlForLayer\",\n\t\t\t\t\"ecr:BatchGetImage\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ecs:TagResource\",\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ecs:CreateAction\": [\n\t\t\t\t\t\t\"CreateCluster\",\n\t\t\t\t\t\t\"RegisterContainerInstance\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ecs:ListTagsForResource\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ecs:*:*:task/*/*\",\n\t\t\t\t\"arn:aws:ecs:*:*:container-instance/*/*\"\n\t\t\t]\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole",
+    "name": "AmazonEC2ContainerServiceRole",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"ec2:AuthorizeSecurityGroupIngress\",\n        \"ec2:Describe*\",\n        \"elasticloadbalancing:DeregisterInstancesFromLoadBalancer\",\n        \"elasticloadbalancing:DeregisterTargets\",\n        \"elasticloadbalancing:Describe*\",\n        \"elasticloadbalancing:RegisterInstancesWithLoadBalancer\",\n        \"elasticloadbalancing:RegisterTargets\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy",
+    "name": "AmazonEC2RoleforAWSCodeDeploy",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:GetObjectVersion\",\n        \"s3:ListBucket\"\n      ],\n      \"Effect\": \"Allow\",\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM",
+    "name": "AmazonEC2RoleforSSM",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ssm:DescribeAssociation\",\n                \"ssm:GetDeployablePatchSnapshotForInstance\",\n                \"ssm:GetDocument\",\n                \"ssm:DescribeDocument\",\n                \"ssm:GetManifest\",\n                \"ssm:GetParameters\",\n                \"ssm:ListAssociations\",\n                \"ssm:ListInstanceAssociations\",\n                \"ssm:PutInventory\",\n                \"ssm:PutComplianceItems\",\n                \"ssm:PutConfigurePackageResult\",\n                \"ssm:UpdateAssociationStatus\",\n                \"ssm:UpdateInstanceAssociationStatus\",\n                \"ssm:UpdateInstanceInformation\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ssmmessages:CreateControlChannel\",\n                \"ssmmessages:CreateDataChannel\",\n                \"ssmmessages:OpenControlChannel\",\n                \"ssmmessages:OpenDataChannel\"         \n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2messages:AcknowledgeMessage\",\n                \"ec2messages:DeleteMessage\",\n                \"ec2messages:FailMessage\",\n                \"ec2messages:GetEndpoint\",\n                \"ec2messages:GetMessages\",\n                \"ec2messages:SendReply\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"cloudwatch:PutMetricData\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:DescribeInstanceStatus\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ds:CreateComputer\",\n                \"ds:DescribeDirectories\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"logs:CreateLogGroup\",\n                \"logs:CreateLogStream\",\n                \"logs:DescribeLogGroups\",\n                \"logs:DescribeLogStreams\",\n                \"logs:PutLogEvents\"\n            ],\n            \"Resource\": \"*\"\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:GetBucketLocation\",\n                \"s3:PutObject\",\n                \"s3:GetObject\",\n                \"s3:GetEncryptionConfiguration\",\n                \"s3:AbortMultipartUpload\",\n                \"s3:ListMultipartUploadParts\",\n                \"s3:ListBucket\",\n                \"s3:ListBucketMultipartUploads\"\n            ],\n            \"Resource\": \"*\"\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/CloudWatchActionsEC2Access",
+    "name": "CloudWatchActionsEC2Access",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"cloudwatch:Describe*\",\n        \"ec2:Describe*\",\n        \"ec2:RebootInstances\",\n        \"ec2:StopInstances\",\n        \"ec2:TerminateInstances\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+    "name": "AmazonEC2ContainerRegistryReadOnly",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [{\n\t\t\"Effect\": \"Allow\",\n\t\t\"Action\": [\n\t\t\t\"ecr:GetAuthorizationToken\",\n\t\t\t\"ecr:BatchCheckLayerAvailability\",\n\t\t\t\"ecr:GetDownloadUrlForLayer\",\n\t\t\t\"ecr:GetRepositoryPolicy\",\n\t\t\t\"ecr:DescribeRepositories\",\n\t\t\t\"ecr:ListImages\",\n\t\t\t\"ecr:DescribeImages\",\n\t\t\t\"ecr:BatchGetImage\",\n\t\t\t\"ecr:GetLifecyclePolicy\",\n\t\t\t\"ecr:GetLifecyclePolicyPreview\",\n\t\t\t\"ecr:ListTagsForResource\",\n\t\t\t\"ecr:DescribeImageScanFindings\"\n\t\t],\n\t\t\"Resource\": \"*\"\n\t}]\n}\n",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
+    "name": "AmazonEC2ContainerRegistryPowerUser",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [{\n\t\t\"Effect\": \"Allow\",\n\t\t\"Action\": [\n\t\t\t\"ecr:GetAuthorizationToken\",\n\t\t\t\"ecr:BatchCheckLayerAvailability\",\n\t\t\t\"ecr:GetDownloadUrlForLayer\",\n\t\t\t\"ecr:GetRepositoryPolicy\",\n\t\t\t\"ecr:DescribeRepositories\",\n\t\t\t\"ecr:ListImages\",\n\t\t\t\"ecr:DescribeImages\",\n\t\t\t\"ecr:BatchGetImage\",\n\t\t\t\"ecr:GetLifecyclePolicy\",\n\t\t\t\"ecr:GetLifecyclePolicyPreview\",\n\t\t\t\"ecr:ListTagsForResource\",\n\t\t\t\"ecr:DescribeImageScanFindings\",\n\t\t\t\"ecr:InitiateLayerUpload\",\n\t\t\t\"ecr:UploadLayerPart\",\n\t\t\t\"ecr:CompleteLayerUpload\",\n\t\t\t\"ecr:PutImage\"\n\t\t],\n\t\t\"Resource\": \"*\"\n\t}]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess",
+    "name": "AmazonEC2ContainerRegistryFullAccess",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"ecr:*\",\n        \"cloudtrail:LookupEvents\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"iam:CreateServiceLinkedRole\"\n      ],\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringEquals\": {\n          \"iam:AWSServiceName\": [\n            \"replication.ecr.amazonaws.com\"\n          ]\n        }\n      }\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole",
+    "name": "AmazonEC2ContainerServiceAutoscaleRole",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ecs:DescribeServices\",\n                \"ecs:UpdateService\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"cloudwatch:DescribeAlarms\",\n                \"cloudwatch:PutMetricAlarm\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetAutoscaleRole",
+    "name": "AmazonEC2SpotFleetAutoscaleRole",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:DescribeSpotFleetRequests\",\n                \"ec2:ModifySpotFleetRequest\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"cloudwatch:DescribeAlarms\",\n                \"cloudwatch:PutMetricAlarm\",\n                \"cloudwatch:DeleteAlarms\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        { \n          \"Action\": \"iam:CreateServiceLinkedRole\", \n          \"Effect\": \"Allow\", \n          \"Resource\": \"arn:aws:iam::*:role/aws-service-role/ec2.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_EC2SpotFleetRequest\", \n          \"Condition\": { \n            \"StringLike\": { \n              \"iam:AWSServiceName\": \"ec2.application-autoscaling.amazonaws.com\" \n            }\n          }\n        } \n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSElasticBeanstalkCustomPlatformforEC2Role",
+    "name": "AWSElasticBeanstalkCustomPlatformforEC2Role",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"EC2Access\",\n      \"Action\": [\n        \"ec2:AttachVolume\",\n        \"ec2:AuthorizeSecurityGroupIngress\",\n        \"ec2:CopyImage\",\n        \"ec2:CreateImage\",\n        \"ec2:CreateKeypair\",\n        \"ec2:CreateSecurityGroup\",\n        \"ec2:CreateSnapshot\",\n        \"ec2:CreateTags\",\n        \"ec2:CreateVolume\",\n        \"ec2:DeleteKeypair\",\n        \"ec2:DeleteSecurityGroup\",\n        \"ec2:DeleteSnapshot\",\n        \"ec2:DeleteVolume\",\n        \"ec2:DeregisterImage\",\n        \"ec2:DescribeImageAttribute\",\n        \"ec2:DescribeImages\",\n        \"ec2:DescribeInstances\",\n        \"ec2:DescribeRegions\",\n        \"ec2:DescribeSecurityGroups\",\n        \"ec2:DescribeSnapshots\",\n        \"ec2:DescribeSubnets\",\n        \"ec2:DescribeTags\",\n        \"ec2:DescribeVolumes\",\n        \"ec2:DetachVolume\",\n        \"ec2:GetPasswordData\",\n        \"ec2:ModifyImageAttribute\",\n        \"ec2:ModifyInstanceAttribute\",\n        \"ec2:ModifySnapshotAttribute\",\n        \"ec2:RegisterImage\",\n        \"ec2:RunInstances\",\n        \"ec2:StopInstances\",\n        \"ec2:TerminateInstances\"\n      ],\n      \"Effect\": \"Allow\",\n      \"Resource\": \"*\"\n    },\n    {\n      \"Sid\": \"BucketAccess\",\n      \"Action\": [\n        \"s3:Get*\",\n        \"s3:List*\",\n        \"s3:PutObject\"\n      ],\n      \"Effect\": \"Allow\",\n      \"Resource\": [\n        \"arn:aws:s3:::elasticbeanstalk-*\",\n        \"arn:aws:s3:::elasticbeanstalk-*/*\"\n      ]\n    },\n    {\n      \"Sid\": \"CloudWatchLogsAccess\",\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\",\n        \"logs:DescribeLogStreams\"\n      ],\n      \"Effect\": \"Allow\",\n      \"Resource\": \"arn:aws:logs:*:*:log-group:/aws/elasticbeanstalk/platform/*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceEventsRole",
+    "name": "AmazonEC2ContainerServiceEventsRole",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ecs:RunTask\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:PassRole\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"iam:PassedToService\": \"ecs-tasks.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ecs:TagResource\",\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ecs:CreateAction\": [\n\t\t\t\t\t\t\"RunTask\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole",
+    "name": "AmazonEC2SpotFleetTaggingRole",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:DescribeImages\",\n                \"ec2:DescribeSubnets\",\n                \"ec2:RequestSpotInstances\",\n                \"ec2:TerminateInstances\",\n                \"ec2:DescribeInstanceStatus\",\n                \"ec2:CreateTags\",\n                \"ec2:RunInstances\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": \"iam:PassRole\",\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"iam:PassedToService\": [\n                        \"ec2.amazonaws.com\",\n                        \"ec2.amazonaws.com.cn\"\n                    ]\n                }\n            },\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"elasticloadbalancing:RegisterInstancesWithLoadBalancer\"\n            ],\n            \"Resource\": [\n                \"arn:aws:elasticloadbalancing:*:*:loadbalancer/*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"elasticloadbalancing:RegisterTargets\"\n            ],\n            \"Resource\": [\n                \"arn:aws:elasticloadbalancing:*:*:*/*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSEC2SpotServiceRolePolicy",
+    "name": "AWSEC2SpotServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n   \"Version\":\"2012-10-17\",\n   \"Statement\":[\n      {\n         \"Effect\":\"Allow\",\n         \"Action\":[\n            \"ec2:DescribeInstances\",\n            \"ec2:StartInstances\",\n            \"ec2:StopInstances\",\n            \"ec2:RunInstances\"\n         ],\n         \"Resource\":[\n            \"*\"\n         ]\n      },\n      {\n         \"Effect\":\"Deny\",\n         \"Action\":[\n            \"ec2:RunInstances\"\n         ],\n         \"Resource\":[\n            \"arn:aws:ec2:*:*:instance/*\"\n         ],\n         \"Condition\":{\n            \"StringNotEquals\":{\n               \"ec2:InstanceMarketType\":\"spot\"\n            }\n         }\n      },\n      {\n         \"Effect\":\"Allow\",\n         \"Action\":[\n            \"iam:PassRole\"\n         ],\n         \"Resource\":[\n            \"*\"\n         ],\n         \"Condition\":{\n            \"StringEquals\":{\n               \"iam:PassedToService\":[\n                  \"ec2.amazonaws.com\",\n                  \"ec2.amazonaws.com.cn\"\n               ]\n            }\n         }\n      },\n      {\n         \"Effect\":\"Allow\",\n         \"Action\":[\n            \"ec2:CreateTags\"\n         ],\n         \"Resource\":\"*\",\n         \"Condition\":{\n            \"StringEquals\":{\n               \"ec2:CreateAction\":\"RunInstances\"\n            }\n         }\n      }\n   ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSServiceRoleForEC2ScheduledInstances",
+    "name": "AWSServiceRoleForEC2ScheduledInstances",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:CreateTags\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ec2:*:*:instance/*\"\n            ],\n            \"Condition\": {\n                \"ForAllValues:StringEquals\": {\n                    \"aws:TagKeys\": [\n                        \"aws:ec2sri:scheduledInstanceId\"\n                    ]\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:TerminateInstances\"\n            ],\n            \"Resource\": \"*\",\n            \"Condition\": {\n                \"StringLike\": {\n                    \"ec2:ResourceTag/aws:ec2sri:scheduledInstanceId\": \"*\"\n                }\n            }\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSEC2SpotFleetServiceRolePolicy",
+    "name": "AWSEC2SpotFleetServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:DescribeImages\",\n                \"ec2:DescribeSubnets\",\n                \"ec2:RequestSpotInstances\",\n                \"ec2:DescribeInstanceStatus\",\n                \"ec2:RunInstances\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"iam:PassRole\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ],\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"iam:PassedToService\": [\n                        \"ec2.amazonaws.com\",\n                        \"ec2.amazonaws.com.cn\"\n                    ]\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:CreateTags\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ec2:*:*:instance/*\",\n                \"arn:aws:ec2:*:*:spot-instances-request/*\",\n                \"arn:aws:ec2:*:*:spot-fleet-request/*\",\n                \"arn:aws:ec2:*:*:volume/*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:TerminateInstances\"\n            ],\n            \"Resource\": \"*\",\n            \"Condition\": {\n                \"StringLike\": {\n                    \"ec2:ResourceTag/aws:ec2spot:fleet-request-id\": \"*\"\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"elasticloadbalancing:RegisterInstancesWithLoadBalancer\"\n            ],\n            \"Resource\": [\n                \"arn:aws:elasticloadbalancing:*:*:loadbalancer/*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"elasticloadbalancing:RegisterTargets\"\n            ],\n            \"Resource\": [\n                \"arn:aws:elasticloadbalancing:*:*:*/*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSApplicationAutoscalingEC2SpotFleetRequestPolicy",
+    "name": "AWSApplicationAutoscalingEC2SpotFleetRequestPolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n   \"Version\": \"2012-10-17\",\n   \"Statement\": [\n        {\n           \"Effect\": \"Allow\",\n           \"Action\": [\n               \"ec2:DescribeSpotFleetRequests\",\n               \"ec2:ModifySpotFleetRequest\",\n               \"cloudwatch:PutMetricAlarm\",\n               \"cloudwatch:DescribeAlarms\",\n               \"cloudwatch:DeleteAlarms\"\n            ],\n           \"Resource\": [\n               \"*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSEC2FleetServiceRolePolicy",
+    "name": "AWSEC2FleetServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:DescribeImages\",\n                \"ec2:DescribeSubnets\",\n                \"ec2:RequestSpotInstances\",\n                \"ec2:DescribeInstanceStatus\",\n                \"ec2:RunInstances\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Sid\": \"EC2SpotManagement\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"iam:CreateServiceLinkedRole\"\n            ],\n            \"Resource\": \"*\",\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"iam:AWSServiceName\": \"spot.amazonaws.com\"\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"iam:PassRole\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ],\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"iam:PassedToService\": [\n                        \"ec2.amazonaws.com\",\n                        \"ec2.amazonaws.com.cn\"\n                    ]\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:CreateTags\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ec2:*:*:instance/*\",\n                \"arn:aws:ec2:*:*:spot-instances-request/*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:CreateTags\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ec2:*:*:volume/*\"\n            ],\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"ec2:CreateAction\": \"RunInstances\"\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:TerminateInstances\"\n            ],\n            \"Resource\": \"*\",\n            \"Condition\": {\n                \"StringLike\": {\n                    \"ec2:ResourceTag/aws:ec2:fleet-id\": \"*\"\n                }\n            }\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSAutoScalingPlansEC2AutoScalingPolicy",
+    "name": "AWSAutoScalingPlansEC2AutoScalingPolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"cloudwatch:GetMetricData\",\n                \"autoscaling:DescribeAutoScalingGroups\",\n                \"autoscaling:DescribeScheduledActions\",\n                \"autoscaling:BatchPutScheduledUpdateGroupAction\",\n                \"autoscaling:BatchDeleteScheduledAction\"\n            ],\n            \"Resource\": \"*\"\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/EC2InstanceConnect",
+    "name": "EC2InstanceConnect",
+    "path": "/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"EC2InstanceConnect\",\n            \"Action\": [\n                \"ec2:DescribeInstances\",\n                \"ec2-instance-connect:SendSSHPublicKey\"\n            ],\n            \"Effect\": \"Allow\",\n            \"Resource\": \"*\"\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2RolePolicyForLaunchWizard",
+    "name": "AmazonEC2RolePolicyForLaunchWizard",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:AttachVolume\",\n\t\t\t\t\"ec2:RebootInstances\",\n\t\t\t\t\"ec2:StartInstances\",\n\t\t\t\t\"ec2:StopInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"ec2:ResourceTag/LaunchWizardResourceGroupID\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:ReplaceRoute\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:route-table/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"ec2:ResourceTag/LaunchWizardApplicationType\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeAddresses\",\n\t\t\t\t\"ec2:AssociateAddress\",\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"ec2:DescribeRegions\",\n\t\t\t\t\"ec2:DescribeVolumes\",\n\t\t\t\t\"ec2:DescribeRouteTables\",\n\t\t\t\t\"ec2:ModifyInstanceAttribute\",\n\t\t\t\t\"cloudwatch:GetMetricStatistics\",\n\t\t\t\t\"cloudwatch:PutMetricData\",\n\t\t\t\t\"ssm:GetCommandInvocation\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateTags\",\n\t\t\t\t\"ec2:CreateVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAllValues:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": [\n\t\t\t\t\t\t\"LaunchWizardResourceGroupID\",\n\t\t\t\t\t\t\"LaunchWizardApplicationType\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:ListBucket\",\n\t\t\t\t\"s3:PutObject\",\n\t\t\t\t\"s3:PutObjectTagging\",\n\t\t\t\t\"s3:GetBucketLocation\",\n\t\t\t\t\"logs:PutLogEvents\",\n\t\t\t\t\"logs:DescribeLogGroups\",\n\t\t\t\t\"logs:DescribeLogStreams\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:logs:*:*:*\",\n\t\t\t\t\"arn:aws:s3:::launchwizard*\",\n\t\t\t\t\"arn:aws:s3:::aws-sap-data-provider/config.properties\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"logs:Create*\",\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:Describe*\",\n\t\t\t\t\"cloudformation:DescribeStackResources\",\n\t\t\t\t\"cloudformation:SignalResource\",\n\t\t\t\t\"cloudformation:DescribeStackResource\",\n\t\t\t\t\"cloudformation:DescribeStacks\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAllValues:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": \"LaunchWizardResourceGroupID\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"dynamodb:BatchGetItem\",\n\t\t\t\t\"dynamodb:PutItem\",\n\t\t\t\t\"sqs:ReceiveMessage\",\n\t\t\t\t\"sqs:SendMessage\",\n\t\t\t\t\"dynamodb:Scan\",\n\t\t\t\t\"s3:ListBucket\",\n\t\t\t\t\"dynamodb:Query\",\n\t\t\t\t\"dynamodb:UpdateItem\",\n\t\t\t\t\"dynamodb:DeleteTable\",\n\t\t\t\t\"dynamodb:CreateTable\",\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"dynamodb:DescribeTable\",\n\t\t\t\t\"s3:GetBucketLocation\",\n\t\t\t\t\"dynamodb:UpdateTable\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::launchwizard*\",\n\t\t\t\t\"arn:aws:dynamodb:*:*:table/LaunchWizard*\",\n\t\t\t\t\"arn:aws:sqs:*:*:LaunchWizard*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ssm:SendCommand\",\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"ssm:resourceTag/LaunchWizardApplicationType\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssm:SendCommand\",\n\t\t\t\t\"ssm:GetDocument\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ssm:*:*:document/AWSSAP-InstallBackint\",\n\t\t\t\t\"arn:aws:ssm:*:*:document/AWSSAP-InstallBackintForAWSBackup\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"fsx:DescribeFileSystems\",\n\t\t\t\t\"fsx:ListTagsForResource\",\n\t\t\t\t\"fsx:DescribeStorageVirtualMachines\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAllValues:StringLike\": {\n\t\t\t\t\t\"aws:TagKeys\": \"LaunchWizard*\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilder",
+    "name": "EC2InstanceProfileForImageBuilder",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeVolumes\",\n\t\t\t\t\"ec2:DescribeSnapshots\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshot\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Image Builder\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshot\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Image Builder\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateTags\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": \"CreateSnapshot\",\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": [\n\t\t\t\t\t\t\"EC2 Image Builder\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::*/*.ISO\",\n\t\t\t\t\"arn:aws:s3:::*/*.iso\",\n\t\t\t\t\"arn:aws:s3:::*/*.Iso\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"s3:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"imagebuilder:GetComponent\",\n\t\t\t\t\"imagebuilder:GetMarketplaceResource\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:Decrypt\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"kms:EncryptionContextKeys\": \"aws:imagebuilder:arn\",\n\t\t\t\t\t\"aws:CalledVia\": [\n\t\t\t\t\t\t\"imagebuilder.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:s3:::ec2imagebuilder*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:PutLogEvents\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/imagebuilder/*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/EC2FleetTimeShiftableServiceRolePolicy",
+    "name": "EC2FleetTimeShiftableServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:DescribeImages\",\n                \"ec2:DescribeSubnets\",\n                \"ec2:DescribeInstances\",\n                \"ec2:RunInstances\",\n                \"ec2:CreateFleet\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"iam:PassRole\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ],\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"iam:PassedToService\": [\n                        \"ec2.amazonaws.com\",\n                        \"ec2.amazonaws.com.cn\"\n                    ]\n                }\n            }\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:CreateTags\"\n            ],\n            \"Resource\": [\n                \"arn:aws:ec2:*:*:instance/*\",\n                \"arn:aws:ec2:*:*:spot-instances-request/*\"\n            ]\n        },\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"ec2:TerminateInstances\"\n            ],\n            \"Resource\": \"*\",\n            \"Condition\": {\n                \"StringLike\": {\n                    \"ec2:ResourceTag/aws:ec2:fleet-id\": \"*\"\n                }\n            }\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeployLimited",
+    "name": "AmazonEC2RoleforAWSCodeDeployLimited",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersion\",\n\t\t\t\t\"s3:ListBucket\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:s3:::*/CodeDeploy/*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersion\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"s3:ExistingObjectTag/UseWithCodeDeploy\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/Ec2ImageBuilderCrossAccountDistributionAccess",
+    "name": "Ec2ImageBuilderCrossAccountDistributionAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": \"arn:aws:ec2:*::image/*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"ec2:CopyImage\",\n\t\t\t\t\"ec2:ModifyImageAttribute\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilderECRContainerBuilds",
+    "name": "EC2InstanceProfileForImageBuilderECRContainerBuilds",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"imagebuilder:GetComponent\",\n\t\t\t\t\"imagebuilder:GetContainerRecipe\",\n\t\t\t\t\"ecr:GetAuthorizationToken\",\n\t\t\t\t\"ecr:BatchGetImage\",\n\t\t\t\t\"ecr:InitiateLayerUpload\",\n\t\t\t\t\"ecr:UploadLayerPart\",\n\t\t\t\t\"ecr:CompleteLayerUpload\",\n\t\t\t\t\"ecr:BatchCheckLayerAvailability\",\n\t\t\t\t\"ecr:GetDownloadUrlForLayer\",\n\t\t\t\t\"ecr:PutImage\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:Decrypt\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"kms:EncryptionContextKeys\": \"aws:imagebuilder:arn\",\n\t\t\t\t\t\"aws:CalledVia\": [\n\t\t\t\t\t\t\"imagebuilder.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:s3:::ec2imagebuilder*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:PutLogEvents\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/imagebuilder/*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSApplicationMigrationEC2Access",
+    "name": "AWSApplicationMigrationEC2Access",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:PassRole\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:iam::*:role/service-role/AWSApplicationMigrationConversionServerRole\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"iam:PassedToService\": \"ec2.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteSnapshot\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeSnapshots\",\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"ec2:DescribeVolumes\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"aws:CalledVia\": [\n\t\t\t\t\t\t\"mgn.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateLaunchTemplateVersion\",\n\t\t\t\t\"ec2:ModifyLaunchTemplate\",\n\t\t\t\t\"ec2:DeleteLaunchTemplateVersions\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateLaunchTemplate\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:RequestTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"aws:CalledVia\": [\n\t\t\t\t\t\t\"mgn.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteLaunchTemplate\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"aws:CalledVia\": [\n\t\t\t\t\t\t\"mgn.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:StartInstances\",\n\t\t\t\t\"ec2:StopInstances\",\n\t\t\t\t\"ec2:TerminateInstances\",\n\t\t\t\t\"ec2:ModifyInstanceAttribute\",\n\t\t\t\t\"ec2:GetConsoleOutput\",\n\t\t\t\t\"ec2:GetConsoleScreenshot\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RevokeSecurityGroupEgress\",\n\t\t\t\t\"ec2:AuthorizeSecurityGroupIngress\",\n\t\t\t\t\"ec2:AuthorizeSecurityGroupEgress\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:RequestTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateSecurityGroup\",\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:vpc/*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSecurityGroup\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:RequestTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshot\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"ec2:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshot\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:RequestTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DetachVolume\",\n\t\t\t\t\"ec2:AttachVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"ec2:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:AttachVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"ec2:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DetachVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:RequestTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:image/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:launch-template/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": [\n\t\t\t\t\t\t\"CreateSecurityGroup\",\n\t\t\t\t\t\t\"CreateVolume\",\n\t\t\t\t\t\t\"CreateSnapshot\",\n\t\t\t\t\t\t\"RunInstances\",\n\t\t\t\t\t\t\"CreateLaunchTemplate\"\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateTags\",\n\t\t\t\t\"ec2:ModifyVolume\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"ec2:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateVolume\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSApplicationMigrationServiceManaged\": \"false\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"aws:ViaAWSService\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSEC2CapacityReservationFleetRolePolicy",
+    "name": "AWSEC2CapacityReservationFleetRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeCapacityReservations\",\n\t\t\t\t\"ec2:DescribeInstances\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateCapacityReservation\",\n\t\t\t\t\"ec2:CancelCapacityReservation\",\n\t\t\t\t\"ec2:ModifyCapacityReservation\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:capacity-reservation/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"ArnLike\": {\n\t\t\t\t\t\"ec2:CapacityReservationFleet\": \"arn:aws:ec2:*:*:capacity-reservation-fleet/crf-*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateTags\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:capacity-reservation/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": \"CreateCapacityReservation\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/EC2FastLaunchServiceRolePolicy",
+    "name": "EC2FastLaunchServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AllowRunInstances\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\t\"arn:aws:ec2:*::image/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:key-pair/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\t\"arn:aws:license-manager:*:*:license-configuration:*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowRunInstancesOnFastLaunchCreatedResources\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowPassRole\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:PassRole\",\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"iam:PassedToService\": [\n\t\t\t\t\t\t\"ec2.amazonaws.com\",\n\t\t\t\t\t\t\"ec2.amazonaws.com.cn\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowStopAndTerminateInstances\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:StopInstances\",\n\t\t\t\t\"ec2:TerminateInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowCreateSnapshot\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateSnapshot\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowCreateTaggedSnapshot\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateSnapshot\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedByLaunchTemplateVersion\": \"*\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": [\n\t\t\t\t\t\t\"CreatedByLaunchTemplateName\",\n\t\t\t\t\t\t\"CreatedByLaunchTemplateId\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowCreateLaunchTemplate\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateLaunchTemplate\",\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowCreateTags\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:launch-template/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": [\n\t\t\t\t\t\t\"CreateSnapshot\",\n\t\t\t\t\t\t\"RunInstances\",\n\t\t\t\t\t\t\"CreateLaunchTemplate\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowDeleteSnapshots\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteSnapshot\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowDeleteVolumes\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteVolume\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowDeleteNetworkInterfaces\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowDescribeActions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"ec2:DescribeSnapshots\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeInstanceAttribute\",\n\t\t\t\t\"ec2:DescribeInstanceStatus\",\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeInstanceTypeOfferings\",\n\t\t\t\t\"ec2:DescribeLaunchTemplateVersions\",\n\t\t\t\t\"ec2:DescribeLaunchTemplates\",\n\t\t\t\t\"ec2:DescribeVolumes\",\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\",\n\t\t\t\t\"cloudformation:DescribeStacks\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowPutMetricData\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"cloudwatch:PutMetricData\",\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"cloudwatch:namespace\": \"AWS/EC2\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowEventsRuleMutations\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"events:DeleteRule\",\n\t\t\t\t\"events:RemoveTargets\",\n\t\t\t\t\"events:PutRule\",\n\t\t\t\t\"events:PutTargets\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"events:ManagedBy\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:events:*:*:rule/FastLaunch*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowEventsRuleNonMutations\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"events:ListTargetsByRule\",\n\t\t\t\t\"events:DescribeRule\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:events:*:*:rule/FastLaunch*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowKMSActions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"kms:ListRetirableGrants\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowDeleteFastLaunchLaunchTemplates\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteLaunchTemplate\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSElasticDisasterRecoveryEc2InstancePolicy",
+    "name": "AWSElasticDisasterRecoveryEc2InstancePolicy",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"DRSEc2InstancePolicy1\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"drs:GetAgentInstallationAssetsForDrs\",\n\t\t\t\t\"drs:SendClientLogsForDrs\",\n\t\t\t\t\"drs:SendClientMetricsForDrs\",\n\t\t\t\t\"drs:CreateSourceServerForDrs\",\n\t\t\t\t\"drs:CreateSourceNetwork\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DRSEc2InstancePolicy2\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"drs:TagResource\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:drs:*:*:source-server/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"drs:CreateAction\": \"CreateSourceServerForDrs\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DRSEc2InstancePolicy3\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"drs:TagResource\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:drs:*:*:source-network/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"drs:CreateAction\": \"CreateSourceNetwork\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DRSEc2InstancePolicy4\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"drs:SendAgentMetricsForDrs\",\n\t\t\t\t\"drs:SendAgentLogsForDrs\",\n\t\t\t\t\"drs:UpdateAgentSourcePropertiesForDrs\",\n\t\t\t\t\"drs:UpdateAgentReplicationInfoForDrs\",\n\t\t\t\t\"drs:UpdateAgentConversionInfoForDrs\",\n\t\t\t\t\"drs:GetAgentCommandForDrs\",\n\t\t\t\t\"drs:GetAgentConfirmedResumeInfoForDrs\",\n\t\t\t\t\"drs:GetAgentRuntimeConfigurationForDrs\",\n\t\t\t\t\"drs:UpdateAgentBacklogForDrs\",\n\t\t\t\t\"drs:GetAgentReplicationInfoForDrs\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:drs:*:*:source-server/*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DRSEc2InstancePolicy5\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"sts:AssumeRole\",\n\t\t\t\t\"sts:TagSession\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:iam::*:role/service-role/DRSCrossAccountAgentAuthorizedRole_*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:RequestTag/SourceInstanceARN\": \"${ec2:SourceInstanceARN}\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"sts:TransitiveTagKeys\": \"SourceInstanceARN\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonSSMManagedEC2InstanceDefaultPolicy",
+    "name": "AmazonSSMManagedEC2InstanceDefaultPolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMAgentPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssm:DescribeAssociation\",\n\t\t\t\t\"ssm:GetDeployablePatchSnapshotForInstance\",\n\t\t\t\t\"ssm:GetDocument\",\n\t\t\t\t\"ssm:DescribeDocument\",\n\t\t\t\t\"ssm:GetManifest\",\n\t\t\t\t\"ssm:ListAssociations\",\n\t\t\t\t\"ssm:ListInstanceAssociations\",\n\t\t\t\t\"ssm:PutInventory\",\n\t\t\t\t\"ssm:PutComplianceItems\",\n\t\t\t\t\"ssm:PutConfigurePackageResult\",\n\t\t\t\t\"ssm:UpdateAssociationStatus\",\n\t\t\t\t\"ssm:UpdateInstanceAssociationStatus\",\n\t\t\t\t\"ssm:UpdateInstanceInformation\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMChannelMessaging\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssmmessages:CreateControlChannel\",\n\t\t\t\t\"ssmmessages:CreateDataChannel\",\n\t\t\t\t\"ssmmessages:OpenControlChannel\",\n\t\t\t\t\"ssmmessages:OpenDataChannel\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMLegacyMessaging\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2messages:AcknowledgeMessage\",\n\t\t\t\t\"ec2messages:DeleteMessage\",\n\t\t\t\t\"ec2messages:FailMessage\",\n\t\t\t\t\"ec2messages:GetEndpoint\",\n\t\t\t\t\"ec2messages:GetMessages\",\n\t\t\t\t\"ec2messages:SendReply\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSFaultInjectionSimulatorEC2Access",
+    "name": "AWSFaultInjectionSimulatorEC2Access",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AllowEc2Actions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RebootInstances\",\n\t\t\t\t\"ec2:SendSpotInstanceInterruptions\",\n\t\t\t\t\"ec2:StartInstances\",\n\t\t\t\t\"ec2:StopInstances\",\n\t\t\t\t\"ec2:TerminateInstances\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:instance/*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowEc2InstancesWithEncryptedEbsVolumes\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:CreateGrant\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:kms:*:*:key/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"kms:ViaService\": \"ec2.*.amazonaws.com\"\n\t\t\t\t},\n\t\t\t\t\"Bool\": {\n\t\t\t\t\t\"kms:GrantIsForAWSResource\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMSendOnEc2\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssm:SendCommand\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\t\"arn:aws:ssm:*:*:document/*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMStopOnEc2\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssm:CancelCommand\",\n\t\t\t\t\"ssm:ListCommands\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DescribeInstances\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:DescribeInstances\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DescribeSubnets\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:DescribeSubnets\",\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/Ec2InstanceConnectEndpoint",
+    "name": "Ec2InstanceConnectEndpoint",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\",\n\t\t\t\t\"ec2:DescribeAvailabilityZones\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:subnet/*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAllValues:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": [\n\t\t\t\t\t\t\"InstanceConnectEndpointId\"\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:RequestTag/InstanceConnectEndpointId\": [\n\t\t\t\t\t\t\"eice-*\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:ModifyNetworkInterfaceAttribute\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/InstanceConnectEndpointId\": [\n\t\t\t\t\t\t\"eice-*\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateTags\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": \"CreateNetworkInterface\"\n\t\t\t\t},\n\t\t\t\t\"ForAllValues:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": [\n\t\t\t\t\t\t\"InstanceConnectEndpointId\"\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:RequestTag/InstanceConnectEndpointId\": [\n\t\t\t\t\t\t\"eice-*\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:AssignIpv6Addresses\",\n\t\t\t\t\"ec2:UnassignIpv6Addresses\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/InstanceConnectEndpointId\": [\n\t\t\t\t\t\t\"eice-*\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:ModifyNetworkInterfaceAttribute\",\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:security-group/*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/InstanceConnectEndpointId\": [\n\t\t\t\t\t\t\"eice-*\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSApplicationMigrationServiceEc2InstancePolicy",
+    "name": "AWSApplicationMigrationServiceEc2InstancePolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"MgnAgentInstallation\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"mgn:SendClientLogsForMgn\",\n\t\t\t\t\"mgn:RegisterAgentForMgn\",\n\t\t\t\t\"mgn:GetAgentInstallationAssetsForMgn\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"MgnAgentReplication\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"mgn:SendAgentMetricsForMgn\",\n\t\t\t\t\"mgn:SendAgentLogsForMgn\",\n\t\t\t\t\"mgn:UpdateAgentSourcePropertiesForMgn\",\n\t\t\t\t\"mgn:UpdateAgentReplicationInfoForMgn\",\n\t\t\t\t\"mgn:UpdateAgentConversionInfoForMgn\",\n\t\t\t\t\"mgn:GetAgentCommandForMgn\",\n\t\t\t\t\"mgn:GetAgentConfirmedResumeInfoForMgn\",\n\t\t\t\t\"mgn:GetAgentRuntimeConfigurationForMgn\",\n\t\t\t\t\"mgn:UpdateAgentBacklogForMgn\",\n\t\t\t\t\"mgn:GetAgentReplicationInfoForMgn\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:mgn:*:*:source-server/*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"MgnSourceServerTagResource\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"mgn:TagResource\",\n\t\t\t\"Resource\": \"arn:aws:mgn:*:*:source-server/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"mgn:CreateAction\": \"RegisterAgentForMgn\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/EC2ImageBuilderLifecycleExecutionPolicy",
+    "name": "EC2ImageBuilderLifecycleExecutionPolicy",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"Ec2ImagePermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:EnableImage\",\n\t\t\t\t\"ec2:DeregisterImage\",\n\t\t\t\t\"ec2:EnableImageDeprecation\",\n\t\t\t\t\"ec2:DescribeImageAttribute\",\n\t\t\t\t\"ec2:DisableImage\",\n\t\t\t\t\"ec2:DisableImageDeprecation\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*::image/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Image Builder\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2DeleteSnapshotPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:DeleteSnapshot\",\n\t\t\t\"Resource\": \"arn:aws:ec2:*::snapshot/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Image Builder\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2TagsPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteTags\",\n\t\t\t\t\"ec2:CreateTags\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*::snapshot/*\",\n\t\t\t\t\"arn:aws:ec2:*::image/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/DeprecatedBy\": \"EC2 Image Builder\",\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"EC2 Image Builder\"\n\t\t\t\t},\n\t\t\t\t\"ForAllValues:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": \"DeprecatedBy\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"ECRImagePermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ecr:BatchGetImage\",\n\t\t\t\t\"ecr:BatchDeleteImage\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ecr:*:*:repository/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ecr:ResourceTag/LifecycleExecutionAccess\": \"EC2 Image Builder\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"ImageBuilderEC2TagServicePermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"tag:GetResources\",\n\t\t\t\t\"imagebuilder:DeleteImage\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSEC2VssSnapshotPolicy",
+    "name": "AWSEC2VssSnapshotPolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"DescribeInstanceInfo\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeInstanceAttribute\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"ArnLike\": {\n\t\t\t\t\t\"ec2:SourceInstanceARN\": \"arn:aws:ec2:*:*:instance/${ec2:InstanceId}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateSnapshotsWithTag\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshots\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:RequestTag/AwsVssConfig\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateSnapshotsAccessInstance\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshots\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"ArnLike\": {\n\t\t\t\t\t\"ec2:SourceInstanceARN\": \"arn:aws:ec2:*:*:instance/${ec2:InstanceId}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateSnapshotsAccessVolume\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSnapshots\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateImageWithTag\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateImage\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:image/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:RequestTag/AwsVssConfig\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateImageAccessInstance\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateImage\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"ArnLike\": {\n\t\t\t\t\t\"ec2:SourceInstanceARN\": \"arn:aws:ec2:*:*:instance/${ec2:InstanceId}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateTagsOnResourceCreation\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:image/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": [\n\t\t\t\t\t\t\"CreateImage\",\n\t\t\t\t\t\t\"CreateSnapshots\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CreateTagsAfterResourceCreation\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:image/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"ec2:ResourceTag/AwsVssConfig\": \"*\"\n\t\t\t\t},\n\t\t\t\t\"ForAllValues:StringEquals\": {\n\t\t\t\t\t\"aws:TagKeys\": [\n\t\t\t\t\t\t\"AppConsistent\",\n\t\t\t\t\t\t\"Device\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DescribeImagesAndSnapshots\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"ec2:DescribeSnapshots\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/EC2FastLaunchFullAccess",
+    "name": "EC2FastLaunchFullAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"EC2FastLaunch\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:EnableFastLaunch\",\n\t\t\t\t\"ec2:DisableFastLaunch\",\n\t\t\t\t\"ec2:DescribeFastLaunchImages\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2ReadOnly\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeImages\",\n\t\t\t\t\"ec2:DescribeLaunchTemplateVersions\",\n\t\t\t\t\"ec2:DescribeSnapshots\",\n\t\t\t\t\"ec2:DescribeVolumes\",\n\t\t\t\t\"ec2:DescribeRegions\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeLaunchTemplates\",\n\t\t\t\t\"ec2:DescribeTags\",\n\t\t\t\t\"ec2:DescribeAvailabilityZones\",\n\t\t\t\t\"ec2:DescribeAccountAttributes\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2CreateVPC\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateVpc\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:vpc/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2ModifyDeleteVPC\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteVpc\",\n\t\t\t\t\"ec2:CreateSubnet\",\n\t\t\t\t\"ec2:ModifyVpcAttribute\",\n\t\t\t\t\"ec2:CreateSecurityGroup\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:vpc/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2CreateSubnet\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSubnet\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2DeleteSubnet\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteSubnet\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2CreateSecurityGroup\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateSecurityGroup\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2ManageSecurityGroupEgress\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:AuthorizeSecurityGroupEgress\",\n\t\t\t\t\"ec2:RevokeSecurityGroupEgress\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2DeleteSecurityGroup\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DeleteSecurityGroup\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ResourceTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CloudFormation\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"cloudformation:DescribeStacks\",\n\t\t\t\t\"cloudformation:CreateStack\",\n\t\t\t\t\"cloudformation:UpdateStack\",\n\t\t\t\t\"cloudformation:RollbackStack\",\n\t\t\t\t\"cloudformation:DeleteStack\",\n\t\t\t\t\"cloudformation:UpdateTerminationProtection\",\n\t\t\t\t\"cloudformation:DescribeStackEvents\",\n\t\t\t\t\"cloudformation:DescribeStackResource\",\n\t\t\t\t\"cloudformation:DescribeStackResources\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:cloudformation:*:*:stack/EC2FastLaunch*/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2LaunchTemplateModify\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:ModifyLaunchTemplate\",\n\t\t\t\t\"ec2:CreateLaunchTemplate\",\n\t\t\t\t\"ec2:CreateLaunchTemplateVersion\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2LaunchInstance\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\t\"arn:aws:ec2:*::image/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:key-pair/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\t\"arn:aws:license-manager:*:*:license-configuration:*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2LaunchInstanceWithVolAndInstance\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2Tags\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:snapshot/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": \"RunInstances\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EC2ManageTags\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:CreateTags\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:launch-template/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:vpc/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"EC2 Fast Launch\"\n\t\t\t\t},\n\t\t\t\t\"ForAnyValue:StringLike\": {\n\t\t\t\t\t\"aws:CalledVia\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"IAMSLR\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:CreateServiceLinkedRole\",\n\t\t\t\"Resource\": \"arn:aws:iam::*:role/aws-service-role/ec2fastlaunch.amazonaws.com/AWSServiceRoleForEC2FastLaunch\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"iam:AWSServiceName\": \"ec2fastlaunch.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"IAMSLRPassRole\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:PassRole\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:iam::*:instance-profile/*\",\n\t\t\t\t\"arn:aws:iam::*:role/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"iam:PassedToService\": [\n\t\t\t\t\t\t\"ec2.amazonaws.com\",\n\t\t\t\t\t\t\"ec2.amazonaws.com.cn\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
+    "name": "AmazonEC2ContainerRegistryPullOnly",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ecr:GetAuthorizationToken\",\n\t\t\t\t\"ecr:BatchGetImage\",\n\t\t\t\t\"ecr:GetDownloadUrlForLayer\",\n\t\t\t\t\"ecr:BatchImportUpstreamImage\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/DeclarativePoliciesEC2Report",
+    "name": "DeclarativePoliciesEC2Report",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"DeclarativePoliciesEC2Report\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeRegions\",\n\t\t\t\t\"ec2:GetSerialConsoleAccessStatus\",\n\t\t\t\t\"ec2:GetInstanceMetadataDefaults\",\n\t\t\t\t\"ec2:GetImageBlockPublicAccessState\",\n\t\t\t\t\"ec2:GetSnapshotBlockPublicAccessState\",\n\t\t\t\t\"ec2:GetAllowedImagesSettings\",\n\t\t\t\t\"ec2:DescribeVpcBlockPublicAccessOptions\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t]\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonEC2ImageReferencesAccessPolicy",
+    "name": "AmazonEC2ImageReferencesAccessPolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ec2:DescribeImageReferences\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeLaunchTemplates\",\n\t\t\t\t\"ec2:DescribeLaunchTemplateVersions\",\n\t\t\t\t\"ssm:DescribeParameters\",\n\t\t\t\t\"ssm:GetParameters\",\n\t\t\t\t\"imagebuilder:ListImageRecipes\",\n\t\t\t\t\"imagebuilder:ListContainerRecipes\",\n\t\t\t\t\"imagebuilder:GetContainerRecipe\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"aws:CalledVia\": [\n\t\t\t\t\t\t\"ec2-images.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSEC2CapacityManagerServiceRolePolicy",
+    "name": "AWSEC2CapacityManagerServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AllowOrganizationsDefaultReadActions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"organizations:ListAccounts\",\n\t\t\t\t\"organizations:ListChildren\",\n\t\t\t\t\"organizations:ListAWSServiceAccessForOrganization\",\n\t\t\t\t\"organizations:DescribeOrganization\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowOrganizationsListDelegatedAdministratorsAction\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"organizations:ListDelegatedAdministrators\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLikeIfExists\": {\n\t\t\t\t\t\"organizations:ServicePrincipal\": [\n\t\t\t\t\t\t\"ec2.capacitymanager.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSEC2SqlHaServiceRolePolicy",
+    "name": "AWSEC2SqlHaServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMSendCommandToTaggedInstances\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ssm:SendCommand\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/SqlHaMonitored\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMSendCommandOfOwnedDoc\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"ssm:SendCommand\",\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ssm:*:*:document/AWSEC2-DetectSqlHa*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowSSMNonMutating\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssm:DescribeInstanceInformation\",\n\t\t\t\t\"ssm:GetCommandInvocation\",\n\t\t\t\t\"ssm:ListCommands\",\n\t\t\t\t\"ssm:ListCommandInvocations\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowEC2NonMutating\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeInstanceAttribute\",\n\t\t\t\t\"ec2:DescribeInstanceStatus\",\n\t\t\t\t\"ec2:DescribeTags\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowEventsMutateManagedRule\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"events:PutTargets\",\n\t\t\t\t\"events:PutRule\",\n\t\t\t\t\"events:DeleteRule\",\n\t\t\t\t\"events:RemoveTargets\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"events:ManagedBy\": \"ec2sqlha.amazonaws.com\",\n\t\t\t\t\t\"aws:PrincipalAccount\": \"${aws:ResourceAccount}\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Resource\": \"arn:aws:events:*:*:rule/AWSEC2SqlHa*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AllowEventsNonMutatingManagedRule\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"events:ListTargetsByRule\",\n\t\t\t\t\"events:DescribeRule\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:events:*:*:rule/AWSEC2SqlHa*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSEC2SqlHaInstancePolicy",
+    "name": "AWSEC2SqlHaInstancePolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssm:UpdateInstanceInformation\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/SqlHaMonitored\": \"true\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"secretsmanager:GetSecretValue\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:secretsmanager:*:*:secret:*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/AWSEc2SqlHa\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ssmmessages:CreateControlChannel\",\n\t\t\t\t\"ssmmessages:CreateDataChannel\",\n\t\t\t\t\"ssmmessages:OpenControlChannel\",\n\t\t\t\t\"ssmmessages:OpenDataChannel\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2messages:AcknowledgeMessage\",\n\t\t\t\t\"ec2messages:DeleteMessage\",\n\t\t\t\t\"ec2messages:FailMessage\",\n\t\t\t\t\"ec2messages:GetEndpoint\",\n\t\t\t\t\"ec2messages:GetMessages\",\n\t\t\t\t\"ec2messages:SendReply\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSLambdaManagedEC2ResourceOperator",
+    "name": "AWSLambdaManagedEC2ResourceOperator",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\",\n\t\t\t\t\"ec2:CreateTags\",\n\t\t\t\t\"ec2:AttachNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ManagedResourceOperator\": \"scaler.lambda.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeAvailabilityZones\",\n\t\t\t\t\"ec2:DescribeCapacityReservations\",\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeInstanceStatus\",\n\t\t\t\t\"ec2:DescribeInstanceTypeOfferings\",\n\t\t\t\t\"ec2:DescribeInstanceTypes\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeSubnets\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\",\n\t\t\t\t\"ec2:CreateNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:image/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:Owner\": \"amazon\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "ec2"
+    ],
+    "related_resources": [
+      "ec2"
+    ]
+  }
+]

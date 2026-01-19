@@ -1,0 +1,115 @@
+package iam
+
+import (
+	"testing"
+)
+
+func TestPolicy_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		policy  Policy
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid-policy",
+			policy: Policy{
+				Name:          "test-policy",
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*"}]}`,
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing-name",
+			policy: Policy{
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
+			},
+			wantErr: true,
+			errMsg:  "policy name is required",
+		},
+		{
+			name: "missing-policy-document",
+			policy: Policy{
+				Name: "test-policy",
+			},
+			wantErr: true,
+			errMsg:  "policy document is required",
+		},
+		{
+			name: "invalid-policy-document-json",
+			policy: Policy{
+				Name:          "test-policy",
+				PolicyDocument: `{invalid json}`,
+			},
+			wantErr: true,
+			errMsg:  "policy document must be valid JSON",
+		},
+		{
+			name: "name-too-long",
+			policy: Policy{
+				Name:          string(make([]byte, 129)), // 129 characters
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
+			},
+			wantErr: true,
+			errMsg:  "policy name must be between 1 and 128 characters",
+		},
+		{
+			name: "name-invalid-characters",
+			policy: Policy{
+				Name:          "test@policy#invalid",
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
+			},
+			wantErr: true,
+			errMsg:  "policy name contains invalid characters",
+		},
+		{
+			name: "path-invalid-format",
+			policy: Policy{
+				Name:          "test-policy",
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
+				Path:          stringPtr("invalid-path"), // Doesn't start with /
+			},
+			wantErr: true,
+			errMsg:  "policy path must start with '/'",
+		},
+		{
+			name: "path-too-long",
+			policy: Policy{
+				Name:          "test-policy",
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
+				Path:          stringPtr("/" + string(make([]byte, 512))), // 513 characters
+			},
+			wantErr: true,
+			errMsg:  "policy path cannot exceed 512 characters",
+		},
+		{
+			name: "valid-policy-with-path",
+			policy: Policy{
+				Name:          "test-policy",
+				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
+				Path:          stringPtr("/team-a/"),
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.policy.Validate()
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Expected error but got none")
+					return
+				}
+				if tt.errMsg != "" && !contains(err.Error(), tt.errMsg) {
+					t.Errorf("Expected error to contain %q, got %q", tt.errMsg, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+

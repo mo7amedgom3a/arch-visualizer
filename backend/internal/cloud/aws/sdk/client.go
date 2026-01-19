@@ -9,12 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/iam"
 )
 
 // AWSClient wraps AWS SDK clients for different services
 type AWSClient struct {
 	Config aws.Config
 	EC2    *ec2.Client
+	IAM    *iam.Client
 }
 
 // NewAWSClient creates a new AWS client with configuration from environment variables
@@ -44,6 +46,7 @@ func NewAWSClient(ctx context.Context) (*AWSClient, error) {
 	return &AWSClient{
 		Config: cfg,
 		EC2:    ec2.NewFromConfig(cfg),
+		IAM:    iam.NewFromConfig(cfg),
 	}, nil
 }
 
@@ -79,6 +82,7 @@ func NewAWSClientWithConfig(ctx context.Context, region string, accessKeyID, sec
 	return &AWSClient{
 		Config: cfg,
 		EC2:    ec2.NewFromConfig(cfg),
+		IAM:    iam.NewFromConfig(cfg),
 	}, nil
 }
 
