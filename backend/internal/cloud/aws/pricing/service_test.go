@@ -2,6 +2,7 @@ package pricing
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -51,6 +52,22 @@ func TestAWSPricingService_GetPricing(t *testing.T) {
 			region:       "us-east-1",
 			expectError:  false,
 			expectedType: "data_transfer",
+		},
+		{
+			name:         "get-ec2-instance-pricing",
+			resourceType: "ec2_instance",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "ec2_instance",
+		},
+		{
+			name:         "get-ebs-volume-pricing",
+			resourceType: "ebs_volume",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "ebs_volume",
 		},
 		{
 			name:         "unsupported-provider",
@@ -131,6 +148,39 @@ func TestAWSPricingService_EstimateCost(t *testing.T) {
 			expectError:  false,
 			expectedCost: 3.60,
 		},
+		{
+			name: "estimate-ec2-instance-cost-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ec2_instance",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"instance_type": "t3.micro",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 7.488, // 0.0104 * 720
+		},
+		{
+			name: "estimate-ebs-volume-cost-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ebs_volume",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":    100.0,
+					"volume_type": "gp3",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 8.0, // 0.08 * 100 * 1 month
+		},
 	}
 
 	for _, tt := range tests {
@@ -152,7 +202,9 @@ func TestAWSPricingService_EstimateCost(t *testing.T) {
 				t.Fatal("Expected cost estimate but got nil")
 			}
 
-			if estimate.TotalCost != tt.expectedCost {
+			// Use epsilon for floating point comparison
+			epsilon := 0.01
+			if math.Abs(estimate.TotalCost-tt.expectedCost) > epsilon {
 				t.Errorf("Expected total cost %.2f, got %.2f", tt.expectedCost, estimate.TotalCost)
 			}
 		})
@@ -192,6 +244,7 @@ func TestAWSPricingService_EstimateArchitectureCost(t *testing.T) {
 	}
 
 	// Expected: 32.40 (NAT) + 3.60 (EIP) = 36.00
+	// Note: This test only includes NAT and EIP, so total is 36.00
 	expectedTotal := 36.00
 	if estimate.TotalCost != expectedTotal {
 		t.Errorf("Expected total cost %.2f, got %.2f", expectedTotal, estimate.TotalCost)
@@ -212,7 +265,7 @@ func TestAWSPricingService_ListSupportedResources(t *testing.T) {
 			name:         "list-aws-resources",
 			provider:     "aws",
 			expectError:  false,
-			minResources: 4, // nat_gateway, elastic_ip, network_interface, data_transfer
+			minResources: 6, // nat_gateway, elastic_ip, network_interface, data_transfer, ec2_instance, ebs_volume
 		},
 		{
 			name:        "unsupported-provider",
@@ -246,6 +299,8 @@ func TestAWSPricingService_ListSupportedResources(t *testing.T) {
 				"elastic_ip":        false,
 				"network_interface": false,
 				"data_transfer":     false,
+				"ec2_instance":      false,
+				"ebs_volume":        false,
 			}
 
 			for _, res := range resources {

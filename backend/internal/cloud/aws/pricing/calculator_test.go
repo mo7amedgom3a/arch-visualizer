@@ -2,6 +2,7 @@ package pricing
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
@@ -86,6 +87,103 @@ func TestAWSPricingCalculator_CalculateResourceCost(t *testing.T) {
 			expectError: true,
 		},
 		{
+			name: "ec2-instance-t3.micro-1-hour",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ec2_instance",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"instance_type": "t3.micro",
+				},
+			},
+			duration:     1 * time.Hour,
+			expectError:  false,
+			expectedCost: 0.0104,
+		},
+		{
+			name: "ec2-instance-t3.micro-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ec2_instance",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"instance_type": "t3.micro",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 7.488, // 0.0104 * 720
+		},
+		{
+			name: "ec2-instance-m5.large-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ec2_instance",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"instance_type": "m5.large",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 69.12, // 0.096 * 720
+		},
+		{
+			name: "ebs-volume-gp3-100gb-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ebs_volume",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":     100.0,
+					"volume_type": "gp3",
+				},
+			},
+			duration:     720 * time.Hour, // 1 month
+			expectError:  false,
+			expectedCost: 8.0, // 0.08 * 100 * 1
+		},
+		{
+			name: "ebs-volume-gp2-50gb-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ebs_volume",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":     50.0,
+					"volume_type": "gp2",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 5.0, // 0.10 * 50 * 1
+		},
+		{
+			name: "ebs-volume-missing-size-gb",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "ebs_volume",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"volume_type": "gp3",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  true,
+		},
+		{
 			name: "unsupported-resource-type",
 			resource: &resource.Resource{
 				Type: resource.ResourceType{
@@ -118,7 +216,9 @@ func TestAWSPricingCalculator_CalculateResourceCost(t *testing.T) {
 				t.Fatal("Expected cost estimate but got nil")
 			}
 
-			if estimate.TotalCost != tt.expectedCost {
+			// Use epsilon for floating point comparison
+			epsilon := 0.01
+			if math.Abs(estimate.TotalCost-tt.expectedCost) > epsilon {
 				t.Errorf("Expected total cost %.2f, got %.2f", tt.expectedCost, estimate.TotalCost)
 			}
 
@@ -178,6 +278,7 @@ func TestAWSPricingCalculator_CalculateArchitectureCost(t *testing.T) {
 	}
 
 	// Expected: 32.40 (NAT) + 3.60 (EIP) + 7.20 (ENI) = 43.20
+	// Note: This test only includes NAT, EIP, and ENI
 	expectedTotal := 43.20
 	if estimate.TotalCost != expectedTotal {
 		t.Errorf("Expected total cost %.2f, got %.2f", expectedTotal, estimate.TotalCost)
@@ -232,6 +333,22 @@ func TestAWSPricingCalculator_GetResourcePricing(t *testing.T) {
 			region:       "us-east-1",
 			expectError:  false,
 			expectedType: "data_transfer",
+		},
+		{
+			name:         "get-ec2-instance-pricing",
+			resourceType: "ec2_instance",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "ec2_instance",
+		},
+		{
+			name:         "get-ebs-volume-pricing",
+			resourceType: "ebs_volume",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "ebs_volume",
 		},
 		{
 			name:         "unsupported-resource-type",

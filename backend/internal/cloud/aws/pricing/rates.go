@@ -74,3 +74,4 @@ func GetRegionalMultiplier(resourceType, region string) float64 {
 	}
 	return 1.0
 }
+

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -225,12 +226,12 @@ func (s *InstanceTypeService) convertAWSInstanceType(awsType types.InstanceTypeI
 	category := awsmodel.CategorizeInstanceType(name)
 
 	info := &awsmodel.InstanceTypeInfo{
-		Name:                        name,
-		Category:                    category,
-		FreeTierEligible:            awsmodel.IsFreeTierEligible(name, region),
-		SupportedArchitectures:      []string{},
+		Name:                         name,
+		Category:                     category,
+		FreeTierEligible:             awsmodel.IsFreeTierEligible(name, region),
+		SupportedArchitectures:       []string{},
 		SupportedVirtualizationTypes: []string{},
-		Region:                      region,
+		Region:                       region,
 	}
 
 	// VCPU
@@ -300,12 +301,14 @@ func (s *InstanceTypeService) convertAWSInstanceType(awsType types.InstanceTypeI
 // loadFromStatic loads instance types from the static JSON file
 func (s *InstanceTypeService) loadFromStatic() error {
 	// Try to find the JSON file relative to this package
-	// The file is in backend/internal/cloud/aws/models/compute/data/instance_types.json
+	// The file is in backend/internal/cloud/aws/models/compute/instance_types/data/instance_types.json
 	wd, _ := os.Getwd()
+	_, currentFile, _, _ := runtime.Caller(0)
+	currentDir := filepath.Dir(currentFile)
 	possiblePaths := []string{
-		filepath.Join(wd, "internal", "cloud", "aws", "models", "compute", "data", "instance_types.json"),
-		filepath.Join(wd, "..", "..", "..", "..", "..", "models", "compute", "data", "instance_types.json"),
-		filepath.Join(wd, "backend", "internal", "cloud", "aws", "models", "compute", "data", "instance_types.json"),
+		filepath.Join(currentDir, "..", "models", "compute", "instance_types", "data", "instance_types.json"),
+		filepath.Join(wd, "internal", "cloud", "aws", "models", "compute", "instance_types", "data", "instance_types.json"),
+		filepath.Join(wd, "backend", "internal", "cloud", "aws", "models", "compute", "instance_types", "data", "instance_types.json"),
 	}
 
 	var jsonData []byte
@@ -408,7 +411,7 @@ func parseNetworkPerformance(perf string) float64 {
 	// AWS formats: "Up to 5 Gigabit", "10 Gigabit", "25 Gigabit", etc.
 	// This is a simplified parser - in production, you might want more robust parsing
 	perf = strings.ToLower(perf)
-	
+
 	// Extract numbers and convert to Gbps
 	// For now, return a default value - this would need more sophisticated parsing
 	if strings.Contains(perf, "25") {

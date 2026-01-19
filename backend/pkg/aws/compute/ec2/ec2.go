@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -12,6 +13,7 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsec2model "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2"
 	awsmodel "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/instance_types"
+	awsebsmodel "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/ebs"
 	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
 )
 
@@ -212,6 +214,29 @@ func createInstanceExample(ctx context.Context, client *awssdk.AWSClient, instan
 			false)
 	}
 
+	// Example: Create and attach an additional EBS volume
+	volume := &awsebsmodel.Volume{
+		Name:             "example-data-volume",
+		AvailabilityZone: "us-east-1a", // Must match instance AZ
+		Size:             20,
+		VolumeType:       "gp3",
+		Encrypted:        false,
+		Tags: []configs.Tag{
+			{Key: "Name", Value: "example-data-volume"},
+		},
+	}
+
+	if err := volume.Validate(); err != nil {
+		fmt.Printf("Volume validation error: %v\n", err)
+		return
+	}
+
+	fmt.Println("\nEBS Volume Configuration:")
+	fmt.Printf("  Name: %s\n", volume.Name)
+	fmt.Printf("  Availability Zone: %s\n", volume.AvailabilityZone)
+	fmt.Printf("  Size: %d GiB\n", volume.Size)
+	fmt.Printf("  Type: %s\n", volume.VolumeType)
+
 	// Example: Create instance using AWS SDK (commented out - requires valid IDs)
 	/*
 		createInput := &ec2.RunInstancesInput{
@@ -243,6 +268,17 @@ func createInstanceExample(ctx context.Context, client *awssdk.AWSClient, instan
 			instanceID := result.Instances[0].InstanceId
 			fmt.Printf("\nInstance created successfully: %s\n", aws.ToString(instanceID))
 		}
+	*/
+
+	// Example: Create instance and attach EBS volume (commented out - requires valid IDs)
+	/*
+		output, err := CreateInstanceWithEBSVolume(ctx, instance, volume, "/dev/sdf")
+		if err != nil {
+			fmt.Printf("Error creating instance with volume: %v\n", err)
+			return
+		}
+		fmt.Printf("\nInstance created: %s\n", aws.ToString(output.InstanceOutput.Instances[0].InstanceId))
+		fmt.Printf("Volume created: %s\n", aws.ToString(output.VolumeOutput.VolumeId))
 	*/
 }
 
@@ -362,6 +398,165 @@ func CreateInstance(ctx context.Context, instance *awsec2model.Instance) (*ec2.R
 	}
 
 	return result, nil
+}
+
+// InstanceWithVolumeOutput contains outputs for instance and volume operations
+type InstanceWithVolumeOutput struct {
+	InstanceOutput   *ec2.RunInstancesOutput
+	VolumeOutput     *ec2.CreateVolumeOutput
+	AttachmentOutput *ec2.AttachVolumeOutput
+}
+
+// CreateInstanceWithEBSVolume creates an EC2 instance, creates an EBS volume, and attaches it.
+// The volume AvailabilityZone must match the instance AvailabilityZone.
+func CreateInstanceWithEBSVolume(ctx context.Context, instance *awsec2model.Instance, volume *awsebsmodel.Volume, deviceName string) (*InstanceWithVolumeOutput, error) {
+	if err := instance.Validate(); err != nil {
+		return nil, fmt.Errorf("instance validation failed: %w", err)
+	}
+	if err := volume.Validate(); err != nil {
+		return nil, fmt.Errorf("volume validation failed: %w", err)
+	}
+
+	if deviceName == "" {
+		deviceName = "/dev/sdf"
+	}
+
+	client, err := awssdk.NewAWSClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AWS client: %w", err)
+	}
+
+	// Create the instance
+	createInput := &ec2.RunInstancesInput{
+		ImageId:          aws.String(instance.AMI),
+		InstanceType:     types.InstanceType(instance.InstanceType),
+		MinCount:         aws.Int32(1),
+		MaxCount:         aws.Int32(1),
+		SubnetId:         aws.String(instance.SubnetID),
+		SecurityGroupIds: instance.VpcSecurityGroupIds,
+	}
+
+	if instance.AssociatePublicIPAddress != nil && *instance.AssociatePublicIPAddress {
+		createInput.NetworkInterfaces = []types.InstanceNetworkInterfaceSpecification{
+			{
+				AssociatePublicIpAddress: instance.AssociatePublicIPAddress,
+				SubnetId:                 aws.String(instance.SubnetID),
+				Groups:                   instance.VpcSecurityGroupIds,
+				DeviceIndex:              aws.Int32(0),
+			},
+		}
+		createInput.SubnetId = nil
+		createInput.SecurityGroupIds = nil
+	}
+
+	if instance.IAMInstanceProfile != nil {
+		createInput.IamInstanceProfile = &types.IamInstanceProfileSpecification{
+			Name: instance.IAMInstanceProfile,
+		}
+	}
+
+	if instance.KeyName != nil {
+		createInput.KeyName = instance.KeyName
+	}
+
+	if instance.UserData != nil {
+		createInput.UserData = instance.UserData
+	}
+
+	if len(instance.Tags) > 0 {
+		var tags []types.Tag
+		for _, tag := range instance.Tags {
+			tags = append(tags, types.Tag{
+				Key:   aws.String(tag.Key),
+				Value: aws.String(tag.Value),
+			})
+		}
+		createInput.TagSpecifications = []types.TagSpecification{
+			{
+				ResourceType: types.ResourceTypeInstance,
+				Tags:         tags,
+			},
+		}
+	}
+
+	instanceOutput, err := client.EC2.RunInstances(ctx, createInput)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create instance: %w", err)
+	}
+
+	if len(instanceOutput.Instances) == 0 || instanceOutput.Instances[0].InstanceId == nil {
+		return nil, fmt.Errorf("instance creation did not return an instance id")
+	}
+
+	instanceID := aws.ToString(instanceOutput.Instances[0].InstanceId)
+
+	// Wait for instance to be running before attachment
+	instanceWaiter := ec2.NewInstanceRunningWaiter(client.EC2)
+	if err := instanceWaiter.Wait(ctx, &ec2.DescribeInstancesInput{InstanceIds: []string{instanceID}}, 5*time.Minute); err != nil {
+		return nil, fmt.Errorf("waiting for instance to be running failed: %w", err)
+	}
+
+	// Create the EBS volume
+	volumeInput := &ec2.CreateVolumeInput{
+		AvailabilityZone: aws.String(volume.AvailabilityZone),
+		Size:             aws.Int32(int32(volume.Size)),
+		VolumeType:       types.VolumeType(volume.VolumeType),
+		Encrypted:        aws.Bool(volume.Encrypted),
+	}
+
+	if volume.IOPS != nil {
+		volumeInput.Iops = aws.Int32(int32(*volume.IOPS))
+	}
+	if volume.Throughput != nil {
+		volumeInput.Throughput = aws.Int32(int32(*volume.Throughput))
+	}
+	if volume.KMSKeyID != nil {
+		volumeInput.KmsKeyId = volume.KMSKeyID
+	}
+	if volume.SnapshotID != nil {
+		volumeInput.SnapshotId = volume.SnapshotID
+	}
+	if len(volume.Tags) > 0 {
+		var tags []types.Tag
+		for _, tag := range volume.Tags {
+			tags = append(tags, types.Tag{
+				Key:   aws.String(tag.Key),
+				Value: aws.String(tag.Value),
+			})
+		}
+		volumeInput.TagSpecifications = []types.TagSpecification{
+			{
+				ResourceType: types.ResourceTypeVolume,
+				Tags:         tags,
+			},
+		}
+	}
+
+	volumeOutput, err := client.EC2.CreateVolume(ctx, volumeInput)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create volume: %w", err)
+	}
+
+	volumeID := aws.ToString(volumeOutput.VolumeId)
+	volumeWaiter := ec2.NewVolumeAvailableWaiter(client.EC2)
+	if err := volumeWaiter.Wait(ctx, &ec2.DescribeVolumesInput{VolumeIds: []string{volumeID}}, 5*time.Minute); err != nil {
+		return nil, fmt.Errorf("waiting for volume to be available failed: %w", err)
+	}
+
+	attachmentOutput, err := client.EC2.AttachVolume(ctx, &ec2.AttachVolumeInput{
+		Device:     aws.String(deviceName),
+		InstanceId: aws.String(instanceID),
+		VolumeId:   aws.String(volumeID),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to attach volume: %w", err)
+	}
+
+	return &InstanceWithVolumeOutput{
+		InstanceOutput:   instanceOutput,
+		VolumeOutput:     volumeOutput,
+		AttachmentOutput: attachmentOutput,
+	}, nil
 }
 
 // ListInstances lists EC2 instances with optional filters

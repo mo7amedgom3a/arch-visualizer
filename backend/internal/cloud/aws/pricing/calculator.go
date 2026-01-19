@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 )
@@ -105,6 +107,73 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 					Currency:      domainpricing.USD,
 				},
 			}
+		}
+
+	case "ec2_instance":
+		// Extract instance type from metadata
+		instanceType := "t3.micro" // Default
+		if res.Metadata != nil {
+			if it, ok := res.Metadata["instance_type"].(string); ok && it != "" {
+				instanceType = it
+			}
+		}
+		
+		// Get pricing for the specific instance type
+		instancePricing := compute.GetEC2InstancePricing(instanceType, res.Region)
+		hourlyRate := instancePricing.Components[0].Rate
+		
+		cost := compute.CalculateEC2InstanceCost(duration, instanceType, res.Region)
+		totalCost = cost
+		breakdown = []domainpricing.CostComponent{
+			{
+				ComponentName: "EC2 Instance Hourly",
+				Model:         domainpricing.PerHour,
+				Quantity:      duration.Hours(),
+				UnitRate:      hourlyRate,
+				Subtotal:      cost,
+				Currency:      domainpricing.USD,
+			},
+		}
+
+	case "ebs_volume":
+		// Extract size and volume type from metadata
+		sizeGB := 0.0
+		volumeType := "gp3" // Default
+		if res.Metadata != nil {
+			if s, ok := res.Metadata["size_gb"].(float64); ok {
+				sizeGB = s
+			} else if s, ok := res.Metadata["size_gb"].(int); ok {
+				sizeGB = float64(s)
+			}
+			if vt, ok := res.Metadata["volume_type"].(string); ok && vt != "" {
+				volumeType = vt
+			}
+		}
+		
+		if sizeGB <= 0 {
+			return nil, fmt.Errorf("ebs_volume requires size_gb in metadata")
+		}
+		
+		// Get pricing for the specific volume type
+		volumePricing := storage.GetEBSVolumePricing(volumeType, res.Region)
+		ratePerGBMonth := volumePricing.Components[0].Rate
+		
+		cost := storage.CalculateEBSVolumeCost(duration, sizeGB, volumeType, res.Region)
+		totalCost = cost
+		
+		// Calculate months for breakdown
+		hoursPerMonth := 720.0
+		months := duration.Hours() / hoursPerMonth
+		
+		breakdown = []domainpricing.CostComponent{
+			{
+				ComponentName: "EBS Volume Storage",
+				Model:         domainpricing.PerGB,
+				Quantity:      sizeGB * months,
+				UnitRate:      ratePerGBMonth,
+				Subtotal:      cost,
+				Currency:      domainpricing.USD,
+			},
 		}
 
 	default:

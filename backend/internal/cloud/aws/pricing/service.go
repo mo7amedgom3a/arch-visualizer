@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 )
@@ -37,6 +39,14 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 		return networking.GetNetworkInterfacePricing(region), nil
 	case "data_transfer":
 		return networking.GetDataTransferPricing(region), nil
+	case "ec2_instance":
+		// Default to t3.micro if instance type not provided
+		instanceType := "t3.micro"
+		return compute.GetEC2InstancePricing(instanceType, region), nil
+	case "ebs_volume":
+		// Default to gp3 if volume type not provided
+		volumeType := "gp3"
+		return storage.GetEBSVolumePricing(volumeType, region), nil
 	default:
 		return nil, fmt.Errorf("pricing not available for resource type: %s", resourceType)
 	}
@@ -63,5 +73,7 @@ func (s *AWSPricingService) ListSupportedResources(ctx context.Context, provider
 		"elastic_ip",
 		"network_interface",
 		"data_transfer",
+		"ec2_instance",
+		"ebs_volume",
 	}, nil
 }

@@ -19,6 +19,7 @@ type Resource struct {
 	Region    string
 	ParentID  *string
 	DependsOn []string
+	Metadata  map[string]interface{} // Additional metadata for pricing and configuration
 }
 
 // ResourceOutput represents resource output data after creation/update
