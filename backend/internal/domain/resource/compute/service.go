@@ -27,6 +27,32 @@ type ComputeService interface {
 	ListLaunchTemplates(ctx context.Context, filters map[string]string) ([]*LaunchTemplate, error)
 	GetLaunchTemplateVersion(ctx context.Context, id string, version int) (*LaunchTemplate, error)
 	ListLaunchTemplateVersions(ctx context.Context, id string) ([]*LaunchTemplateVersion, error)
+
+	// Load Balancer operations
+	CreateLoadBalancer(ctx context.Context, lb *LoadBalancer) (*LoadBalancer, error)
+	GetLoadBalancer(ctx context.Context, arn string) (*LoadBalancer, error)
+	UpdateLoadBalancer(ctx context.Context, lb *LoadBalancer) (*LoadBalancer, error)
+	DeleteLoadBalancer(ctx context.Context, arn string) error
+	ListLoadBalancers(ctx context.Context, filters map[string]string) ([]*LoadBalancer, error)
+
+	// Target Group operations
+	CreateTargetGroup(ctx context.Context, tg *TargetGroup) (*TargetGroup, error)
+	GetTargetGroup(ctx context.Context, arn string) (*TargetGroup, error)
+	UpdateTargetGroup(ctx context.Context, tg *TargetGroup) (*TargetGroup, error)
+	DeleteTargetGroup(ctx context.Context, arn string) error
+	ListTargetGroups(ctx context.Context, filters map[string]string) ([]*TargetGroup, error)
+
+	// Listener operations
+	CreateListener(ctx context.Context, listener *Listener) (*Listener, error)
+	GetListener(ctx context.Context, arn string) (*Listener, error)
+	UpdateListener(ctx context.Context, listener *Listener) (*Listener, error)
+	DeleteListener(ctx context.Context, arn string) error
+	ListListeners(ctx context.Context, loadBalancerARN string) ([]*Listener, error)
+
+	// Target Group Attachment operations
+	AttachTargetToGroup(ctx context.Context, attachment *TargetGroupAttachment) error
+	DetachTargetFromGroup(ctx context.Context, targetGroupARN, targetID string) error
+	ListTargetGroupTargets(ctx context.Context, targetGroupARN string) ([]*TargetGroupAttachment, error)
 }
 
 // ComputeRepository defines the interface for compute resource persistence

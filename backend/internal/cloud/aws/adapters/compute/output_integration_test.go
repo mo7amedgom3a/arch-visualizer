@@ -12,6 +12,8 @@ import (
 	awslttemplateoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2/launch_template/outputs"
 	awsec2outputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2/outputs"
 	awsInstanceTypes "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/instance_types"
+	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
+	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 )
@@ -235,6 +237,206 @@ func (s *realisticAWSComputeService) ListLaunchTemplateVersions(ctx context.Cont
 			CreateTime:    time.Now(),
 			CreatedBy:     stringPtr("arn:aws:iam::123456789012:user/test"),
 			TemplateData:  nil,
+		},
+	}, nil
+}
+
+// Load Balancer operations
+func (s *realisticAWSComputeService) CreateLoadBalancer(ctx context.Context, lb *awsloadbalancer.LoadBalancer) (*awsloadbalanceroutputs.LoadBalancerOutput, error) {
+	internal := false
+	if lb.Internal != nil {
+		internal = *lb.Internal
+	}
+	return &awsloadbalanceroutputs.LoadBalancerOutput{
+		ARN:             "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+		ID:              "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+		Name:            lb.Name,
+		DNSName:         "test-lb-1234567890.us-east-1.elb.amazonaws.com",
+		ZoneID:          "Z35SXDOTRQ7X7K",
+		Type:            lb.LoadBalancerType,
+		Internal:        internal,
+		SecurityGroupIDs: lb.SecurityGroupIDs,
+		SubnetIDs:        lb.SubnetIDs,
+		State:           "active",
+		CreatedTime:     time.Now(),
+	}, nil
+}
+
+func (s *realisticAWSComputeService) GetLoadBalancer(ctx context.Context, arn string) (*awsloadbalanceroutputs.LoadBalancerOutput, error) {
+	return &awsloadbalanceroutputs.LoadBalancerOutput{
+		ARN:             arn,
+		ID:              arn,
+		Name:            "test-lb",
+		DNSName:         "test-lb-1234567890.us-east-1.elb.amazonaws.com",
+		ZoneID:          "Z35SXDOTRQ7X7K",
+		Type:            "application",
+		Internal:        false,
+		SecurityGroupIDs: []string{"sg-123"},
+		SubnetIDs:        []string{"subnet-123", "subnet-456"},
+		State:           "active",
+		CreatedTime:     time.Now(),
+	}, nil
+}
+
+func (s *realisticAWSComputeService) UpdateLoadBalancer(ctx context.Context, arn string, lb *awsloadbalancer.LoadBalancer) (*awsloadbalanceroutputs.LoadBalancerOutput, error) {
+	return s.CreateLoadBalancer(context.Background(), lb)
+}
+
+func (s *realisticAWSComputeService) DeleteLoadBalancer(ctx context.Context, arn string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) ListLoadBalancers(ctx context.Context, filters map[string][]string) ([]*awsloadbalanceroutputs.LoadBalancerOutput, error) {
+	return []*awsloadbalanceroutputs.LoadBalancerOutput{
+		{
+			ARN:             "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+			ID:              "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+			Name:            "test-lb",
+			DNSName:         "test-lb-1234567890.us-east-1.elb.amazonaws.com",
+			ZoneID:          "Z35SXDOTRQ7X7K",
+			Type:            "application",
+			Internal:        false,
+			SecurityGroupIDs: []string{"sg-123"},
+			SubnetIDs:        []string{"subnet-123", "subnet-456"},
+			State:           "active",
+			CreatedTime:     time.Now(),
+		},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) CreateTargetGroup(ctx context.Context, tg *awsloadbalancer.TargetGroup) (*awsloadbalanceroutputs.TargetGroupOutput, error) {
+	targetType := "instance"
+	if tg.TargetType != nil {
+		targetType = *tg.TargetType
+	}
+	return &awsloadbalanceroutputs.TargetGroupOutput{
+		ARN:        "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef",
+		ID:         "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef",
+		Name:       tg.Name,
+		Port:       tg.Port,
+		Protocol:   tg.Protocol,
+		VPCID:      tg.VPCID,
+		TargetType: targetType,
+		HealthCheck: tg.HealthCheck,
+		State:      "active",
+		CreatedTime: time.Now(),
+	}, nil
+}
+
+func (s *realisticAWSComputeService) GetTargetGroup(ctx context.Context, arn string) (*awsloadbalanceroutputs.TargetGroupOutput, error) {
+	return &awsloadbalanceroutputs.TargetGroupOutput{
+		ARN:        arn,
+		ID:         arn,
+		Name:       "test-tg",
+		Port:       80,
+		Protocol:   "HTTP",
+		VPCID:      "vpc-123",
+		TargetType: "instance",
+		HealthCheck: awsloadbalancer.HealthCheckConfig{
+			Path:    stringPtr("/health"),
+			Matcher: stringPtr("200"),
+		},
+		State:      "active",
+		CreatedTime: time.Now(),
+	}, nil
+}
+
+func (s *realisticAWSComputeService) UpdateTargetGroup(ctx context.Context, arn string, tg *awsloadbalancer.TargetGroup) (*awsloadbalanceroutputs.TargetGroupOutput, error) {
+	return s.CreateTargetGroup(context.Background(), tg)
+}
+
+func (s *realisticAWSComputeService) DeleteTargetGroup(ctx context.Context, arn string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) ListTargetGroups(ctx context.Context, filters map[string][]string) ([]*awsloadbalanceroutputs.TargetGroupOutput, error) {
+	return []*awsloadbalanceroutputs.TargetGroupOutput{
+		{
+			ARN:        "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef",
+			ID:         "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef",
+			Name:       "test-tg",
+			Port:       80,
+			Protocol:   "HTTP",
+			VPCID:      "vpc-123",
+			TargetType: "instance",
+			HealthCheck: awsloadbalancer.HealthCheckConfig{
+				Path:    stringPtr("/health"),
+				Matcher: stringPtr("200"),
+			},
+			State:      "active",
+			CreatedTime: time.Now(),
+		},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) CreateListener(ctx context.Context, listener *awsloadbalancer.Listener) (*awsloadbalanceroutputs.ListenerOutput, error) {
+	return &awsloadbalanceroutputs.ListenerOutput{
+		ARN:             "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/test-lb/1234567890abcdef/1234567890abcdef",
+		ID:              "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/test-lb/1234567890abcdef/1234567890abcdef",
+		LoadBalancerARN: listener.LoadBalancerARN,
+		Port:            listener.Port,
+		Protocol:        listener.Protocol,
+		DefaultAction:   listener.DefaultAction,
+	}, nil
+}
+
+func (s *realisticAWSComputeService) GetListener(ctx context.Context, arn string) (*awsloadbalanceroutputs.ListenerOutput, error) {
+	targetGroupARN := "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef"
+	return &awsloadbalanceroutputs.ListenerOutput{
+		ARN:             arn,
+		ID:              arn,
+		LoadBalancerARN: "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+		Port:            80,
+		Protocol:        "HTTP",
+		DefaultAction: awsloadbalancer.ListenerAction{
+			Type:           awsloadbalancer.ListenerActionTypeForward,
+			TargetGroupARN: &targetGroupARN,
+		},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) UpdateListener(ctx context.Context, arn string, listener *awsloadbalancer.Listener) (*awsloadbalanceroutputs.ListenerOutput, error) {
+	return s.CreateListener(context.Background(), listener)
+}
+
+func (s *realisticAWSComputeService) DeleteListener(ctx context.Context, arn string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) ListListeners(ctx context.Context, loadBalancerARN string) ([]*awsloadbalanceroutputs.ListenerOutput, error) {
+	targetGroupARN := "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef"
+	return []*awsloadbalanceroutputs.ListenerOutput{
+		{
+			ARN:             "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/test-lb/1234567890abcdef/1234567890abcdef",
+			ID:              "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/test-lb/1234567890abcdef/1234567890abcdef",
+			LoadBalancerARN: loadBalancerARN,
+			Port:            80,
+			Protocol:        "HTTP",
+			DefaultAction: awsloadbalancer.ListenerAction{
+				Type:           awsloadbalancer.ListenerActionTypeForward,
+				TargetGroupARN: &targetGroupARN,
+			},
+		},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) AttachTargetToGroup(ctx context.Context, attachment *awsloadbalancer.TargetGroupAttachment) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) DetachTargetFromGroup(ctx context.Context, targetGroupARN, targetID string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) ListTargetGroupTargets(ctx context.Context, targetGroupARN string) ([]*awsloadbalanceroutputs.TargetGroupAttachmentOutput, error) {
+	return []*awsloadbalanceroutputs.TargetGroupAttachmentOutput{
+		{
+			TargetGroupARN:   targetGroupARN,
+			TargetID:         "i-1234567890abcdef0",
+			Port:             intPtr(8080),
+			AvailabilityZone: stringPtr("us-east-1a"),
+			HealthStatus:     "healthy",
+			State:            "healthy",
 		},
 	}, nil
 }
@@ -595,5 +797,440 @@ func TestAWSComputeAdapter_OutputIntegration_ListInstanceTypesByCategory(t *test
 
 	if instanceType.Category != awsInstanceTypes.CategoryGeneralPurpose {
 		t.Error("Expected category to be populated")
+	}
+}
+
+// Load Balancer Integration Tests
+
+func TestAWSComputeAdapter_OutputIntegration_CreateLoadBalancer(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	domainLB := &domaincompute.LoadBalancer{
+		Name:             "integration-test-alb",
+		Region:           "us-east-1",
+		Type:             domaincompute.LoadBalancerTypeApplication,
+		Internal:         false,
+		SecurityGroupIDs: []string{"sg-123", "sg-456"},
+		SubnetIDs:        []string{"subnet-123", "subnet-456"},
+	}
+
+	ctx := context.Background()
+	createdLB, err := adapter.CreateLoadBalancer(ctx, domainLB)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdLB == nil {
+		t.Fatal("Expected created load balancer, got nil")
+	}
+
+	// Verify AWS-generated identifiers are populated
+	if createdLB.ID == "" {
+		t.Error("Expected load balancer ID to be populated")
+	}
+
+	if createdLB.ARN == nil {
+		t.Error("Expected load balancer ARN to be populated")
+	}
+
+	if createdLB.DNSName == nil {
+		t.Error("Expected DNS name to be populated")
+	}
+
+	if createdLB.ZoneID == nil {
+		t.Error("Expected zone ID to be populated")
+	}
+
+	// Verify state is populated
+	if createdLB.State != domaincompute.LoadBalancerStateActive {
+		t.Errorf("Expected state active, got %s", createdLB.State)
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_GetLoadBalancer(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	lb, err := adapter.GetLoadBalancer(ctx, "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if lb == nil {
+		t.Fatal("Expected load balancer, got nil")
+	}
+
+	// Verify all output fields are populated
+	if lb.ID == "" {
+		t.Error("Expected load balancer ID to be populated")
+	}
+
+	if lb.ARN == nil {
+		t.Error("Expected ARN to be populated")
+	}
+
+	if lb.DNSName == nil {
+		t.Error("Expected DNS name to be populated")
+	}
+
+	if lb.State == "" {
+		t.Error("Expected state to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_ListLoadBalancers(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	lbs, err := adapter.ListLoadBalancers(ctx, map[string]string{})
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if len(lbs) == 0 {
+		t.Fatal("Expected at least one load balancer, got none")
+	}
+
+	// Verify first load balancer has all output fields
+	lb := lbs[0]
+	if lb.ID == "" {
+		t.Error("Expected load balancer ID to be populated")
+	}
+
+	if lb.ARN == nil {
+		t.Error("Expected load balancer ARN to be populated")
+	}
+
+	if lb.DNSName == nil {
+		t.Error("Expected DNS name to be populated")
+	}
+
+	if lb.State == "" {
+		t.Error("Expected load balancer state to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_CreateTargetGroup(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	domainTG := &domaincompute.TargetGroup{
+		Name:       "integration-test-tg",
+		VPCID:      "vpc-123",
+		Port:       80,
+		Protocol:   domaincompute.TargetGroupProtocolHTTP,
+		TargetType: domaincompute.TargetTypeInstance,
+		HealthCheck: domaincompute.HealthCheckConfig{
+			Path:    stringPtr("/health"),
+			Matcher: stringPtr("200"),
+		},
+	}
+
+	ctx := context.Background()
+	createdTG, err := adapter.CreateTargetGroup(ctx, domainTG)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdTG == nil {
+		t.Fatal("Expected created target group, got nil")
+	}
+
+	// Verify AWS-generated identifiers are populated
+	if createdTG.ID == "" {
+		t.Error("Expected target group ID to be populated")
+	}
+
+	if createdTG.ARN == nil {
+		t.Error("Expected target group ARN to be populated")
+	}
+
+	// Verify health check is populated
+	if createdTG.HealthCheck.Path == nil {
+		t.Error("Expected health check path to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_GetTargetGroup(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	tg, err := adapter.GetTargetGroup(ctx, "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if tg == nil {
+		t.Fatal("Expected target group, got nil")
+	}
+
+	// Verify all output fields are populated
+	if tg.ID == "" {
+		t.Error("Expected target group ID to be populated")
+	}
+
+	if tg.ARN == nil {
+		t.Error("Expected ARN to be populated")
+	}
+
+	if tg.Port == 0 {
+		t.Error("Expected port to be populated")
+	}
+
+	if tg.Protocol == "" {
+		t.Error("Expected protocol to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_CreateListener(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	targetGroupARN := "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef"
+	domainListener := &domaincompute.Listener{
+		LoadBalancerARN: "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+		Port:            80,
+		Protocol:        domaincompute.ListenerProtocolHTTP,
+		DefaultAction: domaincompute.ListenerAction{
+			Type:           domaincompute.ListenerActionTypeForward,
+			TargetGroupARN: &targetGroupARN,
+		},
+	}
+
+	ctx := context.Background()
+	createdListener, err := adapter.CreateListener(ctx, domainListener)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdListener == nil {
+		t.Fatal("Expected created listener, got nil")
+	}
+
+	// Verify AWS-generated identifiers are populated
+	if createdListener.ID == "" {
+		t.Error("Expected listener ID to be populated")
+	}
+
+	if createdListener.ARN == nil {
+		t.Error("Expected listener ARN to be populated")
+	}
+
+	// Verify default action is populated
+	if createdListener.DefaultAction.Type == "" {
+		t.Error("Expected default action type to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_ListListeners(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	listeners, err := adapter.ListListeners(ctx, "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if len(listeners) == 0 {
+		t.Fatal("Expected at least one listener, got none")
+	}
+
+	// Verify first listener has all output fields
+	listener := listeners[0]
+	if listener.ID == "" {
+		t.Error("Expected listener ID to be populated")
+	}
+
+	if listener.ARN == nil {
+		t.Error("Expected listener ARN to be populated")
+	}
+
+	if listener.Port == 0 {
+		t.Error("Expected listener port to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_AttachTargetToGroup(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	domainAttachment := &domaincompute.TargetGroupAttachment{
+		TargetGroupARN: "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef",
+		TargetID:       "i-1234567890abcdef0",
+		Port:           intPtr(8080),
+	}
+
+	ctx := context.Background()
+	err := adapter.AttachTargetToGroup(ctx, domainAttachment)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_ListTargetGroupTargets(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	targets, err := adapter.ListTargetGroupTargets(ctx, "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if len(targets) == 0 {
+		t.Fatal("Expected at least one target, got none")
+	}
+
+	// Verify first target has all fields
+	target := targets[0]
+	if target.TargetID == "" {
+		t.Error("Expected target ID to be populated")
+	}
+
+	if target.TargetGroupARN == "" {
+		t.Error("Expected target group ARN to be populated")
+	}
+
+	if target.HealthStatus == "" {
+		t.Error("Expected health status to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_UpdateLoadBalancer(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	arn := "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef"
+	domainLB := &domaincompute.LoadBalancer{
+		ID:               arn,
+		ARN:              &arn,
+		Name:             "updated-lb",
+		Region:           "us-east-1",
+		Type:             domaincompute.LoadBalancerTypeApplication,
+		Internal:         false,
+		SecurityGroupIDs: []string{"sg-789"},
+		SubnetIDs:        []string{"subnet-123", "subnet-456"},
+	}
+
+	ctx := context.Background()
+	updatedLB, err := adapter.UpdateLoadBalancer(ctx, domainLB)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if updatedLB == nil {
+		t.Fatal("Expected updated load balancer, got nil")
+	}
+
+	if updatedLB.Name != "updated-lb" {
+		t.Errorf("Expected name updated-lb, got %s", updatedLB.Name)
+	}
+
+	if updatedLB.ID == "" {
+		t.Error("Expected load balancer ID to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_UpdateTargetGroup(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	arn := "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef"
+	domainTG := &domaincompute.TargetGroup{
+		ID:         arn,
+		ARN:        &arn,
+		Name:       "updated-tg",
+		VPCID:      "vpc-123",
+		Port:       8080,
+		Protocol:   domaincompute.TargetGroupProtocolHTTP,
+		TargetType: domaincompute.TargetTypeInstance,
+		HealthCheck: domaincompute.HealthCheckConfig{
+			Path:    stringPtr("/api/health"),
+			Matcher: stringPtr("200-299"),
+		},
+	}
+
+	ctx := context.Background()
+	updatedTG, err := adapter.UpdateTargetGroup(ctx, domainTG)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if updatedTG == nil {
+		t.Fatal("Expected updated target group, got nil")
+	}
+
+	if updatedTG.Port != 8080 {
+		t.Errorf("Expected port 8080, got %d", updatedTG.Port)
+	}
+
+	if updatedTG.ID == "" {
+		t.Error("Expected target group ID to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_UpdateListener(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	listenerARN := "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/test-lb/1234567890abcdef/1234567890abcdef"
+	targetGroupARN := "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef"
+	domainListener := &domaincompute.Listener{
+		ID:              listenerARN,
+		ARN:             &listenerARN,
+		LoadBalancerARN: "arn:aws:elasticloadbalancing:us-east-1:123456789012:loadbalancer/app/test-lb/1234567890abcdef",
+		Port:            8080, // Keep HTTP for simplicity
+		Protocol:        domaincompute.ListenerProtocolHTTP,
+		DefaultAction: domaincompute.ListenerAction{
+			Type:           domaincompute.ListenerActionTypeForward,
+			TargetGroupARN: &targetGroupARN,
+		},
+	}
+
+	ctx := context.Background()
+	updatedListener, err := adapter.UpdateListener(ctx, domainListener)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if updatedListener == nil {
+		t.Fatal("Expected updated listener, got nil")
+	}
+
+	if updatedListener.Port != 8080 {
+		t.Errorf("Expected port 8080, got %d", updatedListener.Port)
+	}
+
+	if updatedListener.ID == "" {
+		t.Error("Expected listener ID to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_DetachTargetFromGroup(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	err := adapter.DetachTargetFromGroup(ctx, "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/test-tg/1234567890abcdef", "i-1234567890abcdef0")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
 	}
 }
