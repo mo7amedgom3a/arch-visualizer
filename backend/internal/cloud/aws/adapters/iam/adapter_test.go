@@ -18,6 +18,8 @@ type mockAWSIAMService struct {
 	roles               map[string]*awsoutputs.RoleOutput
 	users               map[string]*awsoutputs.UserOutput
 	groups              map[string]*awsoutputs.GroupOutput
+	instanceProfiles    map[string]*awsoutputs.InstanceProfileOutput
+	profileRoles        map[string][]string                        // profileName -> roleNames
 	userPolicies        map[string][]string                        // userName -> policyARNs
 	rolePolicies        map[string][]string                        // roleName -> policyARNs
 	groupPolicies       map[string][]string                        // groupName -> policyARNs
@@ -38,6 +40,8 @@ func newMockAWSIAMService() *mockAWSIAMService {
 		roles:               make(map[string]*awsoutputs.RoleOutput),
 		users:               make(map[string]*awsoutputs.UserOutput),
 		groups:              make(map[string]*awsoutputs.GroupOutput),
+		instanceProfiles:    make(map[string]*awsoutputs.InstanceProfileOutput),
+		profileRoles:        make(map[string][]string),
 		userPolicies:        make(map[string][]string),
 		rolePolicies:        make(map[string][]string),
 		groupPolicies:       make(map[string][]string),
@@ -579,6 +583,118 @@ func (m *mockAWSIAMService) GetAWSManagedPolicy(ctx context.Context, arn string)
 		}, nil
 	}
 	return nil, errors.New("AWS managed policy not found")
+}
+
+// Instance Profile Operations
+
+func (m *mockAWSIAMService) CreateInstanceProfile(ctx context.Context, profile *awsiam.InstanceProfile) (*awsoutputs.InstanceProfileOutput, error) {
+	if m.createError != nil {
+		return nil, m.createError
+	}
+	name := profile.Name
+	if name == "" && profile.NamePrefix != nil {
+		name = *profile.NamePrefix + "-12345"
+	}
+	arn := "arn:aws:iam::123456789012:instance-profile/" + name
+	output := &awsoutputs.InstanceProfileOutput{
+		ARN:        arn,
+		ID:         name,
+		Name:       name,
+		Path:       getPathOrDefault(profile.Path),
+		CreateDate: time.Now(),
+		Tags:       profile.Tags,
+		Roles:      make([]*awsoutputs.RoleOutput, 0),
+	}
+	if profile.Role != nil && *profile.Role != "" {
+		// Add role if provided
+		if role, ok := m.roles[*profile.Role]; ok {
+			output.Roles = []*awsoutputs.RoleOutput{role}
+			m.profileRoles[name] = []string{*profile.Role}
+		}
+	}
+	m.instanceProfiles[name] = output
+	return output, nil
+}
+
+func (m *mockAWSIAMService) GetInstanceProfile(ctx context.Context, name string) (*awsoutputs.InstanceProfileOutput, error) {
+	if m.getError != nil {
+		return nil, m.getError
+	}
+	profile, ok := m.instanceProfiles[name]
+	if !ok {
+		return nil, errors.New("instance profile not found")
+	}
+	return profile, nil
+}
+
+func (m *mockAWSIAMService) UpdateInstanceProfile(ctx context.Context, name string, profile *awsiam.InstanceProfile) (*awsoutputs.InstanceProfileOutput, error) {
+	existing, ok := m.instanceProfiles[name]
+	if !ok {
+		return nil, errors.New("instance profile not found")
+	}
+	existing.Tags = profile.Tags
+	return existing, nil
+}
+
+func (m *mockAWSIAMService) DeleteInstanceProfile(ctx context.Context, name string) error {
+	delete(m.instanceProfiles, name)
+	delete(m.profileRoles, name)
+	return nil
+}
+
+func (m *mockAWSIAMService) ListInstanceProfiles(ctx context.Context, pathPrefix *string) ([]*awsoutputs.InstanceProfileOutput, error) {
+	var results []*awsoutputs.InstanceProfileOutput
+	for _, profile := range m.instanceProfiles {
+		if pathPrefix == nil || *pathPrefix == "" || profile.Path == *pathPrefix {
+			results = append(results, profile)
+		}
+	}
+	return results, nil
+}
+
+func (m *mockAWSIAMService) AddRoleToInstanceProfile(ctx context.Context, profileName, roleName string) error {
+	if _, ok := m.instanceProfiles[profileName]; !ok {
+		return errors.New("instance profile not found")
+	}
+	if _, ok := m.roles[roleName]; !ok {
+		return errors.New("role not found")
+	}
+	// Add role to profile
+	role := m.roles[roleName]
+	profile := m.instanceProfiles[profileName]
+	profile.Roles = append(profile.Roles, role)
+	m.profileRoles[profileName] = append(m.profileRoles[profileName], roleName)
+	return nil
+}
+
+func (m *mockAWSIAMService) RemoveRoleFromInstanceProfile(ctx context.Context, profileName, roleName string) error {
+	if _, ok := m.instanceProfiles[profileName]; !ok {
+		return errors.New("instance profile not found")
+	}
+	roles := m.profileRoles[profileName]
+	for i, name := range roles {
+		if name == roleName {
+			m.profileRoles[profileName] = append(roles[:i], roles[i+1:]...)
+			// Remove from profile.Roles slice
+			profile := m.instanceProfiles[profileName]
+			for j, role := range profile.Roles {
+				if role != nil && role.Name == roleName {
+					profile.Roles = append(profile.Roles[:j], profile.Roles[j+1:]...)
+					break
+				}
+			}
+			return nil
+		}
+	}
+	return errors.New("role not attached to instance profile")
+}
+
+func (m *mockAWSIAMService) GetInstanceProfileRoles(ctx context.Context, profileName string) ([]*awsoutputs.RoleOutput, error) {
+	profile, ok := m.instanceProfiles[profileName]
+	if !ok {
+		return nil, errors.New("instance profile not found")
+	}
+	return profile.Roles, nil
 }
 
 // Helper function

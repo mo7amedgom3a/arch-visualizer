@@ -295,8 +295,3 @@ func displayPolicyTypes() {
 	fmt.Println("     - Cannot be reused")
 	fmt.Println("     - Deleted when the identity is deleted")
 }
-
-// Helper function
-func stringPtr(s string) *string {
-	return &s
-}

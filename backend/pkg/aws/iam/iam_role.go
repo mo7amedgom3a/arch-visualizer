@@ -126,4 +126,5 @@ func IAMRunner() {
 	IAMRolesRunner()
 	fmt.Println()
 	fmt.Println("******************************************************************")
+	IAMInstanceProfileRunner()
 }

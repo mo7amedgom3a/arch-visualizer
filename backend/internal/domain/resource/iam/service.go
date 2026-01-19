@@ -74,4 +74,14 @@ type IAMService interface {
 	// AWS Managed Policy operations
 	ListAWSManagedPolicies(ctx context.Context, scope *string, pathPrefix *string) ([]*Policy, error)
 	GetAWSManagedPolicy(ctx context.Context, arn string) (*Policy, error)
+
+	// Instance Profile operations
+	CreateInstanceProfile(ctx context.Context, profile *InstanceProfile) (*InstanceProfile, error)
+	GetInstanceProfile(ctx context.Context, name string) (*InstanceProfile, error)
+	UpdateInstanceProfile(ctx context.Context, profile *InstanceProfile) (*InstanceProfile, error)
+	DeleteInstanceProfile(ctx context.Context, name string) error
+	ListInstanceProfiles(ctx context.Context, pathPrefix *string) ([]*InstanceProfile, error)
+	AddRoleToInstanceProfile(ctx context.Context, profileName, roleName string) error
+	RemoveRoleFromInstanceProfile(ctx context.Context, profileName, roleName string) error
+	GetInstanceProfileRoles(ctx context.Context, profileName string) ([]*Role, error)
 }

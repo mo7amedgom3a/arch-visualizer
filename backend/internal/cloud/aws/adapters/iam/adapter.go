@@ -590,3 +590,100 @@ func (a *AWSIAMAdapter) GetAWSManagedPolicy(ctx context.Context, arn string) (*d
 	}
 	return awsmapper.ToDomainPolicyFromOutput(awsPolicyOutput), nil
 }
+
+// Instance Profile operations
+
+func (a *AWSIAMAdapter) CreateInstanceProfile(ctx context.Context, profile *domainiam.InstanceProfile) (*domainiam.InstanceProfile, error) {
+	if err := profile.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsProfile := awsmapper.FromDomainInstanceProfile(profile)
+	if err := awsProfile.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsProfileOutput, err := a.awsService.CreateInstanceProfile(ctx, awsProfile)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainInstanceProfileFromOutput(awsProfileOutput), nil
+}
+
+func (a *AWSIAMAdapter) GetInstanceProfile(ctx context.Context, name string) (*domainiam.InstanceProfile, error) {
+	awsProfileOutput, err := a.awsService.GetInstanceProfile(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainInstanceProfileFromOutput(awsProfileOutput), nil
+}
+
+func (a *AWSIAMAdapter) UpdateInstanceProfile(ctx context.Context, profile *domainiam.InstanceProfile) (*domainiam.InstanceProfile, error) {
+	if err := profile.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+	if profile.Name == "" {
+		return nil, fmt.Errorf("instance profile name is required for update")
+	}
+
+	awsProfile := awsmapper.FromDomainInstanceProfile(profile)
+	if err := awsProfile.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsProfileOutput, err := a.awsService.UpdateInstanceProfile(ctx, profile.Name, awsProfile)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainInstanceProfileFromOutput(awsProfileOutput), nil
+}
+
+func (a *AWSIAMAdapter) DeleteInstanceProfile(ctx context.Context, name string) error {
+	if err := a.awsService.DeleteInstanceProfile(ctx, name); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSIAMAdapter) ListInstanceProfiles(ctx context.Context, pathPrefix *string) ([]*domainiam.InstanceProfile, error) {
+	awsProfileOutputs, err := a.awsService.ListInstanceProfiles(ctx, pathPrefix)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainProfiles := make([]*domainiam.InstanceProfile, len(awsProfileOutputs))
+	for i, awsProfileOutput := range awsProfileOutputs {
+		domainProfiles[i] = awsmapper.ToDomainInstanceProfileFromOutput(awsProfileOutput)
+	}
+	return domainProfiles, nil
+}
+
+func (a *AWSIAMAdapter) AddRoleToInstanceProfile(ctx context.Context, profileName, roleName string) error {
+	if err := a.awsService.AddRoleToInstanceProfile(ctx, profileName, roleName); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSIAMAdapter) RemoveRoleFromInstanceProfile(ctx context.Context, profileName, roleName string) error {
+	if err := a.awsService.RemoveRoleFromInstanceProfile(ctx, profileName, roleName); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSIAMAdapter) GetInstanceProfileRoles(ctx context.Context, profileName string) ([]*domainiam.Role, error) {
+	awsRoleOutputs, err := a.awsService.GetInstanceProfileRoles(ctx, profileName)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainRoles := make([]*domainiam.Role, len(awsRoleOutputs))
+	for i, awsRoleOutput := range awsRoleOutputs {
+		domainRoles[i] = awsmapper.ToDomainRoleFromOutput(awsRoleOutput)
+	}
+	return domainRoles, nil
+}

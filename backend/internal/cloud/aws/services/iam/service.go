@@ -225,6 +225,39 @@ func (s *IAMService) DeleteGroupInlinePolicy(ctx context.Context, groupName, pol
 	return errors.New("not implemented: use SDK functions directly")
 }
 
-func (s *IAMService) ListGroupInlinePolicies(ctx context.Context, groupName string) ([]string, error) {
-	return nil, errors.New("not implemented: use SDK functions directly")
-}
+	func (s *IAMService) ListGroupInlinePolicies(ctx context.Context, groupName string) ([]string, error) {
+		return nil, errors.New("not implemented: use SDK functions directly")
+	}
+
+	// Instance Profile operations
+	func (s *IAMService) CreateInstanceProfile(ctx context.Context, profile *awsiam.InstanceProfile) (*awsoutputs.InstanceProfileOutput, error) {
+		return awssdk.CreateInstanceProfile(ctx, s.client, profile)
+	}
+
+	func (s *IAMService) GetInstanceProfile(ctx context.Context, name string) (*awsoutputs.InstanceProfileOutput, error) {
+		return awssdk.GetInstanceProfile(ctx, s.client, name)
+	}
+
+	func (s *IAMService) UpdateInstanceProfile(ctx context.Context, name string, profile *awsiam.InstanceProfile) (*awsoutputs.InstanceProfileOutput, error) {
+		return awssdk.UpdateInstanceProfile(ctx, s.client, name, profile)
+	}
+
+	func (s *IAMService) DeleteInstanceProfile(ctx context.Context, name string) error {
+		return awssdk.DeleteInstanceProfile(ctx, s.client, name)
+	}
+
+	func (s *IAMService) ListInstanceProfiles(ctx context.Context, pathPrefix *string) ([]*awsoutputs.InstanceProfileOutput, error) {
+		return awssdk.ListInstanceProfiles(ctx, s.client, pathPrefix)
+	}
+
+	func (s *IAMService) AddRoleToInstanceProfile(ctx context.Context, profileName, roleName string) error {
+		return awssdk.AddRoleToInstanceProfile(ctx, s.client, profileName, roleName)
+	}
+
+	func (s *IAMService) RemoveRoleFromInstanceProfile(ctx context.Context, profileName, roleName string) error {
+		return awssdk.RemoveRoleFromInstanceProfile(ctx, s.client, profileName, roleName)
+	}
+
+	func (s *IAMService) GetInstanceProfileRoles(ctx context.Context, profileName string) ([]*awsoutputs.RoleOutput, error) {
+		return awssdk.GetInstanceProfileRoles(ctx, s.client, profileName)
+	}
