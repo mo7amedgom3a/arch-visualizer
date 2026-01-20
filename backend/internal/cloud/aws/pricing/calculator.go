@@ -176,6 +176,71 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 			},
 		}
 
+	case "load_balancer":
+		// Extract load balancer type from metadata
+		lbType := "application" // Default to ALB
+		if res.Metadata != nil {
+			if lt, ok := res.Metadata["load_balancer_type"].(string); ok && lt != "" {
+				lbType = lt
+			}
+		}
+		
+		// Get pricing for the specific LB type
+		lbPricing := compute.GetLoadBalancerPricing(lbType, res.Region)
+		hourlyRate := lbPricing.Components[0].Rate
+		
+		cost := compute.CalculateLoadBalancerCost(duration, lbType, res.Region)
+		totalCost = cost
+		breakdown = []domainpricing.CostComponent{
+			{
+				ComponentName: "Load Balancer Hourly",
+				Model:         domainpricing.PerHour,
+				Quantity:      duration.Hours(),
+				UnitRate:      hourlyRate,
+				Subtotal:      cost,
+				Currency:      domainpricing.USD,
+			},
+		}
+
+	case "auto_scaling_group":
+		// Extract instance type and capacity from metadata
+		instanceType := "t3.micro" // Default
+		minSize := 1
+		maxSize := 3
+		if res.Metadata != nil {
+			if it, ok := res.Metadata["instance_type"].(string); ok && it != "" {
+				instanceType = it
+			}
+			if ms, ok := res.Metadata["min_size"].(int); ok {
+				minSize = ms
+			} else if ms, ok := res.Metadata["min_size"].(float64); ok {
+				minSize = int(ms)
+			}
+			if ms, ok := res.Metadata["max_size"].(int); ok {
+				maxSize = ms
+			} else if ms, ok := res.Metadata["max_size"].(float64); ok {
+				maxSize = int(ms)
+			}
+		}
+		
+		// Get pricing for the ASG
+		asgPricing := compute.GetAutoScalingGroupPricing(instanceType, minSize, maxSize, res.Region)
+		hourlyRate := asgPricing.Components[0].Rate
+		
+		cost := compute.CalculateAutoScalingGroupCost(duration, instanceType, minSize, maxSize, res.Region)
+		totalCost = cost
+		
+		breakdown = []domainpricing.CostComponent{
+			{
+				ComponentName: "Auto Scaling Group Hourly",
+				Model:         domainpricing.PerHour,
+				Quantity:      duration.Hours(),
+				UnitRate:      hourlyRate,
+				Subtotal:      cost,
+				Currency:      domainpricing.USD,
+			},
+		}
+
 	default:
 		// For other resource types, use generic calculation
 		// This can be extended for other resource types

@@ -521,3 +521,106 @@ func (a *AWSComputeAdapter) ListTargetGroupTargets(ctx context.Context, targetGr
 
 	return domainAttachments, nil
 }
+
+// Auto Scaling Group operations
+
+func (a *AWSComputeAdapter) CreateAutoScalingGroup(ctx context.Context, asg *domaincompute.AutoScalingGroup) (*domaincompute.AutoScalingGroup, error) {
+	if err := asg.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsASG := awsmapper.FromDomainAutoScalingGroup(asg)
+	if err := awsASG.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsASGOutput, err := a.awsService.CreateAutoScalingGroup(ctx, awsASG)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainAutoScalingGroupFromOutput(awsASGOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetAutoScalingGroup(ctx context.Context, name string) (*domaincompute.AutoScalingGroup, error) {
+	awsASGOutput, err := a.awsService.GetAutoScalingGroup(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainAutoScalingGroupFromOutput(awsASGOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateAutoScalingGroup(ctx context.Context, asg *domaincompute.AutoScalingGroup) (*domaincompute.AutoScalingGroup, error) {
+	if err := asg.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsASG := awsmapper.FromDomainAutoScalingGroup(asg)
+	if err := awsASG.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	// Use name from domain ASG (ID field contains the name)
+	asgName := asg.ID
+	if asgName == "" {
+		asgName = asg.Name
+	}
+
+	awsASGOutput, err := a.awsService.UpdateAutoScalingGroup(ctx, asgName, awsASG)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainAutoScalingGroupFromOutput(awsASGOutput), nil
+}
+
+func (a *AWSComputeAdapter) DeleteAutoScalingGroup(ctx context.Context, name string) error {
+	if err := a.awsService.DeleteAutoScalingGroup(ctx, name); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSComputeAdapter) ListAutoScalingGroups(ctx context.Context, filters map[string]string) ([]*domaincompute.AutoScalingGroup, error) {
+	// Convert domain filters to AWS filters format
+	awsFilters := make(map[string][]string)
+	for k, v := range filters {
+		awsFilters[k] = []string{v}
+	}
+
+	awsASGs, err := a.awsService.ListAutoScalingGroups(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainASGs := make([]*domaincompute.AutoScalingGroup, len(awsASGs))
+	for i, awsASG := range awsASGs {
+		domainASGs[i] = awsmapper.ToDomainAutoScalingGroupFromOutput(awsASG)
+	}
+
+	return domainASGs, nil
+}
+
+// Scaling operations
+
+func (a *AWSComputeAdapter) SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error {
+	if err := a.awsService.SetDesiredCapacity(ctx, asgName, capacity); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSComputeAdapter) AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	if err := a.awsService.AttachInstances(ctx, asgName, instanceIDs); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSComputeAdapter) DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	if err := a.awsService.DetachInstances(ctx, asgName, instanceIDs); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}

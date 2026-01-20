@@ -6,6 +6,8 @@ import (
 	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
+	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
+	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
 )
 
 // ComputeService implements AWSComputeService using AWS SDK
@@ -103,4 +105,54 @@ func (s *ComputeService) DetachTargetFromGroup(ctx context.Context, targetGroupA
 
 func (s *ComputeService) ListTargetGroupTargets(ctx context.Context, targetGroupARN string) ([]*awsloadbalanceroutputs.TargetGroupAttachmentOutput, error) {
 	return awssdk.ListTargetGroupTargets(ctx, s.client, targetGroupARN)
+}
+
+// Auto Scaling Group operations
+
+func (s *ComputeService) CreateAutoScalingGroup(ctx context.Context, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	return awssdk.CreateAutoScalingGroup(ctx, s.client, asg)
+}
+
+func (s *ComputeService) GetAutoScalingGroup(ctx context.Context, name string) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	return awssdk.GetAutoScalingGroup(ctx, s.client, name)
+}
+
+func (s *ComputeService) UpdateAutoScalingGroup(ctx context.Context, name string, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	return awssdk.UpdateAutoScalingGroup(ctx, s.client, name, asg)
+}
+
+func (s *ComputeService) DeleteAutoScalingGroup(ctx context.Context, name string) error {
+	return awssdk.DeleteAutoScalingGroup(ctx, s.client, name, false)
+}
+
+func (s *ComputeService) ListAutoScalingGroups(ctx context.Context, filters map[string][]string) ([]*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	return awssdk.ListAutoScalingGroups(ctx, s.client, filters)
+}
+
+// Scaling operations
+
+func (s *ComputeService) SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error {
+	return awssdk.SetDesiredCapacity(ctx, s.client, asgName, capacity)
+}
+
+func (s *ComputeService) AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	return awssdk.AttachInstances(ctx, s.client, asgName, instanceIDs)
+}
+
+func (s *ComputeService) DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	return awssdk.DetachInstances(ctx, s.client, asgName, instanceIDs, false)
+}
+
+// Scaling Policy operations
+
+func (s *ComputeService) PutScalingPolicy(ctx context.Context, policy *awsautoscaling.ScalingPolicy) (*awsautoscalingoutputs.ScalingPolicyOutput, error) {
+	return awssdk.PutScalingPolicy(ctx, s.client, policy)
+}
+
+func (s *ComputeService) DescribeScalingPolicies(ctx context.Context, asgName string) ([]*awsautoscalingoutputs.ScalingPolicyOutput, error) {
+	return awssdk.DescribeScalingPolicies(ctx, s.client, asgName)
+}
+
+func (s *ComputeService) DeleteScalingPolicy(ctx context.Context, policyName, asgName string) error {
+	return awssdk.DeleteScalingPolicy(ctx, s.client, policyName, asgName)
 }

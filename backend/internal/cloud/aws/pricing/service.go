@@ -47,6 +47,16 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 		// Default to gp3 if volume type not provided
 		volumeType := "gp3"
 		return storage.GetEBSVolumePricing(volumeType, region), nil
+	case "load_balancer":
+		// Default to application if LB type not provided
+		lbType := "application"
+		return compute.GetLoadBalancerPricing(lbType, region), nil
+	case "auto_scaling_group":
+		// Default values if not provided
+		instanceType := "t3.micro"
+		minSize := 1
+		maxSize := 3
+		return compute.GetAutoScalingGroupPricing(instanceType, minSize, maxSize, region), nil
 	default:
 		return nil, fmt.Errorf("pricing not available for resource type: %s", resourceType)
 	}
@@ -75,5 +85,7 @@ func (s *AWSPricingService) ListSupportedResources(ctx context.Context, provider
 		"data_transfer",
 		"ec2_instance",
 		"ebs_volume",
+		"load_balancer",
+		"auto_scaling_group",
 	}, nil
 }

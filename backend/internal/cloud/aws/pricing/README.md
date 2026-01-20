@@ -154,6 +154,31 @@ The system supports six pricing models:
    - Inter-AZ: $0.01/GB
    - **Example**: 100GB outbound = (100 - 1) * $0.09 = $8.91
 
+### Current Compute Resources
+
+1. **EC2 Instance**
+   - Hourly rate: Varies by instance type (e.g., t3.micro: $0.0104/hour)
+   - Pricing model: PerHour
+   - Regional variations supported
+
+2. **Load Balancer**
+   - Application Load Balancer (ALB): $0.0225/hour
+   - Network Load Balancer (NLB): $0.0225/hour
+   - Classic Load Balancer (CLB): $0.025/hour
+   - Pricing model: PerHour (base rate)
+   - Regional variations supported
+   - Note: Additional LCU-based charges may apply in production (not included in simple hourly model)
+
+3. **Auto Scaling Group**
+   - No direct cost for ASG itself
+   - Cost calculated based on managed EC2 instances
+   - Calculation method: Average capacity = (min_size + max_size) / 2
+   - Cost = Average capacity × Instance hourly rate × Hours
+   - Pricing model: PerHour (derived from EC2 instance pricing)
+   - Example: ASG with min=1, max=3, t3.micro instances
+     - Average capacity: (1+3)/2 = 2 instances
+     - Hourly cost: 2 × $0.0104 = $0.0208/hour
+
 ## Usage Examples
 
 ### Get Resource Pricing Information

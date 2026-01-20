@@ -53,6 +53,18 @@ type ComputeService interface {
 	AttachTargetToGroup(ctx context.Context, attachment *TargetGroupAttachment) error
 	DetachTargetFromGroup(ctx context.Context, targetGroupARN, targetID string) error
 	ListTargetGroupTargets(ctx context.Context, targetGroupARN string) ([]*TargetGroupAttachment, error)
+
+	// Auto Scaling Group operations
+	CreateAutoScalingGroup(ctx context.Context, asg *AutoScalingGroup) (*AutoScalingGroup, error)
+	GetAutoScalingGroup(ctx context.Context, name string) (*AutoScalingGroup, error)
+	UpdateAutoScalingGroup(ctx context.Context, asg *AutoScalingGroup) (*AutoScalingGroup, error)
+	DeleteAutoScalingGroup(ctx context.Context, name string) error
+	ListAutoScalingGroups(ctx context.Context, filters map[string]string) ([]*AutoScalingGroup, error)
+
+	// Scaling operations
+	SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error
+	AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error
+	DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error
 }
 
 // ComputeRepository defines the interface for compute resource persistence

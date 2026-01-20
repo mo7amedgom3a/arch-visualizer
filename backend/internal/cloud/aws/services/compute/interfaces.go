@@ -10,6 +10,8 @@ import (
 	awslttemplateoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2/launch_template/outputs"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
+	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
+	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
 )
 
 // AWSComputeService defines AWS-specific compute operations
@@ -65,4 +67,21 @@ type AWSComputeService interface {
 	AttachTargetToGroup(ctx context.Context, attachment *awsloadbalancer.TargetGroupAttachment) error
 	DetachTargetFromGroup(ctx context.Context, targetGroupARN, targetID string) error
 	ListTargetGroupTargets(ctx context.Context, targetGroupARN string) ([]*awsloadbalanceroutputs.TargetGroupAttachmentOutput, error)
+
+	// Auto Scaling Group operations
+	CreateAutoScalingGroup(ctx context.Context, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error)
+	GetAutoScalingGroup(ctx context.Context, name string) (*awsautoscalingoutputs.AutoScalingGroupOutput, error)
+	UpdateAutoScalingGroup(ctx context.Context, name string, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error)
+	DeleteAutoScalingGroup(ctx context.Context, name string) error
+	ListAutoScalingGroups(ctx context.Context, filters map[string][]string) ([]*awsautoscalingoutputs.AutoScalingGroupOutput, error)
+
+	// Scaling operations
+	SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error
+	AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error
+	DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error
+
+	// Scaling Policy operations
+	PutScalingPolicy(ctx context.Context, policy *awsautoscaling.ScalingPolicy) (*awsautoscalingoutputs.ScalingPolicyOutput, error)
+	DescribeScalingPolicies(ctx context.Context, asgName string) ([]*awsautoscalingoutputs.ScalingPolicyOutput, error)
+	DeleteScalingPolicy(ctx context.Context, policyName, asgName string) error
 }

@@ -14,6 +14,8 @@ import (
 	awsInstanceTypes "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/instance_types"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
+	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
+	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 )
@@ -26,6 +28,7 @@ type mockAWSComputeService struct {
 	targetGroup           *awsloadbalancer.TargetGroup
 	listener              *awsloadbalancer.Listener
 	targetGroupAttachment *awsloadbalancer.TargetGroupAttachment
+	autoScalingGroup      *awsautoscaling.AutoScalingGroup
 	createError           error
 	getError              error
 	instanceTypeInfo      *awsInstanceTypes.InstanceTypeInfo
@@ -1092,6 +1095,215 @@ func TestAWSComputeAdapter_DetachTargetFromGroup(t *testing.T) {
 	}
 }
 
+// Helper function to convert AutoScalingGroup input to output
+func autoScalingGroupToOutput(asg *awsautoscaling.AutoScalingGroup) *awsautoscalingoutputs.AutoScalingGroupOutput {
+	if asg == nil {
+		return nil
+	}
+	name := "test-asg"
+	if asg.AutoScalingGroupName != nil {
+		name = *asg.AutoScalingGroupName
+	}
+	desiredCapacity := 2
+	if asg.DesiredCapacity != nil {
+		desiredCapacity = *asg.DesiredCapacity
+	}
+	healthCheckType := "EC2"
+	if asg.HealthCheckType != nil {
+		healthCheckType = *asg.HealthCheckType
+	}
+	return &awsautoscalingoutputs.AutoScalingGroupOutput{
+		AutoScalingGroupARN:  "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:uuid:autoScalingGroupName/" + name,
+		AutoScalingGroupName:  name,
+		MinSize:              asg.MinSize,
+		MaxSize:              asg.MaxSize,
+		DesiredCapacity:     desiredCapacity,
+		VPCZoneIdentifier:   asg.VPCZoneIdentifier,
+		LaunchTemplate:      asg.LaunchTemplate,
+		HealthCheckType:     healthCheckType,
+		HealthCheckGracePeriod: asg.HealthCheckGracePeriod,
+		TargetGroupARNs:     asg.TargetGroupARNs,
+		Status:              "active",
+		CreatedTime:         time.Now(),
+		Instances:           []awsautoscalingoutputs.Instance{},
+		Tags:                asg.Tags,
+	}
+}
+
+// Auto Scaling Group operations for mock service
+func (m *mockAWSComputeService) CreateAutoScalingGroup(ctx context.Context, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	if m.createError != nil {
+		return nil, m.createError
+	}
+	m.autoScalingGroup = asg
+	return autoScalingGroupToOutput(asg), nil
+}
+
+func (m *mockAWSComputeService) GetAutoScalingGroup(ctx context.Context, name string) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	if m.getError != nil {
+		return nil, m.getError
+	}
+	return autoScalingGroupToOutput(m.autoScalingGroup), nil
+}
+
+func (m *mockAWSComputeService) UpdateAutoScalingGroup(ctx context.Context, name string, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	m.autoScalingGroup = asg
+	return autoScalingGroupToOutput(asg), nil
+}
+
+func (m *mockAWSComputeService) DeleteAutoScalingGroup(ctx context.Context, name string) error {
+	return nil
+}
+
+func (m *mockAWSComputeService) ListAutoScalingGroups(ctx context.Context, filters map[string][]string) ([]*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	if m.autoScalingGroup != nil {
+		return []*awsautoscalingoutputs.AutoScalingGroupOutput{autoScalingGroupToOutput(m.autoScalingGroup)}, nil
+	}
+	return []*awsautoscalingoutputs.AutoScalingGroupOutput{}, nil
+}
+
+func (m *mockAWSComputeService) SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error {
+	return nil
+}
+
+func (m *mockAWSComputeService) AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	return nil
+}
+
+func (m *mockAWSComputeService) DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	return nil
+}
+
+func (m *mockAWSComputeService) PutScalingPolicy(ctx context.Context, policy *awsautoscaling.ScalingPolicy) (*awsautoscalingoutputs.ScalingPolicyOutput, error) {
+	return &awsautoscalingoutputs.ScalingPolicyOutput{
+		PolicyARN:            "arn:aws:autoscaling:us-east-1:123456789012:scalingPolicy:uuid:autoScalingGroupName/" + policy.AutoScalingGroupName + ":policyName/" + policy.PolicyName,
+		PolicyName:           policy.PolicyName,
+		AutoScalingGroupName: policy.AutoScalingGroupName,
+		PolicyType:           policy.PolicyType,
+		Alarms:               []awsautoscalingoutputs.Alarm{},
+	}, nil
+}
+
+func (m *mockAWSComputeService) DescribeScalingPolicies(ctx context.Context, asgName string) ([]*awsautoscalingoutputs.ScalingPolicyOutput, error) {
+	return []*awsautoscalingoutputs.ScalingPolicyOutput{}, nil
+}
+
+func (m *mockAWSComputeService) DeleteScalingPolicy(ctx context.Context, policyName, asgName string) error {
+	return nil
+}
+
+// Auto Scaling Group Tests
+
+func TestAWSComputeAdapter_CreateAutoScalingGroup(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	version := "$Latest"
+	domainASG := &domaincompute.AutoScalingGroup{
+		Name:             "test-asg",
+		Region:           "us-east-1",
+		MinSize:          1,
+		MaxSize:          5,
+		DesiredCapacity:  intPtr(2),
+		VPCZoneIdentifier: []string{"subnet-123", "subnet-456"},
+		LaunchTemplate: &domaincompute.LaunchTemplateSpecification{
+			ID:      "lt-1234567890abcdef0",
+			Version: &version,
+		},
+		HealthCheckType:        domaincompute.AutoScalingGroupHealthCheckTypeEC2,
+		HealthCheckGracePeriod: intPtr(300),
+	}
+
+	ctx := context.Background()
+	createdASG, err := adapter.CreateAutoScalingGroup(ctx, domainASG)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdASG == nil {
+		t.Fatal("Expected created auto scaling group, got nil")
+	}
+
+	if createdASG.Name != domainASG.Name {
+		t.Errorf("Expected name %s, got %s", domainASG.Name, createdASG.Name)
+	}
+
+	if createdASG.ID == "" {
+		t.Error("Expected auto scaling group ID to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_GetAutoScalingGroup(t *testing.T) {
+	version := "$Latest"
+	mockService := &mockAWSComputeService{
+		autoScalingGroup: &awsautoscaling.AutoScalingGroup{
+			AutoScalingGroupName: stringPtr("test-asg"),
+			MinSize:              1,
+			MaxSize:              5,
+			DesiredCapacity:      intPtr(2),
+			VPCZoneIdentifier:    []string{"subnet-123", "subnet-456"},
+			LaunchTemplate: &awsautoscaling.LaunchTemplateSpecification{
+				LaunchTemplateId: "lt-1234567890abcdef0",
+				Version:          &version,
+			},
+			HealthCheckType: stringPtr("EC2"),
+		},
+	}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	asg, err := adapter.GetAutoScalingGroup(ctx, "test-asg")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if asg == nil {
+		t.Fatal("Expected auto scaling group, got nil")
+	}
+
+	if asg.Name != "test-asg" {
+		t.Errorf("Expected name test-asg, got %s", asg.Name)
+	}
+}
+
+func TestAWSComputeAdapter_SetDesiredCapacity(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	err := adapter.SetDesiredCapacity(ctx, "test-asg", 3)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+}
+
+func TestAWSComputeAdapter_AttachInstances(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	err := adapter.AttachInstances(ctx, "test-asg", []string{"i-123", "i-456"})
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+}
+
+func TestAWSComputeAdapter_DetachInstances(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	err := adapter.DetachInstances(ctx, "test-asg", []string{"i-123"})
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+}
+
 // Helper functions
 func boolPtr(b bool) *bool {
 	return &b
@@ -1099,4 +1311,8 @@ func boolPtr(b bool) *bool {
 
 func intPtr(i int) *int {
 	return &i
+}
+
+func stringPtr(s string) *string {
+	return &s
 }

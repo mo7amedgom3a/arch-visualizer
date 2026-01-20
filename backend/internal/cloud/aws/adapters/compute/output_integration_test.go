@@ -14,6 +14,8 @@ import (
 	awsInstanceTypes "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/instance_types"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
+	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
+	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 )
@@ -441,10 +443,126 @@ func (s *realisticAWSComputeService) ListTargetGroupTargets(ctx context.Context,
 	}, nil
 }
 
-// Helper function
-func stringPtr(s string) *string {
-	return &s
+// Auto Scaling Group operations
+
+func (s *realisticAWSComputeService) CreateAutoScalingGroup(ctx context.Context, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	name := "test-asg"
+	if asg.AutoScalingGroupName != nil {
+		name = *asg.AutoScalingGroupName
+	}
+	desiredCapacity := 2
+	if asg.DesiredCapacity != nil {
+		desiredCapacity = *asg.DesiredCapacity
+	}
+	healthCheckType := "EC2"
+	if asg.HealthCheckType != nil {
+		healthCheckType = *asg.HealthCheckType
+	}
+	return &awsautoscalingoutputs.AutoScalingGroupOutput{
+		AutoScalingGroupARN:  "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:uuid:autoScalingGroupName/" + name,
+		AutoScalingGroupName:  name,
+		MinSize:              asg.MinSize,
+		MaxSize:              asg.MaxSize,
+		DesiredCapacity:     desiredCapacity,
+		VPCZoneIdentifier:   asg.VPCZoneIdentifier,
+		LaunchTemplate:      asg.LaunchTemplate,
+		HealthCheckType:     healthCheckType,
+		HealthCheckGracePeriod: asg.HealthCheckGracePeriod,
+		TargetGroupARNs:     asg.TargetGroupARNs,
+		Status:              "active",
+		CreatedTime:         time.Now(),
+		Instances:           []awsautoscalingoutputs.Instance{},
+		Tags:                asg.Tags,
+	}, nil
 }
+
+func (s *realisticAWSComputeService) GetAutoScalingGroup(ctx context.Context, name string) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	version := "$Latest"
+	return &awsautoscalingoutputs.AutoScalingGroupOutput{
+		AutoScalingGroupARN:  "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:uuid:autoScalingGroupName/" + name,
+		AutoScalingGroupName:  name,
+		MinSize:              1,
+		MaxSize:              5,
+		DesiredCapacity:     2,
+		VPCZoneIdentifier:   []string{"subnet-123", "subnet-456"},
+		LaunchTemplate: &awsautoscaling.LaunchTemplateSpecification{
+			LaunchTemplateId: "lt-1234567890abcdef0",
+			Version:          &version,
+		},
+		HealthCheckType:     "EC2",
+		HealthCheckGracePeriod: intPtr(300),
+		TargetGroupARNs:     []string{},
+		Status:              "active",
+		CreatedTime:         time.Now(),
+		Instances:           []awsautoscalingoutputs.Instance{},
+		Tags:                []awsautoscaling.Tag{},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) UpdateAutoScalingGroup(ctx context.Context, name string, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	return s.CreateAutoScalingGroup(ctx, asg)
+}
+
+func (s *realisticAWSComputeService) DeleteAutoScalingGroup(ctx context.Context, name string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) ListAutoScalingGroups(ctx context.Context, filters map[string][]string) ([]*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
+	version := "$Latest"
+	return []*awsautoscalingoutputs.AutoScalingGroupOutput{
+		{
+			AutoScalingGroupARN:  "arn:aws:autoscaling:us-east-1:123456789012:autoScalingGroup:uuid:autoScalingGroupName/test-asg",
+			AutoScalingGroupName:  "test-asg",
+			MinSize:              1,
+			MaxSize:              5,
+			DesiredCapacity:     2,
+			VPCZoneIdentifier:   []string{"subnet-123", "subnet-456"},
+			LaunchTemplate: &awsautoscaling.LaunchTemplateSpecification{
+				LaunchTemplateId: "lt-1234567890abcdef0",
+				Version:          &version,
+			},
+			HealthCheckType:     "EC2",
+			HealthCheckGracePeriod: intPtr(300),
+			TargetGroupARNs:     []string{},
+			Status:              "active",
+			CreatedTime:         time.Now(),
+			Instances:           []awsautoscalingoutputs.Instance{},
+			Tags:                []awsautoscaling.Tag{},
+		},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) PutScalingPolicy(ctx context.Context, policy *awsautoscaling.ScalingPolicy) (*awsautoscalingoutputs.ScalingPolicyOutput, error) {
+	return &awsautoscalingoutputs.ScalingPolicyOutput{
+		PolicyARN:            "arn:aws:autoscaling:us-east-1:123456789012:scalingPolicy:uuid:autoScalingGroupName/" + policy.AutoScalingGroupName + ":policyName/" + policy.PolicyName,
+		PolicyName:           policy.PolicyName,
+		AutoScalingGroupName: policy.AutoScalingGroupName,
+		PolicyType:           policy.PolicyType,
+		Alarms:               []awsautoscalingoutputs.Alarm{},
+	}, nil
+}
+
+func (s *realisticAWSComputeService) DescribeScalingPolicies(ctx context.Context, asgName string) ([]*awsautoscalingoutputs.ScalingPolicyOutput, error) {
+	return []*awsautoscalingoutputs.ScalingPolicyOutput{}, nil
+}
+
+func (s *realisticAWSComputeService) DeleteScalingPolicy(ctx context.Context, policyName, asgName string) error {
+	return nil
+}
+
+// Helper functions are defined in adapter_test.go
 
 // Integration Tests
 
