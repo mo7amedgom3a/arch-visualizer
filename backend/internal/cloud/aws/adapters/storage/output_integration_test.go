@@ -9,6 +9,8 @@ import (
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsebs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/ebs"
 	awsebsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/ebs/outputs"
+	awss3 "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/s3"
+	awss3outputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/s3/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/storage"
 	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 )
@@ -24,7 +26,7 @@ func (s *realisticAWSStorageService) CreateEBSVolume(ctx context.Context, volume
 	// Simulate realistic AWS EBS volume creation
 	return &awsebsoutputs.VolumeOutput{
 		ID:               "vol-0a1b2c3d4e5f6g7h8",
-		ARN:              fmt.Sprintf("arn:aws:ec2:us-east-1:123456789012:volume/vol-0a1b2c3d4e5f6g7h8"),
+		ARN:              "arn:aws:ec2:us-east-1:123456789012:volume/vol-0a1b2c3d4e5f6g7h8",
 		Name:             volume.Name,
 		AvailabilityZone: volume.AvailabilityZone,
 		Size:             volume.Size,
@@ -114,6 +116,153 @@ func (s *realisticAWSStorageService) AttachVolume(ctx context.Context, volumeID,
 
 func (s *realisticAWSStorageService) DetachVolume(ctx context.Context, volumeID, instanceID string) error {
 	return nil
+}
+
+// S3 Bucket Operations
+
+func (s *realisticAWSStorageService) CreateS3Bucket(ctx context.Context, bucket *awss3.Bucket) (*awss3outputs.BucketOutput, error) {
+	bucketName := ""
+	if bucket.Bucket != nil && *bucket.Bucket != "" {
+		bucketName = *bucket.Bucket
+	} else if bucket.BucketPrefix != nil && *bucket.BucketPrefix != "" {
+		bucketName = *bucket.BucketPrefix + "mock1234567890abcdef"
+	}
+
+	bucketARN := fmt.Sprintf("arn:aws:s3:::%s", bucketName)
+	bucketDomainName := fmt.Sprintf("%s.s3.amazonaws.com", bucketName)
+	bucketRegionalDomainName := fmt.Sprintf("%s.s3.us-east-1.amazonaws.com", bucketName)
+
+	output := &awss3outputs.BucketOutput{
+		ID:                       bucketName,
+		ARN:                      bucketARN,
+		Name:                     bucketName,
+		NamePrefix:               bucket.BucketPrefix,
+		ForceDestroy:             bucket.ForceDestroy,
+		BucketDomainName:         bucketDomainName,
+		BucketRegionalDomainName: bucketRegionalDomainName,
+		Region:                   "us-east-1",
+		Tags: []struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
+		}{},
+	}
+
+	// Convert tags
+	if bucket.Tags != nil {
+		for _, tag := range bucket.Tags {
+			output.Tags = append(output.Tags, struct {
+				Key   string `json:"key"`
+				Value string `json:"value"`
+			}{
+				Key:   tag.Key,
+				Value: tag.Value,
+			})
+		}
+	}
+
+	return output, nil
+}
+
+func (s *realisticAWSStorageService) GetS3Bucket(ctx context.Context, id string) (*awss3outputs.BucketOutput, error) {
+	bucketARN := fmt.Sprintf("arn:aws:s3:::%s", id)
+	bucketDomainName := fmt.Sprintf("%s.s3.amazonaws.com", id)
+	bucketRegionalDomainName := fmt.Sprintf("%s.s3.us-east-1.amazonaws.com", id)
+
+	return &awss3outputs.BucketOutput{
+		ID:                       id,
+		ARN:                      bucketARN,
+		Name:                     id,
+		ForceDestroy:             false,
+		BucketDomainName:         bucketDomainName,
+		BucketRegionalDomainName: bucketRegionalDomainName,
+		Region:                   "us-east-1",
+		Tags: []struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
+		}{
+			{Key: "Name", Value: id},
+		},
+	}, nil
+}
+
+func (s *realisticAWSStorageService) UpdateS3Bucket(ctx context.Context, id string, bucket *awss3.Bucket) (*awss3outputs.BucketOutput, error) {
+	return s.CreateS3Bucket(context.Background(), bucket)
+}
+
+func (s *realisticAWSStorageService) DeleteS3Bucket(ctx context.Context, id string) error {
+	return nil
+}
+
+func (s *realisticAWSStorageService) ListS3Buckets(ctx context.Context, filters map[string][]string) ([]*awss3outputs.BucketOutput, error) {
+	return []*awss3outputs.BucketOutput{
+		{
+			ID:                       "test-bucket",
+			ARN:                      "arn:aws:s3:::test-bucket",
+			Name:                     "test-bucket",
+			ForceDestroy:             false,
+			BucketDomainName:         "test-bucket.s3.amazonaws.com",
+			BucketRegionalDomainName: "test-bucket.s3.us-east-1.amazonaws.com",
+			Region:                   "us-east-1",
+			Tags: []struct {
+				Key   string `json:"key"`
+				Value string `json:"value"`
+			}{
+				{Key: "Name", Value: "test-bucket"},
+			},
+		},
+	}, nil
+}
+
+// S3 Bucket ACL Operations
+func (s *realisticAWSStorageService) UpdateS3BucketACL(ctx context.Context, bucket string, acl *awss3.BucketACL) (*awss3outputs.BucketACLOutput, error) {
+	return &awss3outputs.BucketACLOutput{
+		ID:                  bucket,
+		ACL:                 acl.ACL,
+		AccessControlPolicy: acl.AccessControlPolicy,
+	}, nil
+}
+
+func (s *realisticAWSStorageService) GetS3BucketACL(ctx context.Context, bucket string) (*awss3outputs.BucketACLOutput, error) {
+	canned := "private"
+	return &awss3outputs.BucketACLOutput{
+		ID:  bucket,
+		ACL: &canned,
+	}, nil
+}
+
+// S3 Bucket Versioning Operations
+func (s *realisticAWSStorageService) UpdateS3BucketVersioning(ctx context.Context, bucket string, versioning *awss3.BucketVersioning) (*awss3outputs.BucketVersioningOutput, error) {
+	return &awss3outputs.BucketVersioningOutput{
+		ID:        bucket,
+		Status:    versioning.Status,
+		MFADelete: versioning.MFADelete,
+	}, nil
+}
+
+func (s *realisticAWSStorageService) GetS3BucketVersioning(ctx context.Context, bucket string) (*awss3outputs.BucketVersioningOutput, error) {
+	status := "Enabled"
+	return &awss3outputs.BucketVersioningOutput{
+		ID:     bucket,
+		Status: status,
+	}, nil
+}
+
+// S3 Bucket Encryption Operations
+func (s *realisticAWSStorageService) UpdateS3BucketEncryption(ctx context.Context, bucket string, encryption *awss3.BucketEncryption) (*awss3outputs.BucketEncryptionOutput, error) {
+	return &awss3outputs.BucketEncryptionOutput{
+		ID:               bucket,
+		BucketKeyEnabled: encryption.Rule.BucketKeyEnabled,
+		SSEAlgorithm:     encryption.Rule.DefaultEncryption.SSEAlgorithm,
+		KMSMasterKeyID:   encryption.Rule.DefaultEncryption.KMSMasterKeyID,
+	}, nil
+}
+
+func (s *realisticAWSStorageService) GetS3BucketEncryption(ctx context.Context, bucket string) (*awss3outputs.BucketEncryptionOutput, error) {
+	return &awss3outputs.BucketEncryptionOutput{
+		ID:               bucket,
+		BucketKeyEnabled: false,
+		SSEAlgorithm:     "AES256",
+	}, nil
 }
 
 // Helper functions

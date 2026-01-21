@@ -92,6 +92,30 @@ fmt.Printf("Volume ARN: %s\n", *createdVolume.ARN)    // "arn:aws:ec2:us-east-1:
 // Get volume by ID (also returns domain model with ID/ARN)
 retrievedVolume, err := storageService.GetEBSVolume(ctx, createdVolume.ID)
 // retrievedVolume has ID and ARN populated from AWS output model
+
+// Create S3 Bucket using domain model (input - no ID/ARN)
+bucket := &domainstorage.S3Bucket{
+    Name:         "my-bucket",
+    Region:       "us-east-1",
+    ForceDestroy: false,
+    Tags: map[string]string{
+        "Environment": "prod",
+    },
+    // ID: "" (empty before creation)
+    // ARN: nil (nil before creation)
+}
+
+// Create bucket - adapter handles input/output conversion
+createdBucket, err := storageService.CreateS3Bucket(ctx, bucket)
+if err != nil {
+    // handle error
+}
+
+// Created bucket now has ID, ARN, and domain names populated!
+fmt.Printf("Bucket ID: %s\n", createdBucket.ID)                    // "my-bucket"
+fmt.Printf("Bucket ARN: %s\n", *createdBucket.ARN)                 // "arn:aws:s3:::my-bucket"
+fmt.Printf("Domain Name: %s\n", *createdBucket.BucketDomainName)    // "my-bucket.s3.amazonaws.com"
+fmt.Printf("Regional Domain: %s\n", *createdBucket.BucketRegionalDomainName) // "my-bucket.s3.us-east-1.amazonaws.com"
 ```
 
 ## Flow Diagram
@@ -167,6 +191,57 @@ createdVolume := awsmapper.ToDomainEBSVolumeFromOutput(awsVolumeOutput)
 // createdVolume.ARN = "arn:aws:ec2:..."
 ```
 
+### Example: S3 Bucket Creation Flow
+
+```go
+// Step 1: Domain input (no ID/ARN)
+domainBucket := &domainstorage.S3Bucket{
+    Name:         "my-bucket",
+    Region:       "us-east-1",
+    ForceDestroy: false,
+    Tags: map[string]string{
+        "Environment": "prod",
+    },
+    // ID: "" (empty)
+    // ARN: nil
+}
+
+// Step 2: Adapter converts to AWS input
+awsBucketInput := awsmapper.FromDomainS3Bucket(domainBucket)
+// awsBucketInput has no ID/ARN fields
+
+// Step 3: AWS service creates and returns output
+awsBucketOutput := &awss3outputs.BucketOutput{
+    ID:                       "my-bucket",                          // AWS-generated (bucket name)
+    ARN:                      "arn:aws:s3:::my-bucket",            // AWS-generated
+    BucketDomainName:         "my-bucket.s3.amazonaws.com",       // AWS-generated
+    BucketRegionalDomainName: "my-bucket.s3.us-east-1.amazonaws.com", // AWS-generated
+    Region:                   "us-east-1",
+    // ... configuration fields
+}
+
+// Step 4: Adapter converts output to domain (with ID/ARN/domain names)
+createdBucket := awsmapper.ToDomainS3BucketFromOutput(awsBucketOutput)
+// createdBucket.ID = "my-bucket"
+// createdBucket.ARN = "arn:aws:s3:::my-bucket"
+// createdBucket.BucketDomainName = "my-bucket.s3.amazonaws.com"
+// createdBucket.BucketRegionalDomainName = "my-bucket.s3.us-east-1.amazonaws.com"
+```
+
+### S3 Bucket Input/Output Models
+
+**Input Models** (for creation/update):
+- Located in: `internal/cloud/aws/models/storage/s3/`
+- Contains: Configuration fields only (Bucket/BucketPrefix, ForceDestroy, Tags)
+- No AWS identifiers: No `ID` or `ARN` fields
+- Used when: Creating or updating buckets
+
+**Output Models** (from AWS responses):
+- Located in: `internal/cloud/aws/models/storage/s3/outputs/`
+- Contains: Configuration + AWS-generated metadata
+- AWS identifiers: `ID` (bucket name), `ARN`, `BucketDomainName`, `BucketRegionalDomainName`, `Region`
+- Used when: Receiving responses from AWS services
+
 ## Available Operations
 
 ### EBS Volume Operations
@@ -181,6 +256,17 @@ createdVolume := awsmapper.ToDomainEBSVolumeFromOutput(awsVolumeOutput)
 
 - `AttachVolume()` - Attach volume to EC2 instance
 - `DetachVolume()` - Detach volume from EC2 instance
+
+### S3 Bucket Operations
+
+- `CreateS3Bucket()` - Create a new S3 bucket
+- `GetS3Bucket()` - Retrieve bucket by ID (bucket name)
+- `UpdateS3Bucket()` - Update bucket configuration (tags, force_destroy)
+- `DeleteS3Bucket()` - Delete a bucket
+- `ListS3Buckets()` - List buckets with filters
+- `UpdateS3BucketACL()` / `GetS3BucketACL()` - Manage legacy bucket ACLs
+- `UpdateS3BucketVersioning()` / `GetS3BucketVersioning()` - Manage bucket versioning state
+- `UpdateS3BucketEncryption()` / `GetS3BucketEncryption()` - Manage bucket encryption defaults
 
 ## Error Handling
 

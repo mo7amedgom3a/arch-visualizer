@@ -7,7 +7,9 @@ import (
 	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/networking"
 	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/compute/alb"
 	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/compute/autoscaling"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario1_basic_web_app"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/storage/s3"
+	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario1_basic_web_app"
+	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario2_high_availability"
 )
 
 func main() {
@@ -16,5 +18,5 @@ func main() {
 	// networking.NetworkingRunner()
 	// alb.ALBRunner()
 	// autoscaling.ASGRunner()
-	scenario1_basic_web_app.BasicWebAppRunner()
+	s3.S3Runner()
 }
