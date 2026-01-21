@@ -16,6 +16,8 @@ import (
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
+	awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda"
+	awslambdaoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 )
@@ -29,6 +31,7 @@ type mockAWSComputeService struct {
 	listener              *awsloadbalancer.Listener
 	targetGroupAttachment *awsloadbalancer.TargetGroupAttachment
 	autoScalingGroup      *awsautoscaling.AutoScalingGroup
+	lambdaFunction        *awslambda.Function
 	createError           error
 	getError              error
 	instanceTypeInfo      *awsInstanceTypes.InstanceTypeInfo
@@ -1192,6 +1195,104 @@ func (m *mockAWSComputeService) DeleteScalingPolicy(ctx context.Context, policyN
 	return nil
 }
 
+// Lambda Function mock methods
+
+func (m *mockAWSComputeService) CreateLambdaFunction(ctx context.Context, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
+	if m.createError != nil {
+		return nil, m.createError
+	}
+	m.lambdaFunction = function
+	return lambdaFunctionToOutput(function), nil
+}
+
+func (m *mockAWSComputeService) GetLambdaFunction(ctx context.Context, name string) (*awslambdaoutputs.FunctionOutput, error) {
+	if m.getError != nil {
+		return nil, m.getError
+	}
+	if m.lambdaFunction == nil || m.lambdaFunction.FunctionName != name {
+		return nil, errors.New("lambda function not found")
+	}
+	return lambdaFunctionToOutput(m.lambdaFunction), nil
+}
+
+func (m *mockAWSComputeService) UpdateLambdaFunction(ctx context.Context, name string, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
+	if m.createError != nil {
+		return nil, m.createError
+	}
+	m.lambdaFunction = function
+	return lambdaFunctionToOutput(function), nil
+}
+
+func (m *mockAWSComputeService) DeleteLambdaFunction(ctx context.Context, name string) error {
+	if m.lambdaFunction == nil || m.lambdaFunction.FunctionName != name {
+		return errors.New("lambda function not found")
+	}
+	m.lambdaFunction = nil
+	return nil
+}
+
+func (m *mockAWSComputeService) ListLambdaFunctions(ctx context.Context, filters map[string][]string) ([]*awslambdaoutputs.FunctionOutput, error) {
+	if m.lambdaFunction == nil {
+		return []*awslambdaoutputs.FunctionOutput{}, nil
+	}
+	return []*awslambdaoutputs.FunctionOutput{lambdaFunctionToOutput(m.lambdaFunction)}, nil
+}
+
+// Helper function to convert Lambda Function input to output
+func lambdaFunctionToOutput(function *awslambda.Function) *awslambdaoutputs.FunctionOutput {
+	if function == nil {
+		return nil
+	}
+	arn := "arn:aws:lambda:us-east-1:123456789012:function:" + function.FunctionName
+	invokeARN := "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/" + arn + "/invocations"
+	version := "1"
+	qualifiedARN := arn + ":" + version
+	
+	output := &awslambdaoutputs.FunctionOutput{
+		ARN:          arn,
+		InvokeARN:    invokeARN,
+		QualifiedARN: &qualifiedARN,
+		Version:      version,
+		FunctionName: function.FunctionName,
+		Region:       "us-east-1",
+		RoleARN:      function.RoleARN,
+	}
+
+	if function.S3Bucket != nil {
+		output.S3Bucket = function.S3Bucket
+		output.S3Key = function.S3Key
+		output.S3ObjectVersion = function.S3ObjectVersion
+		output.Runtime = function.Runtime
+		output.Handler = function.Handler
+	}
+
+	if function.PackageType != nil {
+		output.PackageType = function.PackageType
+		output.ImageURI = function.ImageURI
+	}
+
+	if function.MemorySize != nil {
+		output.MemorySize = function.MemorySize
+	}
+	if function.Timeout != nil {
+		output.Timeout = function.Timeout
+	}
+	if function.Environment != nil {
+		output.Environment = function.Environment
+	}
+	if function.Layers != nil {
+		output.Layers = function.Layers
+	}
+	if function.VPCConfig != nil {
+		output.VPCConfig = &awslambdaoutputs.FunctionVPCConfigOutput{
+			SubnetIDs:        function.VPCConfig.SubnetIDs,
+			SecurityGroupIDs: function.VPCConfig.SecurityGroupIDs,
+		}
+	}
+
+	return output
+}
+
 // Auto Scaling Group Tests
 
 func TestAWSComputeAdapter_CreateAutoScalingGroup(t *testing.T) {
@@ -1301,6 +1402,202 @@ func TestAWSComputeAdapter_DetachInstances(t *testing.T) {
 
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
+	}
+}
+
+// Lambda Function Tests
+
+func TestAWSComputeAdapter_CreateLambdaFunction(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	domainFunction := &domaincompute.LambdaFunction{
+		FunctionName: "test-function",
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Region:       "us-east-1",
+		S3Bucket:     stringPtr("my-bucket"),
+		S3Key:        stringPtr("code.zip"),
+		Runtime:      stringPtr("python3.9"),
+		Handler:      stringPtr("index.handler"),
+		MemorySize:   intPtr(256),
+		Timeout:      intPtr(30),
+	}
+
+	ctx := context.Background()
+	createdFunction, err := adapter.CreateLambdaFunction(ctx, domainFunction)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdFunction == nil {
+		t.Fatal("Expected created lambda function, got nil")
+	}
+
+	if createdFunction.FunctionName != domainFunction.FunctionName {
+		t.Errorf("Expected function name %s, got %s", domainFunction.FunctionName, createdFunction.FunctionName)
+	}
+
+	if createdFunction.ARN == nil {
+		t.Error("Expected ARN to be populated")
+	}
+
+	if createdFunction.InvokeARN == nil {
+		t.Error("Expected InvokeARN to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_CreateLambdaFunction_WithContainerImage(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	domainFunction := &domaincompute.LambdaFunction{
+		FunctionName: "test-function",
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Region:       "us-east-1",
+		PackageType:  stringPtr("Image"),
+		ImageURI:     stringPtr("123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app:latest"),
+		MemorySize:   intPtr(512),
+	}
+
+	ctx := context.Background()
+	createdFunction, err := adapter.CreateLambdaFunction(ctx, domainFunction)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdFunction == nil {
+		t.Fatal("Expected created lambda function, got nil")
+	}
+
+	if createdFunction.PackageType == nil || *createdFunction.PackageType != "Image" {
+		t.Error("Expected package type to be 'Image'")
+	}
+}
+
+func TestAWSComputeAdapter_CreateLambdaFunction_ValidationError(t *testing.T) {
+	mockService := &mockAWSComputeService{}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	domainFunction := &domaincompute.LambdaFunction{
+		FunctionName: "", // Invalid: empty name
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Region:       "us-east-1",
+	}
+
+	ctx := context.Background()
+	_, err := adapter.CreateLambdaFunction(ctx, domainFunction)
+
+	if err == nil {
+		t.Error("Expected validation error, got nil")
+	}
+}
+
+func TestAWSComputeAdapter_GetLambdaFunction(t *testing.T) {
+	mockService := &mockAWSComputeService{
+		lambdaFunction: &awslambda.Function{
+			FunctionName: "test-function",
+			RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+			S3Bucket:     stringPtr("my-bucket"),
+			S3Key:        stringPtr("code.zip"),
+			Runtime:      stringPtr("python3.9"),
+			Handler:      stringPtr("index.handler"),
+		},
+	}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	function, err := adapter.GetLambdaFunction(ctx, "test-function")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if function == nil {
+		t.Fatal("Expected lambda function, got nil")
+	}
+
+	if function.FunctionName != "test-function" {
+		t.Errorf("Expected function name test-function, got %s", function.FunctionName)
+	}
+}
+
+func TestAWSComputeAdapter_UpdateLambdaFunction(t *testing.T) {
+	mockService := &mockAWSComputeService{
+		lambdaFunction: &awslambda.Function{
+			FunctionName: "test-function",
+			RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+			S3Bucket:     stringPtr("my-bucket"),
+			S3Key:        stringPtr("code.zip"),
+			Runtime:      stringPtr("python3.9"),
+			Handler:      stringPtr("index.handler"),
+		},
+	}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	domainFunction := &domaincompute.LambdaFunction{
+		FunctionName: "test-function",
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Region:       "us-east-1",
+		S3Bucket:     stringPtr("my-bucket"),
+		S3Key:        stringPtr("code-v2.zip"),
+		Runtime:      stringPtr("python3.9"),
+		Handler:      stringPtr("index.handler"),
+		MemorySize:   intPtr(512), // Updated memory
+	}
+
+	ctx := context.Background()
+	updatedFunction, err := adapter.UpdateLambdaFunction(ctx, domainFunction)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if updatedFunction == nil {
+		t.Fatal("Expected updated lambda function, got nil")
+	}
+
+	if updatedFunction.MemorySize == nil || *updatedFunction.MemorySize != 512 {
+		t.Errorf("Expected memory size 512, got %v", updatedFunction.MemorySize)
+	}
+}
+
+func TestAWSComputeAdapter_DeleteLambdaFunction(t *testing.T) {
+	mockService := &mockAWSComputeService{
+		lambdaFunction: &awslambda.Function{
+			FunctionName: "test-function",
+			RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		},
+	}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	err := adapter.DeleteLambdaFunction(ctx, "test-function")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+}
+
+func TestAWSComputeAdapter_ListLambdaFunctions(t *testing.T) {
+	mockService := &mockAWSComputeService{
+		lambdaFunction: &awslambda.Function{
+			FunctionName: "test-function",
+			RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		},
+	}
+	adapter := NewAWSComputeAdapter(mockService)
+
+	ctx := context.Background()
+	functions, err := adapter.ListLambdaFunctions(ctx, map[string]string{})
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if len(functions) != 1 {
+		t.Errorf("Expected 1 function, got %d", len(functions))
 	}
 }
 

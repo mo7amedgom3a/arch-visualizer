@@ -1,0 +1,314 @@
+[
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSLambdaExecute",
+    "name": "AWSLambdaExecute",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"logs:*\"\n      ],\n      \"Resource\": \"arn:aws:logs:*:*:*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"s3:GetObject\",\n        \"s3:PutObject\"\n      ],\n      \"Resource\": \"arn:aws:s3:::*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSLambdaInvocation-DynamoDB",
+    "name": "AWSLambdaInvocation-DynamoDB",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"lambda:InvokeFunction\"\n      ],\n      \"Resource\": \"*\"\n    },\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"dynamodb:DescribeStream\",\n        \"dynamodb:GetRecords\",\n        \"dynamodb:GetShardIterator\",\n        \"dynamodb:ListStreams\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
+    "name": "AWSLambdaRole",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [{\n        \"Effect\": \"Allow\",\n        \"Action\": [\n            \"lambda:InvokeFunction\"\n        ],\n        \"Resource\": [\"*\"]\n    }]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    "name": "AWSLambdaBasicExecutionRole",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole",
+    "name": "AWSLambdaDynamoDBExecutionRole",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"dynamodb:DescribeStream\",\n        \"dynamodb:GetRecords\",\n        \"dynamodb:GetShardIterator\",\n        \"dynamodb:ListStreams\",\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole",
+    "name": "AWSLambdaKinesisExecutionRole",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"kinesis:DescribeStream\",\n        \"kinesis:DescribeStreamSummary\",\n        \"kinesis:GetRecords\",\n        \"kinesis:GetShardIterator\",\n        \"kinesis:ListShards\",\n        \"kinesis:ListStreams\",\n        \"kinesis:SubscribeToShard\",\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+    "name": "AWSLambdaVPCAccessExecutionRole",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AWSLambdaVPCAccessExecutionPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\",\n\t\t\t\t\"ec2:CreateNetworkInterface\",\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DeleteNetworkInterface\",\n\t\t\t\t\"ec2:AssignPrivateIpAddresses\",\n\t\t\t\t\"ec2:UnassignPrivateIpAddresses\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaENIManagementAccess",
+    "name": "AWSLambdaENIManagementAccess",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"ec2:CreateNetworkInterface\",\n        \"ec2:DescribeNetworkInterfaces\",\n        \"ec2:DeleteNetworkInterface\",\n        \"ec2:AssignPrivateIpAddresses\",\n        \"ec2:UnassignPrivateIpAddresses\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSLambdaReplicator",
+    "name": "AWSLambdaReplicator",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"LambdaCreateDeletePermission\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"lambda:CreateFunction\",\n                \"lambda:DeleteFunction\",\n                \"lambda:DisableReplication\"\n            ],\n            \"Resource\": [\n                \"arn:aws:lambda:*:*:function:*\"\n            ]\n        },\n        {\n            \"Sid\": \"IamPassRolePermission\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"iam:PassRole\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ],\n            \"Condition\": {\n                \"StringLikeIfExists\": {\n                    \"iam:PassedToService\": \"lambda.amazonaws.com\"\n                }\n            }\n        },\n        {\n            \"Sid\": \"CloudFrontListDistributions\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"cloudfront:ListDistributionsByLambdaFunction\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda",
+    "name": "AWSCodeDeployRoleForLambda",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Action\": [\n                \"cloudwatch:DescribeAlarms\",\n                \"lambda:UpdateAlias\",\n                \"lambda:GetAlias\",\n                \"lambda:GetProvisionedConcurrencyConfig\",\n                \"sns:Publish\"\n            ],\n            \"Resource\": \"*\",\n            \"Effect\": \"Allow\"\n        },\n        {\n            \"Action\": [\n                \"s3:GetObject\",\n                \"s3:GetObjectVersion\"\n            ],\n            \"Resource\": \"arn:aws:s3:::*/CodeDeploy/*\",\n            \"Effect\": \"Allow\"\n        },\n        {\n            \"Action\": [\n                \"s3:GetObject\",\n                \"s3:GetObjectVersion\"\n            ],\n            \"Resource\": \"*\",\n            \"Condition\": {\n                \"StringEquals\": {\n                    \"s3:ExistingObjectTag/UseWithCodeDeploy\": \"true\"\n                }\n            },\n            \"Effect\": \"Allow\"\n        },\n        {\n            \"Action\": [\n                \"lambda:InvokeFunction\"\n            ],\n            \"Resource\": \"arn:aws:lambda:*:*:function:CodeDeployHook_*\",\n            \"Effect\": \"Allow\"\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSDeepLensLambdaFunctionAccessPolicy",
+    "name": "AWSDeepLensLambdaFunctionAccessPolicy",
+    "path": "/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Sid\": \"DeepLensS3ObjectAccess\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:ListBucket\",\n                \"s3:GetObject\"\n            ],\n            \"Resource\": [\n                \"arn:aws:s3:::deeplens*/*\",\n                \"arn:aws:s3:::deeplens*\"\n            ]\n        },\n        {\n            \"Sid\": \"DeepLensGreenGrassCloudWatchAccess\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"logs:CreateLogStream\",\n                \"logs:DescribeLogStreams\",\n                \"logs:PutLogEvents\",\n                \"logs:CreateLogGroup\"\n            ],\n            \"Resource\": \"arn:aws:logs:*:*:log-group:/aws/greengrass/*\"\n        },\n        {\n            \"Sid\": \"DeepLensAccess\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"deeplens:*\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        },\n        {\n            \"Sid\": \"DeepLensKinesisVideoAccess\",\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"kinesisvideo:DescribeStream\",\n                \"kinesisvideo:CreateStream\",\n                \"kinesisvideo:GetDataEndpoint\",\n                \"kinesisvideo:PutMedia\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole",
+    "name": "AWSLambdaSQSQueueExecutionRole",
+    "path": "/service-role/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"sqs:ReceiveMessage\",\n        \"sqs:DeleteMessage\",\n        \"sqs:GetQueueAttributes\",\n        \"logs:CreateLogGroup\",\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSApplicationAutoscalingLambdaConcurrencyPolicy",
+    "name": "AWSApplicationAutoscalingLambdaConcurrencyPolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"lambda:PutProvisionedConcurrencyConfig\",\n                \"lambda:GetProvisionedConcurrencyConfig\",\n                \"lambda:DeleteProvisionedConcurrencyConfig\",\n                \"cloudwatch:PutMetricAlarm\",\n                \"cloudwatch:DescribeAlarms\",\n                \"cloudwatch:DeleteAlarms\"\n            ],\n            \"Resource\": [\n                \"*\"\n            ]\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaMSKExecutionRole",
+    "name": "AWSLambdaMSKExecutionRole",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kafka:DescribeCluster\",\n\t\t\t\t\"kafka:DescribeClusterV2\",\n\t\t\t\t\"kafka:GetBootstrapBrokers\",\n\t\t\t\t\"ec2:CreateNetworkInterface\",\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\",\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"ec2:DeleteNetworkInterface\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambdaLimited",
+    "name": "AWSCodeDeployRoleForLambdaLimited",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Action\": [\n\t\t\t\t\"cloudwatch:DescribeAlarms\",\n\t\t\t\t\"lambda:UpdateAlias\",\n\t\t\t\t\"lambda:GetAlias\",\n\t\t\t\t\"lambda:GetProvisionedConcurrencyConfig\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Effect\": \"Allow\"\n\t\t},\n\t\t{\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersion\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:s3:::*/CodeDeploy/*\",\n\t\t\t\"Effect\": \"Allow\"\n\t\t},\n\t\t{\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersion\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"s3:ExistingObjectTag/UseWithCodeDeploy\": \"true\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Effect\": \"Allow\"\n\t\t},\n\t\t{\n\t\t\t\"Action\": [\n\t\t\t\t\"lambda:InvokeFunction\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:lambda:*:*:function:CodeDeployHook_*\",\n\t\t\t\"Effect\": \"Allow\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy",
+    "name": "CloudWatchLambdaInsightsExecutionRolePolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"logs:CreateLogGroup\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/lambda-insights:*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSLambda_ReadOnlyAccess",
+    "name": "AWSLambda_ReadOnlyAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"cloudformation:DescribeStacks\",\n\t\t\t\t\"cloudformation:ListStacks\",\n\t\t\t\t\"cloudformation:ListStackResources\",\n\t\t\t\t\"cloudwatch:GetMetricData\",\n\t\t\t\t\"cloudwatch:ListMetrics\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"kms:ListAliases\",\n\t\t\t\t\"iam:GetPolicy\",\n\t\t\t\t\"iam:GetPolicyVersion\",\n\t\t\t\t\"iam:GetRole\",\n\t\t\t\t\"iam:GetRolePolicy\",\n\t\t\t\t\"iam:ListAttachedRolePolicies\",\n\t\t\t\t\"iam:ListRolePolicies\",\n\t\t\t\t\"iam:ListRoles\",\n\t\t\t\t\"logs:DescribeLogGroups\",\n\t\t\t\t\"lambda:Get*\",\n\t\t\t\t\"lambda:List*\",\n\t\t\t\t\"states:DescribeStateMachine\",\n\t\t\t\t\"states:ListStateMachines\",\n\t\t\t\t\"tag:GetResources\",\n\t\t\t\t\"xray:GetTraceSummaries\",\n\t\t\t\t\"xray:BatchGetTraces\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:DescribeLogStreams\",\n\t\t\t\t\"logs:GetLogEvents\",\n\t\t\t\t\"logs:FilterLogEvents\",\n\t\t\t\t\"logs:StartQuery\",\n\t\t\t\t\"logs:StopQuery\",\n\t\t\t\t\"logs:DescribeQueries\",\n\t\t\t\t\"logs:GetLogGroupFields\",\n\t\t\t\t\"logs:GetLogRecord\",\n\t\t\t\t\"logs:GetQueryResults\",\n\t\t\t\t\"logs:StartLiveTail\",\n\t\t\t\t\"logs:StopLiveTail\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/lambda/*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSLambda_FullAccess",
+    "name": "AWSLambda_FullAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"cloudformation:DescribeStacks\",\n\t\t\t\t\"cloudformation:ListStackResources\",\n\t\t\t\t\"cloudwatch:ListMetrics\",\n\t\t\t\t\"cloudwatch:GetMetricData\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"kms:DescribeKey\",\n\t\t\t\t\"kms:ListAliases\",\n\t\t\t\t\"iam:GetPolicy\",\n\t\t\t\t\"iam:GetPolicyVersion\",\n\t\t\t\t\"iam:GetRole\",\n\t\t\t\t\"iam:GetRolePolicy\",\n\t\t\t\t\"iam:ListAttachedRolePolicies\",\n\t\t\t\t\"iam:ListRolePolicies\",\n\t\t\t\t\"iam:ListRoles\",\n\t\t\t\t\"lambda:*\",\n\t\t\t\t\"logs:DescribeLogGroups\",\n\t\t\t\t\"states:DescribeStateMachine\",\n\t\t\t\t\"states:ListStateMachines\",\n\t\t\t\t\"tag:GetResources\",\n\t\t\t\t\"xray:GetTraceSummaries\",\n\t\t\t\t\"xray:BatchGetTraces\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:PassRole\",\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"iam:PassedToService\": \"lambda.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:DescribeLogStreams\",\n\t\t\t\t\"logs:GetLogEvents\",\n\t\t\t\t\"logs:FilterLogEvents\",\n\t\t\t\t\"logs:StartLiveTail\",\n\t\t\t\t\"logs:StopLiveTail\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/lambda/*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"iam:CreateServiceLinkedRole\",\n\t\t\t\"Resource\": \"arn:aws:iam::*:role/aws-service-role/lambda.amazonaws.com/AWSServiceRoleForLambda\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"iam:AWSServiceName\": \"lambda.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonSageMakerServiceCatalogProductsLambdaServiceRolePolicy",
+    "name": "AmazonSageMakerServiceCatalogProductsLambdaServiceRolePolicy",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaECRPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ecr:DescribeImages\",\n\t\t\t\t\"ecr:BatchDeleteImage\",\n\t\t\t\t\"ecr:CompleteLayerUpload\",\n\t\t\t\t\"ecr:CreateRepository\",\n\t\t\t\t\"ecr:DeleteRepository\",\n\t\t\t\t\"ecr:InitiateLayerUpload\",\n\t\t\t\t\"ecr:PutImage\",\n\t\t\t\t\"ecr:UploadLayerPart\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ecr:*:*:repository/sagemaker-*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaEventBridgePermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"events:DeleteRule\",\n\t\t\t\t\"events:DescribeRule\",\n\t\t\t\t\"events:PutRule\",\n\t\t\t\t\"events:PutTargets\",\n\t\t\t\t\"events:RemoveTargets\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:events:*:*:rule/sagemaker-*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaS3BucketPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:CreateBucket\",\n\t\t\t\t\"s3:DeleteBucket\",\n\t\t\t\t\"s3:GetBucketAcl\",\n\t\t\t\t\"s3:GetBucketCors\",\n\t\t\t\t\"s3:GetBucketLocation\",\n\t\t\t\t\"s3:ListAllMyBuckets\",\n\t\t\t\t\"s3:ListBucket\",\n\t\t\t\t\"s3:ListBucketMultipartUploads\",\n\t\t\t\t\"s3:PutBucketCors\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::aws-glue-*\",\n\t\t\t\t\"arn:aws:s3:::sagemaker-*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaS3ObjectPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:AbortMultipartUpload\",\n\t\t\t\t\"s3:DeleteObject\",\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersion\",\n\t\t\t\t\"s3:PutObject\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::aws-glue-*\",\n\t\t\t\t\"arn:aws:s3:::sagemaker-*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaSageMakerPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"sagemaker:AddAssociation\",\n\t\t\t\t\"sagemaker:AddTags\",\n\t\t\t\t\"sagemaker:AssociateTrialComponent\",\n\t\t\t\t\"sagemaker:BatchDescribeModelPackage\",\n\t\t\t\t\"sagemaker:BatchGetMetrics\",\n\t\t\t\t\"sagemaker:BatchGetRecord\",\n\t\t\t\t\"sagemaker:BatchPutMetrics\",\n\t\t\t\t\"sagemaker:CreateAction\",\n\t\t\t\t\"sagemaker:CreateAlgorithm\",\n\t\t\t\t\"sagemaker:CreateApp\",\n\t\t\t\t\"sagemaker:CreateAppImageConfig\",\n\t\t\t\t\"sagemaker:CreateArtifact\",\n\t\t\t\t\"sagemaker:CreateAutoMLJob\",\n\t\t\t\t\"sagemaker:CreateCodeRepository\",\n\t\t\t\t\"sagemaker:CreateCompilationJob\",\n\t\t\t\t\"sagemaker:CreateContext\",\n\t\t\t\t\"sagemaker:CreateDataQualityJobDefinition\",\n\t\t\t\t\"sagemaker:CreateDeviceFleet\",\n\t\t\t\t\"sagemaker:CreateDomain\",\n\t\t\t\t\"sagemaker:CreateEdgePackagingJob\",\n\t\t\t\t\"sagemaker:CreateEndpoint\",\n\t\t\t\t\"sagemaker:CreateEndpointConfig\",\n\t\t\t\t\"sagemaker:CreateExperiment\",\n\t\t\t\t\"sagemaker:CreateFeatureGroup\",\n\t\t\t\t\"sagemaker:CreateFlowDefinition\",\n\t\t\t\t\"sagemaker:CreateHumanTaskUi\",\n\t\t\t\t\"sagemaker:CreateHyperParameterTuningJob\",\n\t\t\t\t\"sagemaker:CreateImage\",\n\t\t\t\t\"sagemaker:CreateImageVersion\",\n\t\t\t\t\"sagemaker:CreateInferenceRecommendationsJob\",\n\t\t\t\t\"sagemaker:CreateLabelingJob\",\n\t\t\t\t\"sagemaker:CreateLineageGroupPolicy\",\n\t\t\t\t\"sagemaker:CreateModel\",\n\t\t\t\t\"sagemaker:CreateModelBiasJobDefinition\",\n\t\t\t\t\"sagemaker:CreateModelExplainabilityJobDefinition\",\n\t\t\t\t\"sagemaker:CreateModelPackage\",\n\t\t\t\t\"sagemaker:CreateModelPackageGroup\",\n\t\t\t\t\"sagemaker:CreateModelQualityJobDefinition\",\n\t\t\t\t\"sagemaker:CreateMonitoringSchedule\",\n\t\t\t\t\"sagemaker:CreateNotebookInstance\",\n\t\t\t\t\"sagemaker:CreateNotebookInstanceLifecycleConfig\",\n\t\t\t\t\"sagemaker:CreatePipeline\",\n\t\t\t\t\"sagemaker:CreatePresignedDomainUrl\",\n\t\t\t\t\"sagemaker:CreatePresignedNotebookInstanceUrl\",\n\t\t\t\t\"sagemaker:CreateProcessingJob\",\n\t\t\t\t\"sagemaker:CreateProject\",\n\t\t\t\t\"sagemaker:CreateTrainingJob\",\n\t\t\t\t\"sagemaker:CreateTransformJob\",\n\t\t\t\t\"sagemaker:CreateTrial\",\n\t\t\t\t\"sagemaker:CreateTrialComponent\",\n\t\t\t\t\"sagemaker:CreateUserProfile\",\n\t\t\t\t\"sagemaker:CreateWorkforce\",\n\t\t\t\t\"sagemaker:CreateWorkteam\",\n\t\t\t\t\"sagemaker:DeleteAction\",\n\t\t\t\t\"sagemaker:DeleteAlgorithm\",\n\t\t\t\t\"sagemaker:DeleteApp\",\n\t\t\t\t\"sagemaker:DeleteAppImageConfig\",\n\t\t\t\t\"sagemaker:DeleteArtifact\",\n\t\t\t\t\"sagemaker:DeleteAssociation\",\n\t\t\t\t\"sagemaker:DeleteCodeRepository\",\n\t\t\t\t\"sagemaker:DeleteContext\",\n\t\t\t\t\"sagemaker:DeleteDataQualityJobDefinition\",\n\t\t\t\t\"sagemaker:DeleteDeviceFleet\",\n\t\t\t\t\"sagemaker:DeleteDomain\",\n\t\t\t\t\"sagemaker:DeleteEndpoint\",\n\t\t\t\t\"sagemaker:DeleteEndpointConfig\",\n\t\t\t\t\"sagemaker:DeleteExperiment\",\n\t\t\t\t\"sagemaker:DeleteFeatureGroup\",\n\t\t\t\t\"sagemaker:DeleteFlowDefinition\",\n\t\t\t\t\"sagemaker:DeleteHumanLoop\",\n\t\t\t\t\"sagemaker:DeleteHumanTaskUi\",\n\t\t\t\t\"sagemaker:DeleteImage\",\n\t\t\t\t\"sagemaker:DeleteImageVersion\",\n\t\t\t\t\"sagemaker:DeleteLineageGroupPolicy\",\n\t\t\t\t\"sagemaker:DeleteModel\",\n\t\t\t\t\"sagemaker:DeleteModelBiasJobDefinition\",\n\t\t\t\t\"sagemaker:DeleteModelExplainabilityJobDefinition\",\n\t\t\t\t\"sagemaker:DeleteModelPackage\",\n\t\t\t\t\"sagemaker:DeleteModelPackageGroup\",\n\t\t\t\t\"sagemaker:DeleteModelPackageGroupPolicy\",\n\t\t\t\t\"sagemaker:DeleteModelQualityJobDefinition\",\n\t\t\t\t\"sagemaker:DeleteMonitoringSchedule\",\n\t\t\t\t\"sagemaker:DeleteNotebookInstance\",\n\t\t\t\t\"sagemaker:DeleteNotebookInstanceLifecycleConfig\",\n\t\t\t\t\"sagemaker:DeletePipeline\",\n\t\t\t\t\"sagemaker:DeleteProject\",\n\t\t\t\t\"sagemaker:DeleteRecord\",\n\t\t\t\t\"sagemaker:DeleteTags\",\n\t\t\t\t\"sagemaker:DeleteTrial\",\n\t\t\t\t\"sagemaker:DeleteTrialComponent\",\n\t\t\t\t\"sagemaker:DeleteUserProfile\",\n\t\t\t\t\"sagemaker:DeleteWorkforce\",\n\t\t\t\t\"sagemaker:DeleteWorkteam\",\n\t\t\t\t\"sagemaker:DeregisterDevices\",\n\t\t\t\t\"sagemaker:DescribeAction\",\n\t\t\t\t\"sagemaker:DescribeAlgorithm\",\n\t\t\t\t\"sagemaker:DescribeApp\",\n\t\t\t\t\"sagemaker:DescribeAppImageConfig\",\n\t\t\t\t\"sagemaker:DescribeArtifact\",\n\t\t\t\t\"sagemaker:DescribeAutoMLJob\",\n\t\t\t\t\"sagemaker:DescribeCodeRepository\",\n\t\t\t\t\"sagemaker:DescribeCompilationJob\",\n\t\t\t\t\"sagemaker:DescribeContext\",\n\t\t\t\t\"sagemaker:DescribeDataQualityJobDefinition\",\n\t\t\t\t\"sagemaker:DescribeDevice\",\n\t\t\t\t\"sagemaker:DescribeDeviceFleet\",\n\t\t\t\t\"sagemaker:DescribeDomain\",\n\t\t\t\t\"sagemaker:DescribeEdgePackagingJob\",\n\t\t\t\t\"sagemaker:DescribeEndpoint\",\n\t\t\t\t\"sagemaker:DescribeEndpointConfig\",\n\t\t\t\t\"sagemaker:DescribeExperiment\",\n\t\t\t\t\"sagemaker:DescribeFeatureGroup\",\n\t\t\t\t\"sagemaker:DescribeFlowDefinition\",\n\t\t\t\t\"sagemaker:DescribeHumanLoop\",\n\t\t\t\t\"sagemaker:DescribeHumanTaskUi\",\n\t\t\t\t\"sagemaker:DescribeHyperParameterTuningJob\",\n\t\t\t\t\"sagemaker:DescribeImage\",\n\t\t\t\t\"sagemaker:DescribeImageVersion\",\n\t\t\t\t\"sagemaker:DescribeInferenceRecommendationsJob\",\n\t\t\t\t\"sagemaker:DescribeLabelingJob\",\n\t\t\t\t\"sagemaker:DescribeLineageGroup\",\n\t\t\t\t\"sagemaker:DescribeModel\",\n\t\t\t\t\"sagemaker:DescribeModelBiasJobDefinition\",\n\t\t\t\t\"sagemaker:DescribeModelExplainabilityJobDefinition\",\n\t\t\t\t\"sagemaker:DescribeModelPackage\",\n\t\t\t\t\"sagemaker:DescribeModelPackageGroup\",\n\t\t\t\t\"sagemaker:DescribeModelQualityJobDefinition\",\n\t\t\t\t\"sagemaker:DescribeMonitoringSchedule\",\n\t\t\t\t\"sagemaker:DescribeNotebookInstance\",\n\t\t\t\t\"sagemaker:DescribeNotebookInstanceLifecycleConfig\",\n\t\t\t\t\"sagemaker:DescribePipeline\",\n\t\t\t\t\"sagemaker:DescribePipelineDefinitionForExecution\",\n\t\t\t\t\"sagemaker:DescribePipelineExecution\",\n\t\t\t\t\"sagemaker:DescribeProcessingJob\",\n\t\t\t\t\"sagemaker:DescribeProject\",\n\t\t\t\t\"sagemaker:DescribeSubscribedWorkteam\",\n\t\t\t\t\"sagemaker:DescribeTrainingJob\",\n\t\t\t\t\"sagemaker:DescribeTransformJob\",\n\t\t\t\t\"sagemaker:DescribeTrial\",\n\t\t\t\t\"sagemaker:DescribeTrialComponent\",\n\t\t\t\t\"sagemaker:DescribeUserProfile\",\n\t\t\t\t\"sagemaker:DescribeWorkforce\",\n\t\t\t\t\"sagemaker:DescribeWorkteam\",\n\t\t\t\t\"sagemaker:DisableSagemakerServicecatalogPortfolio\",\n\t\t\t\t\"sagemaker:DisassociateTrialComponent\",\n\t\t\t\t\"sagemaker:EnableSagemakerServicecatalogPortfolio\",\n\t\t\t\t\"sagemaker:GetDeviceFleetReport\",\n\t\t\t\t\"sagemaker:GetDeviceRegistration\",\n\t\t\t\t\"sagemaker:GetLineageGroupPolicy\",\n\t\t\t\t\"sagemaker:GetModelPackageGroupPolicy\",\n\t\t\t\t\"sagemaker:GetRecord\",\n\t\t\t\t\"sagemaker:GetSagemakerServicecatalogPortfolioStatus\",\n\t\t\t\t\"sagemaker:GetSearchSuggestions\",\n\t\t\t\t\"sagemaker:InvokeEndpoint\",\n\t\t\t\t\"sagemaker:InvokeEndpointAsync\",\n\t\t\t\t\"sagemaker:ListActions\",\n\t\t\t\t\"sagemaker:ListAlgorithms\",\n\t\t\t\t\"sagemaker:ListAppImageConfigs\",\n\t\t\t\t\"sagemaker:ListApps\",\n\t\t\t\t\"sagemaker:ListArtifacts\",\n\t\t\t\t\"sagemaker:ListAssociations\",\n\t\t\t\t\"sagemaker:ListAutoMLJobs\",\n\t\t\t\t\"sagemaker:ListCandidatesForAutoMLJob\",\n\t\t\t\t\"sagemaker:ListCodeRepositories\",\n\t\t\t\t\"sagemaker:ListCompilationJobs\",\n\t\t\t\t\"sagemaker:ListContexts\",\n\t\t\t\t\"sagemaker:ListDataQualityJobDefinitions\",\n\t\t\t\t\"sagemaker:ListDeviceFleets\",\n\t\t\t\t\"sagemaker:ListDevices\",\n\t\t\t\t\"sagemaker:ListDomains\",\n\t\t\t\t\"sagemaker:ListEdgePackagingJobs\",\n\t\t\t\t\"sagemaker:ListEndpointConfigs\",\n\t\t\t\t\"sagemaker:ListEndpoints\",\n\t\t\t\t\"sagemaker:ListExperiments\",\n\t\t\t\t\"sagemaker:ListFeatureGroups\",\n\t\t\t\t\"sagemaker:ListFlowDefinitions\",\n\t\t\t\t\"sagemaker:ListHumanLoops\",\n\t\t\t\t\"sagemaker:ListHumanTaskUis\",\n\t\t\t\t\"sagemaker:ListHyperParameterTuningJobs\",\n\t\t\t\t\"sagemaker:ListImageVersions\",\n\t\t\t\t\"sagemaker:ListImages\",\n\t\t\t\t\"sagemaker:ListInferenceRecommendationsJobs\",\n\t\t\t\t\"sagemaker:ListLabelingJobs\",\n\t\t\t\t\"sagemaker:ListLabelingJobsForWorkteam\",\n\t\t\t\t\"sagemaker:ListLineageGroups\",\n\t\t\t\t\"sagemaker:ListModelBiasJobDefinitions\",\n\t\t\t\t\"sagemaker:ListModelExplainabilityJobDefinitions\",\n\t\t\t\t\"sagemaker:ListModelMetadata\",\n\t\t\t\t\"sagemaker:ListModelPackageGroups\",\n\t\t\t\t\"sagemaker:ListModelPackages\",\n\t\t\t\t\"sagemaker:ListModelQualityJobDefinitions\",\n\t\t\t\t\"sagemaker:ListModels\",\n\t\t\t\t\"sagemaker:ListMonitoringExecutions\",\n\t\t\t\t\"sagemaker:ListMonitoringSchedules\",\n\t\t\t\t\"sagemaker:ListNotebookInstanceLifecycleConfigs\",\n\t\t\t\t\"sagemaker:ListNotebookInstances\",\n\t\t\t\t\"sagemaker:ListPipelineExecutionSteps\",\n\t\t\t\t\"sagemaker:ListPipelineExecutions\",\n\t\t\t\t\"sagemaker:ListPipelineParametersForExecution\",\n\t\t\t\t\"sagemaker:ListPipelines\",\n\t\t\t\t\"sagemaker:ListProcessingJobs\",\n\t\t\t\t\"sagemaker:ListProjects\",\n\t\t\t\t\"sagemaker:ListSubscribedWorkteams\",\n\t\t\t\t\"sagemaker:ListTags\",\n\t\t\t\t\"sagemaker:ListTrainingJobs\",\n\t\t\t\t\"sagemaker:ListTrainingJobsForHyperParameterTuningJob\",\n\t\t\t\t\"sagemaker:ListTransformJobs\",\n\t\t\t\t\"sagemaker:ListTrialComponents\",\n\t\t\t\t\"sagemaker:ListTrials\",\n\t\t\t\t\"sagemaker:ListUserProfiles\",\n\t\t\t\t\"sagemaker:ListWorkforces\",\n\t\t\t\t\"sagemaker:ListWorkteams\",\n\t\t\t\t\"sagemaker:PutLineageGroupPolicy\",\n\t\t\t\t\"sagemaker:PutModelPackageGroupPolicy\",\n\t\t\t\t\"sagemaker:PutRecord\",\n\t\t\t\t\"sagemaker:QueryLineage\",\n\t\t\t\t\"sagemaker:RegisterDevices\",\n\t\t\t\t\"sagemaker:RenderUiTemplate\",\n\t\t\t\t\"sagemaker:Search\",\n\t\t\t\t\"sagemaker:SendHeartbeat\",\n\t\t\t\t\"sagemaker:SendPipelineExecutionStepFailure\",\n\t\t\t\t\"sagemaker:SendPipelineExecutionStepSuccess\",\n\t\t\t\t\"sagemaker:StartHumanLoop\",\n\t\t\t\t\"sagemaker:StartMonitoringSchedule\",\n\t\t\t\t\"sagemaker:StartNotebookInstance\",\n\t\t\t\t\"sagemaker:StartPipelineExecution\",\n\t\t\t\t\"sagemaker:StopAutoMLJob\",\n\t\t\t\t\"sagemaker:StopCompilationJob\",\n\t\t\t\t\"sagemaker:StopEdgePackagingJob\",\n\t\t\t\t\"sagemaker:StopHumanLoop\",\n\t\t\t\t\"sagemaker:StopHyperParameterTuningJob\",\n\t\t\t\t\"sagemaker:StopInferenceRecommendationsJob\",\n\t\t\t\t\"sagemaker:StopLabelingJob\",\n\t\t\t\t\"sagemaker:StopMonitoringSchedule\",\n\t\t\t\t\"sagemaker:StopNotebookInstance\",\n\t\t\t\t\"sagemaker:StopPipelineExecution\",\n\t\t\t\t\"sagemaker:StopProcessingJob\",\n\t\t\t\t\"sagemaker:StopTrainingJob\",\n\t\t\t\t\"sagemaker:StopTransformJob\",\n\t\t\t\t\"sagemaker:UpdateAction\",\n\t\t\t\t\"sagemaker:UpdateAppImageConfig\",\n\t\t\t\t\"sagemaker:UpdateArtifact\",\n\t\t\t\t\"sagemaker:UpdateCodeRepository\",\n\t\t\t\t\"sagemaker:UpdateContext\",\n\t\t\t\t\"sagemaker:UpdateDeviceFleet\",\n\t\t\t\t\"sagemaker:UpdateDevices\",\n\t\t\t\t\"sagemaker:UpdateDomain\",\n\t\t\t\t\"sagemaker:UpdateEndpoint\",\n\t\t\t\t\"sagemaker:UpdateEndpointWeightsAndCapacities\",\n\t\t\t\t\"sagemaker:UpdateExperiment\",\n\t\t\t\t\"sagemaker:UpdateImage\",\n\t\t\t\t\"sagemaker:UpdateModelPackage\",\n\t\t\t\t\"sagemaker:UpdateMonitoringSchedule\",\n\t\t\t\t\"sagemaker:UpdateNotebookInstance\",\n\t\t\t\t\"sagemaker:UpdateNotebookInstanceLifecycleConfig\",\n\t\t\t\t\"sagemaker:UpdatePipeline\",\n\t\t\t\t\"sagemaker:UpdatePipelineExecution\",\n\t\t\t\t\"sagemaker:UpdateProject\",\n\t\t\t\t\"sagemaker:UpdateTrainingJob\",\n\t\t\t\t\"sagemaker:UpdateTrial\",\n\t\t\t\t\"sagemaker:UpdateTrialComponent\",\n\t\t\t\t\"sagemaker:UpdateUserProfile\",\n\t\t\t\t\"sagemaker:UpdateWorkforce\",\n\t\t\t\t\"sagemaker:UpdateWorkteam\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:sagemaker:*:*:action/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:algorithm/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:app-image-config/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:artifact/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:automl-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:code-repository/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:compilation-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:context/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:data-quality-job-definition/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:device-fleet/*/device/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:device-fleet/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:edge-packaging-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:endpoint/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:endpoint-config/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:experiment/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:experiment-trial/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:experiment-trial-component/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:feature-group/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:human-loop/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:human-task-ui/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:hyper-parameter-tuning-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:image/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:image-version/*/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:inference-recommendations-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:labeling-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:model/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:model-bias-job-definition/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:model-explainability-job-definition/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:model-package/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:model-package-group/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:model-quality-job-definition/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:monitoring-schedule/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:notebook-instance/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:notebook-instance-lifecycle-config/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:pipeline/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:pipeline/*/execution/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:processing-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:project/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:training-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:transform-job/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:workforce/*\",\n\t\t\t\t\"arn:aws:sagemaker:*:*:workteam/*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaPassRolePermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"iam:PassRole\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:iam::*:role/service-role/AmazonSageMakerServiceCatalogProductsExecutionRole\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaLogPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogDelivery\",\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:DeleteLogDelivery\",\n\t\t\t\t\"logs:DescribeLogGroups\",\n\t\t\t\t\"logs:DescribeLogStreams\",\n\t\t\t\t\"logs:DescribeResourcePolicies\",\n\t\t\t\t\"logs:DescribeDestinations\",\n\t\t\t\t\"logs:DescribeExportTasks\",\n\t\t\t\t\"logs:DescribeMetricFilters\",\n\t\t\t\t\"logs:DescribeQueries\",\n\t\t\t\t\"logs:DescribeQueryDefinitions\",\n\t\t\t\t\"logs:DescribeSubscriptionFilters\",\n\t\t\t\t\"logs:GetLogDelivery\",\n\t\t\t\t\"logs:GetLogEvents\",\n\t\t\t\t\"logs:ListLogDeliveries\",\n\t\t\t\t\"logs:PutLogEvents\",\n\t\t\t\t\"logs:PutResourcePolicy\",\n\t\t\t\t\"logs:UpdateLogDelivery\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/lambda/*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"AmazonSageMakerLambdaCodeBuildPermission\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"codebuild:StartBuild\",\n\t\t\t\t\"codebuild:BatchGetBuilds\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:codebuild:*:*:project/sagemaker-*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"aws:ResourceTag/sagemaker:project-name\": \"*\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonSageMakerPartnerServiceCatalogProductsLambdaServiceRolePolicy",
+    "name": "AmazonSageMakerPartnerServiceCatalogProductsLambdaServiceRolePolicy",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"secretsmanager:GetSecretValue\",\n\t\t\t\"Resource\": \"arn:aws:secretsmanager:*:*:secret:*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"Null\": {\n\t\t\t\t\t\"aws:ResourceTag/sagemaker:partner\": false\n\t\t\t\t},\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/CloudWatchLambdaApplicationSignalsExecutionRolePolicy",
+    "name": "CloudWatchLambdaApplicationSignalsExecutionRolePolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"CloudWatchApplicationSignalsXrayWritePermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"xray:PutTraceSegments\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"CloudWatchApplicationSignalsLogGroupWritePermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:logs:*:*:log-group:/aws/application-signals/data:*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSLambdaServiceRolePolicy",
+    "name": "AWSLambdaServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:TerminateInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ManagedResourceOperator\": \"scaler.lambda.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeInstanceStatus\",\n\t\t\t\t\"ec2:DescribeInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t]\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSLambdaManagedEC2ResourceOperator",
+    "name": "AWSLambdaManagedEC2ResourceOperator",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\",\n\t\t\t\t\"ec2:CreateTags\",\n\t\t\t\t\"ec2:AttachNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:instance/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:volume/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:ManagedResourceOperator\": \"scaler.lambda.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeAvailabilityZones\",\n\t\t\t\t\"ec2:DescribeCapacityReservations\",\n\t\t\t\t\"ec2:DescribeInstances\",\n\t\t\t\t\"ec2:DescribeInstanceStatus\",\n\t\t\t\t\"ec2:DescribeInstanceTypeOfferings\",\n\t\t\t\t\"ec2:DescribeInstanceTypes\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeSubnets\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\",\n\t\t\t\t\"ec2:CreateNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:RunInstances\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:image/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:Owner\": \"amazon\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+    "name": "AWSLambdaBasicDurableExecutionRolePolicy",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\",\n\t\t\t\t\"lambda:CheckpointDurableExecution\",\n\t\t\t\t\"lambda:GetDurableExecutionState\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "lambda"
+    ],
+    "related_resources": [
+      "lambda"
+    ]
+  }
+]

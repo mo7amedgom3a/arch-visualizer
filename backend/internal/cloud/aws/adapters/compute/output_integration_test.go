@@ -16,6 +16,8 @@ import (
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
+	awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda"
+	awslambdaoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda/outputs"
 	awsservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 )
@@ -560,6 +562,108 @@ func (s *realisticAWSComputeService) DescribeScalingPolicies(ctx context.Context
 
 func (s *realisticAWSComputeService) DeleteScalingPolicy(ctx context.Context, policyName, asgName string) error {
 	return nil
+}
+
+// Lambda Function Operations
+
+func (s *realisticAWSComputeService) CreateLambdaFunction(ctx context.Context, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
+	arn := fmt.Sprintf("arn:aws:lambda:us-east-1:123456789012:function:%s", function.FunctionName)
+	invokeARN := fmt.Sprintf("arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/%s/invocations", arn)
+	version := "1"
+	qualifiedARN := arn + ":" + version
+	
+	output := &awslambdaoutputs.FunctionOutput{
+		ARN:          arn,
+		InvokeARN:    invokeARN,
+		QualifiedARN: &qualifiedARN,
+		Version:      version,
+		FunctionName: function.FunctionName,
+		Region:       "us-east-1",
+		RoleARN:      function.RoleARN,
+		MemorySize:   function.MemorySize,
+		Timeout:      function.Timeout,
+		Runtime:      function.Runtime,
+		Handler:      function.Handler,
+		Environment:  function.Environment,
+		Layers:       function.Layers,
+	}
+
+	if function.S3Bucket != nil {
+		output.S3Bucket = function.S3Bucket
+		output.S3Key = function.S3Key
+		output.S3ObjectVersion = function.S3ObjectVersion
+	}
+
+	if function.PackageType != nil {
+		output.PackageType = function.PackageType
+		output.ImageURI = function.ImageURI
+	}
+
+	if function.VPCConfig != nil {
+		output.VPCConfig = &awslambdaoutputs.FunctionVPCConfigOutput{
+			SubnetIDs:        function.VPCConfig.SubnetIDs,
+			SecurityGroupIDs: function.VPCConfig.SecurityGroupIDs,
+		}
+	}
+
+	lastModified := time.Now().Format("2006-01-02T15:04:05.000Z")
+	output.LastModified = &lastModified
+	codeSize := int64(1024)
+	output.CodeSize = &codeSize
+	codeSHA256 := "abc123def456"
+	output.CodeSHA256 = &codeSHA256
+
+	return output, nil
+}
+
+func (s *realisticAWSComputeService) GetLambdaFunction(ctx context.Context, name string) (*awslambdaoutputs.FunctionOutput, error) {
+	arn := fmt.Sprintf("arn:aws:lambda:us-east-1:123456789012:function:%s", name)
+	invokeARN := fmt.Sprintf("arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/%s/invocations", arn)
+	version := "1"
+	qualifiedARN := arn + ":" + version
+	
+	return &awslambdaoutputs.FunctionOutput{
+		ARN:          arn,
+		InvokeARN:    invokeARN,
+		QualifiedARN: &qualifiedARN,
+		Version:      version,
+		FunctionName: name,
+		Region:       "us-east-1",
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Runtime:      stringPtr("python3.9"),
+		Handler:      stringPtr("index.handler"),
+		MemorySize:   int32Ptr(256),
+		Timeout:      int32Ptr(30),
+	}, nil
+}
+
+func (s *realisticAWSComputeService) UpdateLambdaFunction(ctx context.Context, name string, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
+	return s.CreateLambdaFunction(ctx, function)
+}
+
+func (s *realisticAWSComputeService) DeleteLambdaFunction(ctx context.Context, name string) error {
+	return nil
+}
+
+func (s *realisticAWSComputeService) ListLambdaFunctions(ctx context.Context, filters map[string][]string) ([]*awslambdaoutputs.FunctionOutput, error) {
+	return []*awslambdaoutputs.FunctionOutput{
+		{
+			ARN:          "arn:aws:lambda:us-east-1:123456789012:function:test-function-1",
+			InvokeARN:    "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:test-function-1/invocations",
+			FunctionName: "test-function-1",
+			Region:       "us-east-1",
+			RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+			Version:      "1",
+		},
+		{
+			ARN:          "arn:aws:lambda:us-east-1:123456789012:function:test-function-2",
+			InvokeARN:    "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:123456789012:function:test-function-2/invocations",
+			FunctionName: "test-function-2",
+			Region:       "us-east-1",
+			RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+			Version:      "1",
+		},
+	}, nil
 }
 
 // Helper functions are defined in adapter_test.go
@@ -1351,4 +1455,126 @@ func TestAWSComputeAdapter_OutputIntegration_DetachTargetFromGroup(t *testing.T)
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
+}
+
+// Lambda Function Integration Tests
+
+func TestAWSComputeAdapter_OutputIntegration_CreateLambdaFunction_S3(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	domainFunction := &domaincompute.LambdaFunction{
+		FunctionName: "test-function",
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Region:       "us-east-1",
+		S3Bucket:     stringPtr("my-bucket"),
+		S3Key:        stringPtr("code.zip"),
+		Runtime:      stringPtr("python3.9"),
+		Handler:      stringPtr("index.handler"),
+		MemorySize:   intPtr(256),
+		Timeout:      intPtr(30),
+		Environment: map[string]string{
+			"ENV_VAR": "value",
+		},
+	}
+
+	ctx := context.Background()
+	createdFunction, err := adapter.CreateLambdaFunction(ctx, domainFunction)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdFunction == nil {
+		t.Fatal("Expected created lambda function, got nil")
+	}
+
+	if createdFunction.ARN == nil {
+		t.Error("Expected ARN to be populated")
+	}
+
+	if createdFunction.InvokeARN == nil {
+		t.Error("Expected InvokeARN to be populated")
+	}
+
+	if createdFunction.Version == nil {
+		t.Error("Expected Version to be populated")
+	}
+
+	if createdFunction.Region != domainFunction.Region {
+		t.Errorf("Expected region %s, got %s", domainFunction.Region, createdFunction.Region)
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_CreateLambdaFunction_ContainerImage(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	domainFunction := &domaincompute.LambdaFunction{
+		FunctionName: "test-function",
+		RoleARN:      "arn:aws:iam::123456789012:role/test-role",
+		Region:       "us-east-1",
+		PackageType:  stringPtr("Image"),
+		ImageURI:     stringPtr("123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app:latest"),
+		MemorySize:   intPtr(512),
+	}
+
+	ctx := context.Background()
+	createdFunction, err := adapter.CreateLambdaFunction(ctx, domainFunction)
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if createdFunction == nil {
+		t.Fatal("Expected created lambda function, got nil")
+	}
+
+	if createdFunction.PackageType == nil || *createdFunction.PackageType != "Image" {
+		t.Error("Expected package type to be 'Image'")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_GetLambdaFunction(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	function, err := adapter.GetLambdaFunction(ctx, "test-function")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if function == nil {
+		t.Fatal("Expected lambda function, got nil")
+	}
+
+	if function.FunctionName != "test-function" {
+		t.Errorf("Expected function name 'test-function', got '%s'", function.FunctionName)
+	}
+
+	if function.ARN == nil {
+		t.Error("Expected ARN to be populated")
+	}
+}
+
+func TestAWSComputeAdapter_OutputIntegration_ListLambdaFunctions(t *testing.T) {
+	realisticService := &realisticAWSComputeService{}
+	adapter := NewAWSComputeAdapter(realisticService)
+
+	ctx := context.Background()
+	functions, err := adapter.ListLambdaFunctions(ctx, map[string]string{})
+
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	if len(functions) != 2 {
+		t.Errorf("Expected 2 functions, got %d", len(functions))
+	}
+}
+
+func int32Ptr(i int32) *int32 {
+	return &i
 }

@@ -65,6 +65,13 @@ type ComputeService interface {
 	SetDesiredCapacity(ctx context.Context, asgName string, capacity int) error
 	AttachInstances(ctx context.Context, asgName string, instanceIDs []string) error
 	DetachInstances(ctx context.Context, asgName string, instanceIDs []string) error
+
+	// Lambda Function operations
+	CreateLambdaFunction(ctx context.Context, function *LambdaFunction) (*LambdaFunction, error)
+	GetLambdaFunction(ctx context.Context, name string) (*LambdaFunction, error)
+	UpdateLambdaFunction(ctx context.Context, function *LambdaFunction) (*LambdaFunction, error)
+	DeleteLambdaFunction(ctx context.Context, name string) error
+	ListLambdaFunctions(ctx context.Context, filters map[string]string) ([]*LambdaFunction, error)
 }
 
 // ComputeRepository defines the interface for compute resource persistence

@@ -48,6 +48,7 @@ func FetchAndSavePolicies() {
 	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/vpc/policies.json")
 	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/ebs/policies.json")
 	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/s3/polices.json")
+	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/lambda/polices.json")
 	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/iam/policies.json")
 	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/general/policies.json")
 	fmt.Println()
@@ -96,5 +97,51 @@ func FetchAndSaveS3Policies() {
 	fmt.Println()
 	fmt.Println("File created:")
 	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/s3/polices.json")
+	fmt.Println()
+}
+
+// FetchAndSaveLambdaPolicies fetches Lambda-related AWS managed policies from SDK and saves them to lambda/polices.json
+// This is a utility function that can be called to refresh the Lambda policy data
+func FetchAndSaveLambdaPolicies() {
+	ctx := context.Background()
+
+	// Initialize AWS client
+	client, err := awssdk.NewAWSClient(ctx)
+	if err != nil {
+		fmt.Printf("Error creating AWS client: %v\n", err)
+		fmt.Println("Note: This function requires AWS credentials to fetch policies from SDK")
+		fmt.Println("Make sure you have set:")
+		fmt.Println("  - AWS_ACCESS_KEY_ID")
+		fmt.Println("  - AWS_SECRET_ACCESS_KEY")
+		fmt.Println("  - AWS_REGION (optional, defaults to us-east-1)")
+		return
+	}
+
+	fmt.Println("============================================")
+	fmt.Println("FETCHING AND SAVING LAMBDA POLICIES")
+	fmt.Println("============================================")
+	fmt.Println()
+	fmt.Println("This will:")
+	fmt.Println("  1. Fetch all AWS managed policies from AWS SDK")
+	fmt.Println("  2. Filter Lambda-related policies (AWSLambda, Lambda, AmazonLambda)")
+	fmt.Println("  3. Fetch policy documents for each Lambda policy")
+	fmt.Println("  4. Save them to lambda/polices.json")
+	fmt.Println()
+	fmt.Println("Note: This may take a while as it fetches policy documents...")
+	fmt.Println()
+
+	// Fetch and save Lambda policies
+	if err := awssdk.FetchAndSaveLambdaPolicies(ctx, client); err != nil {
+		fmt.Printf("Error fetching and saving Lambda policies: %v\n", err)
+		return
+	}
+
+	fmt.Println()
+	fmt.Println("============================================")
+	fmt.Println("SUCCESS: Lambda policies saved")
+	fmt.Println("============================================")
+	fmt.Println()
+	fmt.Println("File created:")
+	fmt.Println("  - backend/internal/cloud/aws/models/iam/data/lambda/polices.json")
 	fmt.Println()
 }

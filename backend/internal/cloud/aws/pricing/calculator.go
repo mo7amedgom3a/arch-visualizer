@@ -3,6 +3,7 @@ package pricing
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
@@ -117,11 +118,11 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 				instanceType = it
 			}
 		}
-		
+
 		// Get pricing for the specific instance type
 		instancePricing := compute.GetEC2InstancePricing(instanceType, res.Region)
 		hourlyRate := instancePricing.Components[0].Rate
-		
+
 		cost := compute.CalculateEC2InstanceCost(duration, instanceType, res.Region)
 		totalCost = cost
 		breakdown = []domainpricing.CostComponent{
@@ -149,22 +150,22 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 				volumeType = vt
 			}
 		}
-		
+
 		if sizeGB <= 0 {
 			return nil, fmt.Errorf("ebs_volume requires size_gb in metadata")
 		}
-		
+
 		// Get pricing for the specific volume type
 		volumePricing := storage.GetEBSVolumePricing(volumeType, res.Region)
 		ratePerGBMonth := volumePricing.Components[0].Rate
-		
+
 		cost := storage.CalculateEBSVolumeCost(duration, sizeGB, volumeType, res.Region)
 		totalCost = cost
-		
+
 		// Calculate months for breakdown
 		hoursPerMonth := 720.0
 		months := duration.Hours() / hoursPerMonth
-		
+
 		breakdown = []domainpricing.CostComponent{
 			{
 				ComponentName: "EBS Volume Storage",
@@ -184,11 +185,11 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 				lbType = lt
 			}
 		}
-		
+
 		// Get pricing for the specific LB type
 		lbPricing := compute.GetLoadBalancerPricing(lbType, res.Region)
 		hourlyRate := lbPricing.Components[0].Rate
-		
+
 		cost := compute.CalculateLoadBalancerCost(duration, lbType, res.Region)
 		totalCost = cost
 		breakdown = []domainpricing.CostComponent{
@@ -222,14 +223,14 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 				maxSize = int(ms)
 			}
 		}
-		
+
 		// Get pricing for the ASG
 		asgPricing := compute.GetAutoScalingGroupPricing(instanceType, minSize, maxSize, res.Region)
 		hourlyRate := asgPricing.Components[0].Rate
-		
+
 		cost := compute.CalculateAutoScalingGroupCost(duration, instanceType, minSize, maxSize, res.Region)
 		totalCost = cost
-		
+
 		breakdown = []domainpricing.CostComponent{
 			{
 				ComponentName: "Auto Scaling Group Hourly",
@@ -277,7 +278,7 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 
 		// Get pricing for S3 bucket
 		s3Pricing := storage.GetS3BucketPricing(storageClass, res.Region)
-		
+
 		// Calculate total cost
 		cost := storage.CalculateS3BucketCost(
 			duration,
@@ -351,6 +352,115 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 				dataTransferCost := dataTransferRate * chargeableGB
 				breakdown = append(breakdown, domainpricing.CostComponent{
 					ComponentName: "S3 Data Transfer Out",
+					Model:         domainpricing.PerGB,
+					Quantity:      chargeableGB,
+					UnitRate:      dataTransferRate,
+					Subtotal:      dataTransferCost,
+					Currency:      domainpricing.USD,
+				})
+			}
+		}
+
+	case "lambda_function":
+		// Extract Lambda function parameters from metadata
+		memorySizeMB := 128.0      // Default
+		averageDurationMs := 100.0 // Default 100ms
+		requestCount := 0.0
+		dataTransferGB := 0.0
+
+		if res.Metadata != nil {
+			if m, ok := res.Metadata["memory_size_mb"].(float64); ok && m > 0 {
+				memorySizeMB = m
+			} else if m, ok := res.Metadata["memory_size_mb"].(int); ok && m > 0 {
+				memorySizeMB = float64(m)
+			}
+			if d, ok := res.Metadata["average_duration_ms"].(float64); ok && d > 0 {
+				averageDurationMs = d
+			} else if d, ok := res.Metadata["average_duration_ms"].(int); ok && d > 0 {
+				averageDurationMs = float64(d)
+			}
+			if rc, ok := res.Metadata["request_count"].(float64); ok {
+				requestCount = rc
+			} else if rc, ok := res.Metadata["request_count"].(int); ok {
+				requestCount = float64(rc)
+			}
+			if dt, ok := res.Metadata["data_transfer_gb"].(float64); ok {
+				dataTransferGB = dt
+			} else if dt, ok := res.Metadata["data_transfer_gb"].(int); ok {
+				dataTransferGB = float64(dt)
+			}
+		}
+
+		// Get pricing for Lambda function
+		lambdaPricing := compute.GetLambdaFunctionPricing(memorySizeMB, res.Region)
+
+		// Calculate total cost
+		cost := compute.CalculateLambdaFunctionCost(
+			duration,
+			memorySizeMB,
+			averageDurationMs,
+			requestCount,
+			dataTransferGB,
+			res.Region,
+		)
+		totalCost = cost
+
+		// Build breakdown with multiple components
+		hoursPerMonth := 720.0
+		months := duration.Hours() / hoursPerMonth
+
+		breakdown = []domainpricing.CostComponent{}
+
+		// Compute component (GB-seconds)
+		if requestCount > 0 {
+			memorySizeGB := memorySizeMB / 1024.0
+			durationSeconds := averageDurationMs / 1000.0
+			totalGBSeconds := memorySizeGB * durationSeconds * requestCount
+			computeRate := lambdaPricing.Components[0].Rate
+			computeCost := computeRate * totalGBSeconds
+			breakdown = append(breakdown, domainpricing.CostComponent{
+				ComponentName: "Lambda Compute",
+				Model:         domainpricing.PerGB,
+				Quantity:      totalGBSeconds,
+				UnitRate:      computeRate,
+				Subtotal:      computeCost,
+				Currency:      domainpricing.USD,
+			})
+		}
+
+		// Request component
+		if requestCount > 0 {
+			requestRate := lambdaPricing.Components[1].Rate
+			// Free tier: 1M requests per month
+			freeTierPerMonth := 1000000.0
+			freeTierTotal := freeTierPerMonth * months
+			chargeableRequests := math.Max(0, requestCount-freeTierTotal)
+			if chargeableRequests > 0 {
+				requestCost := (requestRate / 1000000.0) * chargeableRequests
+				breakdown = append(breakdown, domainpricing.CostComponent{
+					ComponentName: "Lambda Requests",
+					Model:         domainpricing.PerRequest,
+					Quantity:      chargeableRequests,
+					UnitRate:      requestRate / 1000000.0,
+					Subtotal:      requestCost,
+					Currency:      domainpricing.USD,
+				})
+			}
+		}
+
+		// Data transfer component
+		if dataTransferGB > 0 {
+			dataTransferRate := lambdaPricing.Components[2].Rate
+			// First 1GB per month is free
+			freeTierPerMonth := 1.0
+			chargeableGB := 0.0
+			if dataTransferGB > (freeTierPerMonth * months) {
+				chargeableGB = dataTransferGB - (freeTierPerMonth * months)
+			}
+			if chargeableGB > 0 {
+				dataTransferCost := dataTransferRate * chargeableGB
+				breakdown = append(breakdown, domainpricing.CostComponent{
+					ComponentName: "Lambda Data Transfer Out",
 					Model:         domainpricing.PerGB,
 					Quantity:      chargeableGB,
 					UnitRate:      dataTransferRate,

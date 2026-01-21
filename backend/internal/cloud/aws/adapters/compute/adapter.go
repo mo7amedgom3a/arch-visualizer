@@ -624,3 +624,83 @@ func (a *AWSComputeAdapter) DetachInstances(ctx context.Context, asgName string,
 	}
 	return nil
 }
+
+// Lambda Function Operations
+
+func (a *AWSComputeAdapter) CreateLambdaFunction(ctx context.Context, function *domaincompute.LambdaFunction) (*domaincompute.LambdaFunction, error) {
+	if err := function.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsFunction := awsmapper.FromDomainLambdaFunction(function)
+	if err := awsFunction.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsFunctionOutput, err := a.awsService.CreateLambdaFunction(ctx, awsFunction)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainFunction := awsmapper.ToDomainLambdaFunctionFromOutput(awsFunctionOutput)
+	// Preserve region from input
+	domainFunction.Region = function.Region
+	return domainFunction, nil
+}
+
+func (a *AWSComputeAdapter) GetLambdaFunction(ctx context.Context, name string) (*domaincompute.LambdaFunction, error) {
+	awsFunctionOutput, err := a.awsService.GetLambdaFunction(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLambdaFunctionFromOutput(awsFunctionOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateLambdaFunction(ctx context.Context, function *domaincompute.LambdaFunction) (*domaincompute.LambdaFunction, error) {
+	if err := function.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsFunction := awsmapper.FromDomainLambdaFunction(function)
+	if err := awsFunction.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsFunctionOutput, err := a.awsService.UpdateLambdaFunction(ctx, function.FunctionName, awsFunction)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainFunction := awsmapper.ToDomainLambdaFunctionFromOutput(awsFunctionOutput)
+	// Preserve region from input
+	domainFunction.Region = function.Region
+	return domainFunction, nil
+}
+
+func (a *AWSComputeAdapter) DeleteLambdaFunction(ctx context.Context, name string) error {
+	if err := a.awsService.DeleteLambdaFunction(ctx, name); err != nil {
+		return fmt.Errorf("aws service error: %w", err)
+	}
+	return nil
+}
+
+func (a *AWSComputeAdapter) ListLambdaFunctions(ctx context.Context, filters map[string]string) ([]*domaincompute.LambdaFunction, error) {
+	// Convert domain filters to AWS filters format
+	awsFilters := make(map[string][]string)
+	for k, v := range filters {
+		awsFilters[k] = []string{v}
+	}
+
+	awsFunctionOutputs, err := a.awsService.ListLambdaFunctions(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainFunctions := make([]*domaincompute.LambdaFunction, len(awsFunctionOutputs))
+	for i, output := range awsFunctionOutputs {
+		domainFunctions[i] = awsmapper.ToDomainLambdaFunctionFromOutput(output)
+	}
+
+	return domainFunctions, nil
+}

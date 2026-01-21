@@ -3,11 +3,13 @@ package compute
 import (
 	"context"
 
-	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
-	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
-	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
+	awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda"
+	awslambdaoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda/outputs"
+	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
+	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
+	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
 )
 
 // ComputeService implements AWSComputeService using AWS SDK
@@ -155,4 +157,26 @@ func (s *ComputeService) DescribeScalingPolicies(ctx context.Context, asgName st
 
 func (s *ComputeService) DeleteScalingPolicy(ctx context.Context, policyName, asgName string) error {
 	return awssdk.DeleteScalingPolicy(ctx, s.client, policyName, asgName)
+}
+
+// Lambda Function operations
+
+func (s *ComputeService) CreateLambdaFunction(ctx context.Context, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
+	return awssdk.CreateLambdaFunction(ctx, s.client, function)
+}
+
+func (s *ComputeService) GetLambdaFunction(ctx context.Context, name string) (*awslambdaoutputs.FunctionOutput, error) {
+	return awssdk.GetLambdaFunction(ctx, s.client, name)
+}
+
+func (s *ComputeService) UpdateLambdaFunction(ctx context.Context, name string, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
+	return awssdk.UpdateLambdaFunction(ctx, s.client, name, function)
+}
+
+func (s *ComputeService) DeleteLambdaFunction(ctx context.Context, name string) error {
+	return awssdk.DeleteLambdaFunction(ctx, s.client, name)
+}
+
+func (s *ComputeService) ListLambdaFunctions(ctx context.Context, filters map[string][]string) ([]*awslambdaoutputs.FunctionOutput, error) {
+	return awssdk.ListLambdaFunctions(ctx, s.client, filters)
 }

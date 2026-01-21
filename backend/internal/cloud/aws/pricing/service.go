@@ -61,6 +61,10 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 		minSize := 1
 		maxSize := 3
 		return compute.GetAutoScalingGroupPricing(instanceType, minSize, maxSize, region), nil
+	case "lambda_function":
+		// Default to 128 MB memory if not provided
+		memorySizeMB := 128.0
+		return compute.GetLambdaFunctionPricing(memorySizeMB, region), nil
 	default:
 		return nil, fmt.Errorf("pricing not available for resource type: %s", resourceType)
 	}
@@ -92,5 +96,6 @@ func (s *AWSPricingService) ListSupportedResources(ctx context.Context, provider
 		"s3_bucket",
 		"load_balancer",
 		"auto_scaling_group",
+		"lambda_function",
 	}, nil
 }

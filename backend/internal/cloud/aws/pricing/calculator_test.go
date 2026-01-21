@@ -239,6 +239,80 @@ func TestAWSPricingCalculator_CalculateResourceCost(t *testing.T) {
 			expectedCost: 2.3, // Only storage cost
 		},
 		{
+			name: "lambda-function-basic-compute",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "lambda_function",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"memory_size_mb":      128.0,
+					"average_duration_ms": 100.0,
+					"request_count":       1000000.0, // 1M requests
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 0.0000166667 * (128.0 / 1024.0) * (100.0 / 1000.0) * 1000000.0, // GB-seconds * rate
+		},
+		{
+			name: "lambda-function-with-requests-over-free-tier",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "lambda_function",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"memory_size_mb":      128.0,
+					"average_duration_ms": 100.0,
+					"request_count":       2000000.0, // 2M requests, first 1M free
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 0.0000166667*(128.0/1024.0)*(100.0/1000.0)*2000000.0 + (0.20/1000000.0)*1000000.0,
+		},
+		{
+			name: "lambda-function-with-data-transfer",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "lambda_function",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"memory_size_mb":      128.0,
+					"average_duration_ms": 100.0,
+					"request_count":       1000000.0,
+					"data_transfer_gb":    10.0, // 10 GB, first 1GB free
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 0.0000166667*(128.0/1024.0)*(100.0/1000.0)*1000000.0 + 0.09*9.0,
+		},
+		{
+			name: "lambda-function-full-cost-calculation",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "lambda_function",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"memory_size_mb":      512.0,
+					"average_duration_ms": 300.0,
+					"request_count":       5000000.0, // 5M requests, first 1M free
+					"data_transfer_gb":    20.0,      // 20 GB, first 1GB free
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 0.0000166667*(512.0/1024.0)*(300.0/1000.0)*5000000.0 + (0.20/1000000.0)*4000000.0 + 0.09*19.0,
+		},
+		{
 			name: "unsupported-resource-type",
 			resource: &resource.Resource{
 				Type: resource.ResourceType{
@@ -412,6 +486,14 @@ func TestAWSPricingCalculator_GetResourcePricing(t *testing.T) {
 			region:       "us-east-1",
 			expectError:  false,
 			expectedType: "s3_bucket",
+		},
+		{
+			name:         "get-lambda-function-pricing",
+			resourceType: "lambda_function",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "lambda_function",
 		},
 		{
 			name:         "unsupported-resource-type",

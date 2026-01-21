@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
 )
 
 // AWSClient wraps AWS SDK clients for different services
@@ -21,6 +22,7 @@ type AWSClient struct {
 	IAM         *iam.Client
 	ELBv2       *elasticloadbalancingv2.Client
 	AutoScaling *autoscaling.Client
+	Lambda      *lambda.Client
 }
 
 // NewAWSClient creates a new AWS client with configuration from environment variables
@@ -53,6 +55,7 @@ func NewAWSClient(ctx context.Context) (*AWSClient, error) {
 		IAM:         iam.NewFromConfig(cfg),
 		ELBv2:       elasticloadbalancingv2.NewFromConfig(cfg),
 		AutoScaling: autoscaling.NewFromConfig(cfg),
+		Lambda:      lambda.NewFromConfig(cfg),
 	}, nil
 }
 
@@ -91,6 +94,7 @@ func NewAWSClientWithConfig(ctx context.Context, region string, accessKeyID, sec
 		IAM:         iam.NewFromConfig(cfg),
 		ELBv2:       elasticloadbalancingv2.NewFromConfig(cfg),
 		AutoScaling: autoscaling.NewFromConfig(cfg),
+		Lambda:      lambda.NewFromConfig(cfg),
 	}, nil
 }
 
