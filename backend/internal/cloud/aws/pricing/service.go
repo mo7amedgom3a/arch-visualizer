@@ -47,6 +47,10 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 		// Default to gp3 if volume type not provided
 		volumeType := "gp3"
 		return storage.GetEBSVolumePricing(volumeType, region), nil
+	case "s3_bucket":
+		// Default to standard storage class if not provided
+		storageClass := "standard"
+		return storage.GetS3BucketPricing(storageClass, region), nil
 	case "load_balancer":
 		// Default to application if LB type not provided
 		lbType := "application"
@@ -85,6 +89,7 @@ func (s *AWSPricingService) ListSupportedResources(ctx context.Context, provider
 		"data_transfer",
 		"ec2_instance",
 		"ebs_volume",
+		"s3_bucket",
 		"load_balancer",
 		"auto_scaling_group",
 	}, nil

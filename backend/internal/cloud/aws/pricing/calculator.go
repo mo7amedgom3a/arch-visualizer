@@ -241,6 +241,125 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 			},
 		}
 
+	case "s3_bucket":
+		// Extract S3 bucket parameters from metadata
+		sizeGB := 0.0
+		storageClass := "standard" // Default
+		putRequests := 0.0
+		getRequests := 0.0
+		dataTransferGB := 0.0
+
+		if res.Metadata != nil {
+			if s, ok := res.Metadata["size_gb"].(float64); ok {
+				sizeGB = s
+			} else if s, ok := res.Metadata["size_gb"].(int); ok {
+				sizeGB = float64(s)
+			}
+			if sc, ok := res.Metadata["storage_class"].(string); ok && sc != "" {
+				storageClass = sc
+			}
+			if pr, ok := res.Metadata["put_requests"].(float64); ok {
+				putRequests = pr
+			} else if pr, ok := res.Metadata["put_requests"].(int); ok {
+				putRequests = float64(pr)
+			}
+			if gr, ok := res.Metadata["get_requests"].(float64); ok {
+				getRequests = gr
+			} else if gr, ok := res.Metadata["get_requests"].(int); ok {
+				getRequests = float64(gr)
+			}
+			if dt, ok := res.Metadata["data_transfer_gb"].(float64); ok {
+				dataTransferGB = dt
+			} else if dt, ok := res.Metadata["data_transfer_gb"].(int); ok {
+				dataTransferGB = float64(dt)
+			}
+		}
+
+		// Get pricing for S3 bucket
+		s3Pricing := storage.GetS3BucketPricing(storageClass, res.Region)
+		
+		// Calculate total cost
+		cost := storage.CalculateS3BucketCost(
+			duration,
+			sizeGB,
+			putRequests,
+			getRequests,
+			dataTransferGB,
+			storageClass,
+			res.Region,
+		)
+		totalCost = cost
+
+		// Build breakdown with multiple components
+		hoursPerMonth := 720.0
+		months := duration.Hours() / hoursPerMonth
+
+		breakdown = []domainpricing.CostComponent{}
+
+		// Storage component
+		if sizeGB > 0 {
+			storageRate := s3Pricing.Components[0].Rate
+			storageCost := storageRate * sizeGB * months
+			breakdown = append(breakdown, domainpricing.CostComponent{
+				ComponentName: "S3 Storage",
+				Model:         domainpricing.PerGB,
+				Quantity:      sizeGB * months,
+				UnitRate:      storageRate,
+				Subtotal:      storageCost,
+				Currency:      domainpricing.USD,
+			})
+		}
+
+		// PUT requests component
+		if putRequests > 0 {
+			putRate := s3Pricing.Components[1].Rate
+			putCost := (putRate / 1000.0) * putRequests
+			breakdown = append(breakdown, domainpricing.CostComponent{
+				ComponentName: "S3 PUT Requests",
+				Model:         domainpricing.PerRequest,
+				Quantity:      putRequests,
+				UnitRate:      putRate / 1000.0,
+				Subtotal:      putCost,
+				Currency:      domainpricing.USD,
+			})
+		}
+
+		// GET requests component
+		if getRequests > 0 {
+			getRate := s3Pricing.Components[2].Rate
+			getCost := (getRate / 1000.0) * getRequests
+			breakdown = append(breakdown, domainpricing.CostComponent{
+				ComponentName: "S3 GET Requests",
+				Model:         domainpricing.PerRequest,
+				Quantity:      getRequests,
+				UnitRate:      getRate / 1000.0,
+				Subtotal:      getCost,
+				Currency:      domainpricing.USD,
+			})
+		}
+
+		// Data transfer component
+		if dataTransferGB > 0 {
+			dataTransferRate := s3Pricing.Components[3].Rate
+			// First 1GB per month is free
+			freeTierPerMonth := 1.0
+			chargeableGB := 0.0
+			if dataTransferGB > (freeTierPerMonth * months) {
+				chargeableGB = dataTransferGB - (freeTierPerMonth * months)
+			}
+			if chargeableGB > 0 {
+				dataTransferCost := dataTransferRate * chargeableGB
+				breakdown = append(breakdown, domainpricing.CostComponent{
+					ComponentName: "S3 Data Transfer Out",
+					Model:         domainpricing.PerGB,
+					Quantity:      chargeableGB,
+					UnitRate:      dataTransferRate,
+					Subtotal:      dataTransferCost,
+					Currency:      domainpricing.USD,
+				})
+			}
+		}
+
 	default:
 		// For other resource types, use generic calculation
 		// This can be extended for other resource types

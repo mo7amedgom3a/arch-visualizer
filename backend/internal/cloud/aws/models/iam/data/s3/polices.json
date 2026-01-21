@@ -1,0 +1,223 @@
+[
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+    "name": "AmazonS3FullAccess",
+    "path": "/",
+    "policy_document": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\"s3:*\", \"s3-object-lambda:*\"],\n      \"Resource\": \"*\"\n    }\n  ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+    "name": "AmazonS3ReadOnlyAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:Get*\",\n\t\t\t\t\"s3:List*\",\n\t\t\t\t\"s3:Describe*\",\n\t\t\t\t\"s3-object-lambda:Get*\",\n\t\t\t\t\"s3-object-lambda:List*\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonDMSRedshiftS3Role",
+    "name": "AmazonDMSRedshiftS3Role",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:CreateBucket\",\n                \"s3:ListBucket\",\n                \"s3:DeleteBucket\",\n                \"s3:GetBucketLocation\",\n                \"s3:GetObject\",\n                \"s3:PutObject\",\n                \"s3:DeleteObject\",\n                \"s3:GetObjectVersion\",\n                \"s3:GetBucketPolicy\",\n                \"s3:PutBucketPolicy\",\n                \"s3:GetBucketAcl\",\n                \"s3:PutBucketVersioning\",\n                \"s3:GetBucketVersioning\",\n                \"s3:PutLifecycleConfiguration\",\n                \"s3:GetLifecycleConfiguration\",\n                \"s3:DeleteBucketPolicy\"  \n            ],\n            \"Resource\": \"arn:aws:s3:::dms-*\"\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/QuickSightAccessForS3StorageManagementAnalyticsReadOnly",
+    "name": "QuickSightAccessForS3StorageManagementAnalyticsReadOnly",
+    "path": "/service-role/",
+    "policy_document": "{\n    \"Version\": \"2012-10-17\",\n    \"Statement\": [\n        {\n            \"Effect\": \"Allow\",\n            \"Action\": [\n                \"s3:GetObject\"\n            ],\n            \"Resource\": [\n                \"arn:aws:s3:::s3-analytics-export-shared-*\"\n            ]\n        },\n        {\n            \"Action\": [\n                \"s3:GetAnalyticsConfiguration\",\n                \"s3:ListAllMyBuckets\",\n                \"s3:GetBucketLocation\"  \n            ],\n            \"Effect\": \"Allow\",\n            \"Resource\": \"*\"\n        }\n    ]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonS3OutpostsFullAccess",
+    "name": "AmazonS3OutpostsFullAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"s3-outposts:*\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"datasync:ListTasks\",\n\t\t\t\t\"datasync:ListLocations\",\n\t\t\t\t\"datasync:DescribeTask\",\n\t\t\t\t\"datasync:DescribeLocation*\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"outposts:ListOutposts\",\n\t\t\t\t\"outposts:GetOutpost\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonS3OutpostsReadOnlyAccess",
+    "name": "AmazonS3OutpostsReadOnlyAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3-outposts:Get*\",\n\t\t\t\t\"s3-outposts:List*\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"datasync:ListTasks\",\n\t\t\t\t\"datasync:ListLocations\",\n\t\t\t\t\"datasync:DescribeTask\",\n\t\t\t\t\"datasync:DescribeLocation*\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"outposts:ListOutposts\",\n\t\t\t\t\"outposts:GetOutpost\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/S3StorageLensServiceRolePolicy",
+    "name": "S3StorageLensServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"AwsOrgsAccess\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"organizations:DescribeOrganization\",\n\t\t\t\t\"organizations:ListAccounts\",\n\t\t\t\t\"organizations:ListAWSServiceAccessForOrganization\",\n\t\t\t\t\"organizations:ListDelegatedAdministrators\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t]\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/IVSRecordToS3",
+    "name": "IVSRecordToS3",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:PutObject\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::AWSIVS_*/ivs/*\"\n\t\t\t]\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonS3ObjectLambdaExecutionRolePolicy",
+    "name": "AmazonS3ObjectLambdaExecutionRolePolicy",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"logs:CreateLogGroup\",\n\t\t\t\t\"logs:CreateLogStream\",\n\t\t\t\t\"logs:PutLogEvents\",\n\t\t\t\t\"s3-object-lambda:WriteGetObjectResponse\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSBackupServiceRolePolicyForS3Restore",
+    "name": "AWSBackupServiceRolePolicyForS3Restore",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:CreateBucket\",\n\t\t\t\t\"s3:ListBucketVersions\",\n\t\t\t\t\"s3:ListBucket\",\n\t\t\t\t\"s3:GetBucketVersioning\",\n\t\t\t\t\"s3:GetBucketLocation\",\n\t\t\t\t\"s3:PutBucketVersioning\",\n\t\t\t\t\"s3:PutBucketOwnershipControls\",\n\t\t\t\t\"s3:GetBucketOwnershipControls\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersion\",\n\t\t\t\t\"s3:DeleteObject\",\n\t\t\t\t\"s3:PutObjectVersionAcl\",\n\t\t\t\t\"s3:GetObjectVersionAcl\",\n\t\t\t\t\"s3:GetObjectTagging\",\n\t\t\t\t\"s3:PutObjectTagging\",\n\t\t\t\t\"s3:GetObjectAcl\",\n\t\t\t\t\"s3:PutObjectAcl\",\n\t\t\t\t\"s3:ListMultipartUploadParts\",\n\t\t\t\t\"s3:PutObject\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:s3:::*/*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:DescribeKey\",\n\t\t\t\t\"kms:GenerateDataKey\",\n\t\t\t\t\"kms:Decrypt\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"kms:ViaService\": \"s3.*.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSBackupServiceRolePolicyForS3Backup",
+    "name": "AWSBackupServiceRolePolicyForS3Backup",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"CloudWatchGetMetricDataPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"cloudwatch:GetMetricData\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EventBridgePermissionsForAwsBackupManagedRule\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"events:DeleteRule\",\n\t\t\t\t\"events:PutTargets\",\n\t\t\t\t\"events:DescribeRule\",\n\t\t\t\t\"events:EnableRule\",\n\t\t\t\t\"events:PutRule\",\n\t\t\t\t\"events:RemoveTargets\",\n\t\t\t\t\"events:ListTargetsByRule\",\n\t\t\t\t\"events:DisableRule\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:events:*:*:rule/AwsBackupManagedRule*\"\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"EventBridgeListRulesPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"events:ListRules\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"KmsPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:Decrypt\",\n\t\t\t\t\"kms:DescribeKey\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"kms:ViaService\": \"s3.*.amazonaws.com\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"S3BucketPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetBucketTagging\",\n\t\t\t\t\"s3:GetInventoryConfiguration\",\n\t\t\t\t\"s3:ListBucketVersions\",\n\t\t\t\t\"s3:ListBucket\",\n\t\t\t\t\"s3:GetBucketVersioning\",\n\t\t\t\t\"s3:GetBucketLocation\",\n\t\t\t\t\"s3:GetBucketAcl\",\n\t\t\t\t\"s3:PutInventoryConfiguration\",\n\t\t\t\t\"s3:GetBucketNotification\",\n\t\t\t\t\"s3:PutBucketNotification\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:s3:::*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"S3ObjectPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:GetObjectAcl\",\n\t\t\t\t\"s3:GetObject\",\n\t\t\t\t\"s3:GetObjectVersionTagging\",\n\t\t\t\t\"s3:GetObjectVersionAcl\",\n\t\t\t\t\"s3:GetObjectTagging\",\n\t\t\t\t\"s3:GetObjectVersion\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:s3:::*/*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"S3ListBucketPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": \"s3:ListAllMyBuckets\",\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"RecoveryPointTaggingPermissions\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"backup:TagResource\"\n\t\t\t],\n\t\t\t\"Resource\": \"arn:aws:backup:*:*:recovery-point:*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:PrincipalAccount\": \"${aws:ResourceAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/aws-service-role/AWSS3OnOutpostsServiceRolePolicy",
+    "name": "AWSS3OnOutpostsServiceRolePolicy",
+    "path": "/aws-service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:DescribeSubnets\",\n\t\t\t\t\"ec2:DescribeSecurityGroups\",\n\t\t\t\t\"ec2:DescribeNetworkInterfaces\",\n\t\t\t\t\"ec2:DescribeVpcs\",\n\t\t\t\t\"ec2:DescribeCoipPools\",\n\t\t\t\t\"ec2:GetCoipPoolUsage\",\n\t\t\t\t\"ec2:DescribeAddresses\",\n\t\t\t\t\"ec2:DescribeLocalGatewayRouteTableVpcAssociations\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Sid\": \"DescribeVpcResources\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:subnet/*\",\n\t\t\t\t\"arn:aws:ec2:*:*:security-group/*\"\n\t\t\t],\n\t\t\t\"Sid\": \"CreateNetworkInterface\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateNetworkInterface\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:network-interface/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"S3 On Outposts\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Sid\": \"CreateTagsForCreateNetworkInterface\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:AllocateAddress\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:ipv4pool-ec2/*\"\n\t\t\t],\n\t\t\t\"Sid\": \"AllocateIpAddress\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:AllocateAddress\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"arn:aws:ec2:*:*:elastic-ip/*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": \"S3 On Outposts\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Sid\": \"CreateTagsForAllocateIpAddress\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:ModifyNetworkInterfaceAttribute\",\n\t\t\t\t\"ec2:CreateNetworkInterfacePermission\",\n\t\t\t\t\"ec2:DeleteNetworkInterface\",\n\t\t\t\t\"ec2:DeleteNetworkInterfacePermission\",\n\t\t\t\t\"ec2:DisassociateAddress\",\n\t\t\t\t\"ec2:ReleaseAddress\",\n\t\t\t\t\"ec2:AssociateAddress\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceTag/CreatedBy\": \"S3 On Outposts\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Sid\": \"ReleaseVpcResources\"\n\t\t},\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"ec2:CreateTags\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"ec2:CreateAction\": [\n\t\t\t\t\t\t\"CreateNetworkInterface\",\n\t\t\t\t\t\t\"AllocateAddress\"\n\t\t\t\t\t],\n\t\t\t\t\t\"aws:RequestTag/CreatedBy\": [\n\t\t\t\t\t\t\"S3 On Outposts\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Sid\": \"CreateTags\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/root-task/S3UnlockBucketPolicy",
+    "name": "S3UnlockBucketPolicy",
+    "path": "/root-task/",
+    "policy_document": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"DenyAllOtherActionsOnAnyResource\",\"Effect\":\"Deny\",\"NotAction\":[\"s3:DeleteBucketPolicy\",\"s3:PutBucketPolicy\",\"s3:GetBucketPolicy\",\"s3:ListAllMyBuckets\"],\"Resource\":\"*\"},{\"Sid\":\"DenyManagingBucketPolicyForNonRootCallers\",\"Effect\":\"Deny\",\"Action\":[\"s3:DeleteBucketPolicy\",\"s3:PutBucketPolicy\",\"s3:GetBucketPolicy\",\"s3:ListAllMyBuckets\"],\"Resource\":\"*\",\"Condition\":{\"StringNotLike\":{\"aws:PrincipalArn\":\"arn:aws:iam::*:root\"}}}]} ",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AWSQuickSetupSSMDeploymentS3BucketRolePolicy",
+    "name": "AWSQuickSetupSSMDeploymentS3BucketRolePolicy",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3:CreateBucket\",\n\t\t\t\t\"s3:DeleteBucket\",\n\t\t\t\t\"s3:DeleteBucketPolicy\",\n\t\t\t\t\"s3:PutBucketPublicAccessBlock\",\n\t\t\t\t\"s3:ListBucket\",\n\t\t\t\t\"s3:PutBucketPolicy\",\n\t\t\t\t\"s3:PutEncryptionConfiguration\",\n\t\t\t\t\"s3:PutBucketTagging\",\n\t\t\t\t\"s3:PutLifecycleConfiguration\",\n\t\t\t\t\"s3:PutBucketVersioning\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"ForAnyValue:StringEquals\": {\n\t\t\t\t\t\"aws:CalledVia\": \"cloudformation.amazonaws.com\"\n\t\t\t\t},\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t},\n\t\t\t\"Resource\": \"arn:aws:s3:::do-not-delete-ssm-*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonS3TablesReadOnlyAccess",
+    "name": "AmazonS3TablesReadOnlyAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3tables:Get*\",\n\t\t\t\t\"s3tables:List*\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/AmazonS3TablesFullAccess",
+    "name": "AmazonS3TablesFullAccess",
+    "path": "/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3tables:*\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\"\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"PassRoleToS3TablesReplication\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"iam:PassRole\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"iam:PassedToService\": [\n\t\t\t\t\t\t\"replication.s3tables.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  },
+  {
+    "arn": "arn:aws:iam::aws:policy/service-role/AmazonS3TablesLakeFormationServiceRole",
+    "name": "AmazonS3TablesLakeFormationServiceRole",
+    "path": "/service-role/",
+    "policy_document": "{\n\t\"Version\": \"2012-10-17\",\n\t\"Statement\": [\n\t\t{\n\t\t\t\"Sid\": \"PermissionsForS3ListTableBuckets\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3tables:ListTableBuckets\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"DataAccessPermissionsForS3TablesResources\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"s3tables:CreateTableBucket\",\n\t\t\t\t\"s3tables:GetTableBucket\",\n\t\t\t\t\"s3tables:CreateNamespace\",\n\t\t\t\t\"s3tables:GetNamespace\",\n\t\t\t\t\"s3tables:ListNamespaces\",\n\t\t\t\t\"s3tables:DeleteNamespace\",\n\t\t\t\t\"s3tables:DeleteTableBucket\",\n\t\t\t\t\"s3tables:CreateTable\",\n\t\t\t\t\"s3tables:DeleteTable\",\n\t\t\t\t\"s3tables:GetTable\",\n\t\t\t\t\"s3tables:ListTables\",\n\t\t\t\t\"s3tables:RenameTable\",\n\t\t\t\t\"s3tables:UpdateTableMetadataLocation\",\n\t\t\t\t\"s3tables:GetTableMetadataLocation\",\n\t\t\t\t\"s3tables:GetTableData\",\n\t\t\t\t\"s3tables:PutTableData\",\n\t\t\t\t\"s3tables:PutTableBucketEncryption\"\n\t\t\t],\n\t\t\t\"Resource\": [\n\t\t\t\t\"*\"\n\t\t\t],\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"KMSDataAccessPermissionsForS3TablesResources\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:GenerateDataKey\",\n\t\t\t\t\"kms:Decrypt\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"kms:ViaService\": [\n\t\t\t\t\t\t\"s3.*.amazonaws.com\"\n\t\t\t\t\t],\n\t\t\t\t\t\"kms:EncryptionContext:aws:s3:arn\": \"arn:aws:s3tables:*:*:bucket/*/table/*\"\n\t\t\t\t},\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"Sid\": \"KMSDescribeKeyAccessPermissionsForS3TablesResources\",\n\t\t\t\"Effect\": \"Allow\",\n\t\t\t\"Action\": [\n\t\t\t\t\"kms:DescribeKey\"\n\t\t\t],\n\t\t\t\"Resource\": \"*\",\n\t\t\t\"Condition\": {\n\t\t\t\t\"StringLike\": {\n\t\t\t\t\t\"kms:ViaService\": [\n\t\t\t\t\t\t\"s3tables.*.amazonaws.com\"\n\t\t\t\t\t]\n\t\t\t\t},\n\t\t\t\t\"StringEquals\": {\n\t\t\t\t\t\"aws:ResourceAccount\": \"${aws:PrincipalAccount}\"\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "is_aws_managed": true,
+    "resource_categories": [
+      "s3"
+    ],
+    "related_resources": [
+      "s3"
+    ]
+  }
+]

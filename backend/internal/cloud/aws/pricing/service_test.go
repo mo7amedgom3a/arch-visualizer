@@ -14,12 +14,12 @@ func TestAWSPricingService_GetPricing(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name          string
-		resourceType  string
-		provider      string
-		region        string
-		expectError   bool
-		expectedType  string
+		name         string
+		resourceType string
+		provider     string
+		region       string
+		expectError  bool
+		expectedType string
 	}{
 		{
 			name:         "get-nat-gateway-pricing",
@@ -68,6 +68,14 @@ func TestAWSPricingService_GetPricing(t *testing.T) {
 			region:       "us-east-1",
 			expectError:  false,
 			expectedType: "ebs_volume",
+		},
+		{
+			name:         "get-s3-bucket-pricing",
+			resourceType: "s3_bucket",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "s3_bucket",
 		},
 		{
 			name:         "unsupported-provider",
@@ -173,13 +181,50 @@ func TestAWSPricingService_EstimateCost(t *testing.T) {
 				Provider: "aws",
 				Region:   "us-east-1",
 				Metadata: map[string]interface{}{
-					"size_gb":    100.0,
+					"size_gb":     100.0,
 					"volume_type": "gp3",
 				},
 			},
 			duration:     720 * time.Hour,
 			expectError:  false,
 			expectedCost: 8.0, // 0.08 * 100 * 1 month
+		},
+		{
+			name: "estimate-s3-bucket-cost-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "s3_bucket",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":       100.0,
+					"storage_class": "standard",
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 2.3, // 0.023 * 100 * 1 month
+		},
+		{
+			name: "estimate-s3-bucket-full-cost-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "s3_bucket",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":          100.0,
+					"storage_class":    "standard",
+					"put_requests":     5000.0,
+					"get_requests":     10000.0,
+					"data_transfer_gb": 50.0,
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 2.3 + 0.025 + 0.004 + 4.41, // storage + PUT + GET + data transfer
 		},
 	}
 
@@ -265,7 +310,7 @@ func TestAWSPricingService_ListSupportedResources(t *testing.T) {
 			name:         "list-aws-resources",
 			provider:     "aws",
 			expectError:  false,
-			minResources: 6, // nat_gateway, elastic_ip, network_interface, data_transfer, ec2_instance, ebs_volume
+			minResources: 7, // nat_gateway, elastic_ip, network_interface, data_transfer, ec2_instance, ebs_volume, s3_bucket
 		},
 		{
 			name:        "unsupported-provider",
@@ -301,6 +346,7 @@ func TestAWSPricingService_ListSupportedResources(t *testing.T) {
 				"data_transfer":     false,
 				"ec2_instance":      false,
 				"ebs_volume":        false,
+				"s3_bucket":         false,
 			}
 
 			for _, res := range resources {

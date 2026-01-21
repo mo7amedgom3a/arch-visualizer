@@ -180,8 +180,63 @@ func TestAWSPricingCalculator_CalculateResourceCost(t *testing.T) {
 					"volume_type": "gp3",
 				},
 			},
+			duration:    720 * time.Hour,
+			expectError: true,
+		},
+		{
+			name: "s3-bucket-storage-only-100gb-720-hours",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "s3_bucket",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":       100.0,
+					"storage_class": "standard",
+				},
+			},
+			duration:     720 * time.Hour, // 1 month
+			expectError:  false,
+			expectedCost: 2.3, // 0.023 * 100 * 1
+		},
+		{
+			name: "s3-bucket-full-cost-calculation",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "s3_bucket",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":          100.0,
+					"storage_class":    "standard",
+					"put_requests":     5000.0,
+					"get_requests":     10000.0,
+					"data_transfer_gb": 50.0,
+				},
+			},
 			duration:     720 * time.Hour,
-			expectError:  true,
+			expectError:  false,
+			expectedCost: 2.3 + 0.025 + 0.004 + 4.41, // storage + PUT + GET + data transfer
+		},
+		{
+			name: "s3-bucket-with-data-transfer-free-tier",
+			resource: &resource.Resource{
+				Type: resource.ResourceType{
+					Name: "s3_bucket",
+				},
+				Provider: "aws",
+				Region:   "us-east-1",
+				Metadata: map[string]interface{}{
+					"size_gb":          100.0,
+					"storage_class":    "standard",
+					"data_transfer_gb": 0.5, // Less than 1GB, should be free
+				},
+			},
+			duration:     720 * time.Hour,
+			expectError:  false,
+			expectedCost: 2.3, // Only storage cost
 		},
 		{
 			name: "unsupported-resource-type",
@@ -200,7 +255,7 @@ func TestAWSPricingCalculator_CalculateResourceCost(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			estimate, err := calculator.CalculateResourceCost(ctx, tt.resource, tt.duration)
-			
+
 			if tt.expectError {
 				if err == nil {
 					t.Error("Expected error but got none")
@@ -295,12 +350,12 @@ func TestAWSPricingCalculator_GetResourcePricing(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name          string
-		resourceType  string
-		provider      string
-		region        string
-		expectError   bool
-		expectedType  string
+		name         string
+		resourceType string
+		provider     string
+		region       string
+		expectError  bool
+		expectedType string
 	}{
 		{
 			name:         "get-nat-gateway-pricing",
@@ -349,6 +404,14 @@ func TestAWSPricingCalculator_GetResourcePricing(t *testing.T) {
 			region:       "us-east-1",
 			expectError:  false,
 			expectedType: "ebs_volume",
+		},
+		{
+			name:         "get-s3-bucket-pricing",
+			resourceType: "s3_bucket",
+			provider:     "aws",
+			region:       "us-east-1",
+			expectError:  false,
+			expectedType: "s3_bucket",
 		},
 		{
 			name:         "unsupported-resource-type",

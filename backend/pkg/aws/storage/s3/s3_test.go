@@ -101,4 +101,3 @@ func TestS3Demo_ACL_Versioning_Encryption_Flows(t *testing.T) {
 		t.Fatalf("expected AES256 algorithm, got %s", updatedEnc.Rule.DefaultEncryption.SSEAlgorithm)
 	}
 }
-
