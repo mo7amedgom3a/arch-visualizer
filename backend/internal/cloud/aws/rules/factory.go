@@ -42,6 +42,8 @@ func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, 
 		return f.createMinChildrenRule(resourceType, constraintValue)
 	case rules.RuleTypeAllowedDependencies:
 		return f.createAllowedDependenciesRule(resourceType, constraintValue)
+	case rules.RuleTypeForbiddenDependencies:
+		return f.createForbiddenDependenciesRule(resourceType, constraintValue)
 	default:
 		// Fall back to default factory for unknown types
 		return f.RuleFactory.CreateRule(resourceType, constraintType, constraintValue)
@@ -90,6 +92,16 @@ func (f *AWSRuleFactory) createAllowedDependenciesRule(resourceType, constraintV
 		awsAllowedTypes[i] = f.mapResourceTypeToAWS(t)
 	}
 	return constraints.NewAllowedDependenciesRule(resourceType, awsAllowedTypes), nil
+}
+
+func (f *AWSRuleFactory) createForbiddenDependenciesRule(resourceType, constraintValue string) (rules.Rule, error) {
+	forbiddenTypes := f.parseCommaSeparated(constraintValue)
+	// Map to AWS resource types
+	awsForbiddenTypes := make([]string, len(forbiddenTypes))
+	for i, t := range forbiddenTypes {
+		awsForbiddenTypes[i] = f.mapResourceTypeToAWS(t)
+	}
+	return constraints.NewForbiddenDependenciesRule(resourceType, awsForbiddenTypes), nil
 }
 
 // mapResourceTypeToAWS maps domain resource types to AWS-specific types

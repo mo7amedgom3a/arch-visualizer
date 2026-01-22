@@ -16,6 +16,7 @@ AWS rules implementation:
 rules/
 ├── factory.go          # AWS rule factory
 ├── service.go          # AWS rule service
+├── defaults.go         # Default AWS networking rules
 └── README.md           # This file
 ```
 
@@ -69,6 +70,32 @@ service.LoadRulesFromConstraints(ctx, constraints)
 result, err := service.ValidateResource(ctx, resource, architecture)
 ```
 
+### Default Rules and Merging
+
+AWS provides default networking rules that can be merged with database constraints:
+
+```go
+service := rules.NewAWSRuleService()
+
+// Load DB constraints and merge with defaults
+// DB constraints override defaults when they have the same resource type + constraint type
+dbConstraints := loadConstraintsFromDB("aws")
+err := service.LoadRulesWithDefaults(ctx, dbConstraints)
+```
+
+**Default Rules Include:**
+- **VPC**: Requires region, max 200 children, allowed dependencies on InternetGateway/NATGateway
+- **Subnet**: Requires VPC parent, requires region, allowed dependencies on RouteTable/NATGateway, forbidden dependencies on Subnet/VPC
+- **InternetGateway**: Requires VPC parent, requires region, allowed dependencies on RouteTable, forbidden dependencies on Subnet/NATGateway
+- **RouteTable**: Requires VPC parent, requires region, allowed dependencies on InternetGateway/NATGateway/Subnet, forbidden dependencies on SecurityGroup
+- **SecurityGroup**: Requires VPC parent, requires region, allowed dependencies on SecurityGroup, forbidden dependencies on networking infrastructure
+- **NATGateway**: Requires Subnet parent, requires region, allowed dependencies on RouteTable, forbidden dependencies on InternetGateway/VPC
+
+**Merge Strategy:**
+- Default rules are loaded first
+- Database constraints override defaults when they have the same `resource_type` + `constraint_type` combination
+- This allows customization while maintaining sensible defaults
+
 ## Usage Example
 
 ```go
@@ -79,9 +106,13 @@ import (
 // Create AWS rule service
 service := awsrules.NewAWSRuleService()
 
-// Load AWS-specific rules from database
+// Option 1: Load only DB constraints (no defaults)
 constraints := loadConstraintsFromDB("aws")
 service.LoadRulesFromConstraints(ctx, constraints)
+
+// Option 2: Load DB constraints merged with defaults (recommended)
+constraints := loadConstraintsFromDB("aws")
+service.LoadRulesWithDefaults(ctx, constraints)
 
 // Validate architecture
 results, err := service.ValidateArchitecture(ctx, architecture)
@@ -95,6 +126,23 @@ for resourceID, result := range results {
 }
 ```
 
+### Dependency Rules Example
+
+Dependency rules validate relationships between resources:
+
+```go
+// Subnet can depend on RouteTable and NATGateway
+// But cannot depend on VPC or itself (prevents circular dependencies)
+service := awsrules.NewAWSRuleService()
+service.LoadRulesWithDefaults(ctx, []awsrules.ConstraintRecord{})
+
+// This will pass: Subnet depends on RouteTable
+subnet.DependsOn = []string{routeTable.ID}
+
+// This will fail: Subnet depends on VPC (forbidden)
+subnet.DependsOn = []string{vpc.ID}
+```
+
 ## AWS-Specific Considerations
 
 ### Resource Type Mapping
@@ -102,7 +150,13 @@ for resourceID, result := range results {
 AWS uses Terraform-style resource names:
 - Domain: `VPC` → AWS: `aws_vpc`
 - Domain: `Subnet` → AWS: `aws_subnet`
+- Domain: `InternetGateway` → AWS: `aws_internet_gateway`
+- Domain: `RouteTable` → AWS: `aws_route_table`
+- Domain: `SecurityGroup` → AWS: `aws_security_group`
+- Domain: `NATGateway` → AWS: `aws_nat_gateway`
 - Domain: `EC2Instance` → AWS: `aws_instance`
+
+All domain types are automatically mapped to AWS types in the factory.
 
 ### Limits
 

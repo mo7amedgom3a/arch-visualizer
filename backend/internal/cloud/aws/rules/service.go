@@ -2,6 +2,7 @@ package rules
 
 import (
 	"context"
+
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
@@ -10,12 +11,13 @@ import (
 
 // AWSRuleService provides AWS-specific rule evaluation services
 type AWSRuleService struct {
-	registry    registry.RuleRegistry
-	factory     *AWSRuleFactory
-	evaluator   engine.RuleEvaluator
+	registry  registry.RuleRegistry
+	factory   *AWSRuleFactory
+	evaluator engine.RuleEvaluator
 }
 
 // NewAWSRuleService creates a new AWS rule service
+// Use LoadRulesWithDefaults() to load default rules and merge with DB constraints
 func NewAWSRuleService() *AWSRuleService {
 	return &AWSRuleService{
 		registry:  registry.NewRuleRegistry(),
@@ -25,7 +27,7 @@ func NewAWSRuleService() *AWSRuleService {
 }
 
 // LoadRulesFromConstraints loads rules from database constraints
-// This is where AWS can load its specific rules
+// This merges DB constraints with code defaults (DB constraints override defaults)
 func (s *AWSRuleService) LoadRulesFromConstraints(ctx context.Context, constraints []ConstraintRecord) error {
 	for _, constraint := range constraints {
 		rule, err := s.factory.CreateRule(
@@ -36,12 +38,52 @@ func (s *AWSRuleService) LoadRulesFromConstraints(ctx context.Context, constrain
 		if err != nil {
 			return err
 		}
-		
+
 		if err := s.registry.RegisterRule(constraint.ResourceType, rule); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// LoadRulesWithDefaults loads rules from database constraints and merges with defaults
+// DB constraints override defaults when they have the same resource type + constraint type
+func (s *AWSRuleService) LoadRulesWithDefaults(ctx context.Context, dbConstraints []ConstraintRecord) error {
+	// Start with defaults
+	defaultRules := DefaultNetworkingRules()
+
+	// Create a map to track which default rules should be overridden
+	overrideMap := make(map[string]bool)
+	for _, dbConstraint := range dbConstraints {
+		key := constraintKey(dbConstraint.ResourceType, dbConstraint.ConstraintType)
+		overrideMap[key] = true
+	}
+
+	// Load defaults that aren't overridden
+	for _, defaultRule := range defaultRules {
+		key := constraintKey(defaultRule.ResourceType, defaultRule.ConstraintType)
+		if !overrideMap[key] {
+			rule, err := s.factory.CreateRule(
+				defaultRule.ResourceType,
+				defaultRule.ConstraintType,
+				defaultRule.ConstraintValue,
+			)
+			if err != nil {
+				return err
+			}
+			if err := s.registry.RegisterRule(defaultRule.ResourceType, rule); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Load DB constraints (these override defaults)
+	return s.LoadRulesFromConstraints(ctx, dbConstraints)
+}
+
+// constraintKey creates a unique key for a constraint
+func constraintKey(resourceType, constraintType string) string {
+	return resourceType + ":" + constraintType
 }
 
 // ValidateResource validates a resource against all applicable rules
@@ -59,13 +101,13 @@ func (s *AWSRuleService) ValidateResource(
 			Results: []*rules.RuleResult{},
 		}, nil
 	}
-	
+
 	// Build evaluation context
 	evalCtx := engine.BuildEvaluationContext(res, architecture, "aws")
-	
+
 	// Evaluate all rules
 	result := engine.EvaluateAllRules(ctx, s.evaluator, resourceRules, evalCtx)
-	
+
 	return result, nil
 }
 
@@ -75,7 +117,7 @@ func (s *AWSRuleService) ValidateArchitecture(
 	architecture *engine.Architecture,
 ) (map[string]*engine.EvaluationResult, error) {
 	results := make(map[string]*engine.EvaluationResult)
-	
+
 	for _, res := range architecture.Resources {
 		result, err := s.ValidateResource(ctx, res, architecture)
 		if err != nil {
@@ -83,7 +125,7 @@ func (s *AWSRuleService) ValidateArchitecture(
 		}
 		results[res.ID] = result
 	}
-	
+
 	return results, nil
 }
 

@@ -125,6 +125,9 @@ func (f *DefaultRuleFactory) CreateRule(resourceType string, constraintType stri
 	case rules.RuleTypeAllowedDependencies:
 		allowedTypes := parseCommaSeparated(constraintValue)
 		return constraints.NewAllowedDependenciesRule(resourceType, allowedTypes), nil
+	case rules.RuleTypeForbiddenDependencies:
+		forbiddenTypes := parseCommaSeparated(constraintValue)
+		return constraints.NewForbiddenDependenciesRule(resourceType, forbiddenTypes), nil
 	default:
 		return nil, fmt.Errorf("unknown constraint type: %s", constraintType)
 	}

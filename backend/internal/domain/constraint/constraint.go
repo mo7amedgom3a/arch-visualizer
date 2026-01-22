@@ -8,12 +8,13 @@ package constraint
 type ConstraintType string
 
 const (
-	ConstraintTypeRequiresParent      ConstraintType = "requires_parent"
-	ConstraintTypeAllowedParent       ConstraintType = "allowed_parent"
-	ConstraintTypeRequiresRegion      ConstraintType = "requires_region"
-	ConstraintTypeMaxChildren         ConstraintType = "max_children"
-	ConstraintTypeMinChildren         ConstraintType = "min_children"
-	ConstraintTypeAllowedDependencies ConstraintType = "allowed_dependencies"
+	ConstraintTypeRequiresParent       ConstraintType = "requires_parent"
+	ConstraintTypeAllowedParent        ConstraintType = "allowed_parent"
+	ConstraintTypeRequiresRegion       ConstraintType = "requires_region"
+	ConstraintTypeMaxChildren          ConstraintType = "max_children"
+	ConstraintTypeMinChildren          ConstraintType = "min_children"
+	ConstraintTypeAllowedDependencies  ConstraintType = "allowed_dependencies"
+	ConstraintTypeForbiddenDependencies ConstraintType = "forbidden_dependencies"
 )
 
 // Constraint represents a constraint definition

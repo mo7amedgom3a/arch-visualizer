@@ -71,8 +71,15 @@ type Rule interface {
 - `requires_region` - Resource must (or must not) have a region
 - `max_children` - Maximum number of children
 - `min_children` - Minimum number of children
-- `allowed_dependencies` - Allowed dependency types
-- `forbidden_dependencies` - Forbidden dependency types
+- `allowed_dependencies` - Allowed dependency types (whitelist)
+- `forbidden_dependencies` - Forbidden dependency types (blacklist)
+
+**Dependency Rules:**
+- `allowed_dependencies` specifies which resource types a resource can depend on
+- `forbidden_dependencies` specifies which resource types a resource cannot depend on
+- Both rules can be used together for fine-grained control
+- If `allowed_dependencies` is specified, only those types are allowed
+- `forbidden_dependencies` always takes precedence over allowed dependencies
 
 ### Evaluation Context
 
@@ -107,6 +114,12 @@ rule := constraints.NewAllowedParentRule("EC2", []string{"Subnet"})
 
 // Create a max_children rule
 rule := constraints.NewMaxChildrenRule("VPC", 10)
+
+// Create an allowed_dependencies rule
+rule := constraints.NewAllowedDependenciesRule("Subnet", []string{"RouteTable", "NATGateway"})
+
+// Create a forbidden_dependencies rule
+rule := constraints.NewForbiddenDependenciesRule("Subnet", []string{"VPC", "Subnet"})
 ```
 
 ### Evaluating Rules
