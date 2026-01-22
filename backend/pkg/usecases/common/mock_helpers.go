@@ -7,6 +7,7 @@ import (
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 )
 
 // MockIDGenerator generates consistent mock IDs for resources
@@ -346,6 +347,91 @@ func CreateMockIAMInstanceProfile(name, roleName string, gen *MockIDGenerator) *
 // GetDefaultAccountID returns the default mock account ID
 func GetDefaultAccountID() string {
 	return "123456789012"
+}
+
+// GenerateLambdaFunctionARN generates a mock Lambda function ARN
+func (g *MockIDGenerator) GenerateLambdaFunctionARN(region, accountID, functionName string) string {
+	return fmt.Sprintf("arn:aws:lambda:%s:%s:function:%s", region, accountID, functionName)
+}
+
+// GenerateS3BucketARN generates a mock S3 bucket ARN
+func (g *MockIDGenerator) GenerateS3BucketARN(bucketName string) string {
+	return fmt.Sprintf("arn:aws:s3:::%s", bucketName)
+}
+
+// CreateMockS3Bucket creates a mock S3 bucket domain model
+func CreateMockS3Bucket(name, region string, gen *MockIDGenerator) *domainstorage.S3Bucket {
+	arn := gen.GenerateS3BucketARN(name)
+	domainName := fmt.Sprintf("%s.s3.amazonaws.com", name)
+	regionalDomain := fmt.Sprintf("%s.s3.%s.amazonaws.com", name, region)
+	return &domainstorage.S3Bucket{
+		ID:                       name,
+		ARN:                      &arn,
+		Name:                     name,
+		Region:                   region,
+		ForceDestroy:             false,
+		BucketDomainName:         &domainName,
+		BucketRegionalDomainName: &regionalDomain,
+		Tags:                     map[string]string{},
+	}
+}
+
+// CreateMockLambdaFunction creates a mock Lambda function domain model
+func CreateMockLambdaFunction(name, roleARN, region string, s3Bucket, s3Key *string, runtime, handler *string, memorySize, timeout *int, gen *MockIDGenerator) *domaincompute.LambdaFunction {
+	arn := gen.GenerateLambdaFunctionARN(region, "123456789012", name)
+	invokeARN := fmt.Sprintf("arn:aws:apigateway:%s:lambda:path/2015-03-31/functions/%s/invocations", region, arn)
+	qualifiedARN := fmt.Sprintf("%s:$LATEST", arn)
+	version := "$LATEST"
+	lastModified := time.Now().Format(time.RFC3339)
+	codeSize := int64(1024 * 1024) // 1MB
+	codeSHA256 := "abc123def456..."
+
+	return &domaincompute.LambdaFunction{
+		FunctionName: name,
+		RoleARN:      roleARN,
+		Region:       region,
+		S3Bucket:     s3Bucket,
+		S3Key:        s3Key,
+		Runtime:      runtime,
+		Handler:      handler,
+		MemorySize:   memorySize,
+		Timeout:      timeout,
+		ARN:          &arn,
+		InvokeARN:    &invokeARN,
+		QualifiedARN: &qualifiedARN,
+		Version:      &version,
+		LastModified: &lastModified,
+		CodeSize:     &codeSize,
+		CodeSHA256:   &codeSHA256,
+		Environment:  map[string]string{},
+		Tags:         map[string]string{},
+	}
+}
+
+// CreateMockIAMRoleForLambda creates a mock IAM role for Lambda with assume role policy
+func CreateMockIAMRoleForLambda(name, description string, gen *MockIDGenerator) *domainiam.Role {
+	roleARN := gen.GenerateIAMRoleARN("us-east-1", "123456789012", name)
+	path := "/"
+	assumeRolePolicy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "lambda.amazonaws.com"
+				},
+				"Action": "sts:AssumeRole"
+			}
+		]
+	}`
+	return &domainiam.Role{
+		ID:               name,
+		ARN:              &roleARN,
+		Name:             name,
+		Description:      &description,
+		Path:             &path,
+		AssumeRolePolicy: assumeRolePolicy,
+	}
 }
 
 // GetDefaultAvailabilityZones returns default availability zones for a region
