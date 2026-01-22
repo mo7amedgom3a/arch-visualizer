@@ -307,6 +307,96 @@ IaC tools supported.
 
 ---
 
+### Pricing & Cost Estimates
+
+#### **project_pricing**
+Stores total pricing estimate per project.
+
+| Column            | Type    | Description                                    |
+|-------------------|---------|------------------------------------------------|
+| `id`              | SERIAL  | Primary key                                    |
+| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
+| `total_cost`      | NUMERIC | Total estimated cost                           |
+| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
+| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
+| `duration_seconds` | BIGINT | Duration used for the estimate                 |
+| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
+| `region`          | TEXT    | Region (nullable)                              |
+| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+
+---
+
+#### **service_pricing**
+Pricing per service (resource category).
+
+| Column            | Type    | Description                                    |
+|-------------------|---------|------------------------------------------------|
+| `id`              | SERIAL  | Primary key                                    |
+| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
+| `category_id`     | INT     | Category (FK → `resource_categories.id`)       |
+| `total_cost`      | NUMERIC | Total estimated cost                           |
+| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
+| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
+| `duration_seconds` | BIGINT | Duration used for the estimate                 |
+| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
+| `region`          | TEXT    | Region (nullable)                              |
+| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+
+---
+
+#### **service_type_pricing**
+Pricing per service type (resource type).
+
+| Column            | Type    | Description                                    |
+|-------------------|---------|------------------------------------------------|
+| `id`              | SERIAL  | Primary key                                    |
+| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
+| `resource_type_id`| INT     | Resource type (FK → `resource_types.id`)       |
+| `total_cost`      | NUMERIC | Total estimated cost                           |
+| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
+| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
+| `duration_seconds` | BIGINT | Duration used for the estimate                 |
+| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
+| `region`          | TEXT    | Region (nullable)                              |
+| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+
+---
+
+#### **resource_pricing**
+Pricing per resource instance.
+
+| Column            | Type    | Description                                    |
+|-------------------|---------|------------------------------------------------|
+| `id`              | SERIAL  | Primary key                                    |
+| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
+| `resource_id`     | UUID    | Resource (FK → `resources.id`)                 |
+| `total_cost`      | NUMERIC | Total estimated cost                           |
+| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
+| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
+| `duration_seconds` | BIGINT | Duration used for the estimate                 |
+| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
+| `region`          | TEXT    | Region (nullable)                              |
+| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+
+---
+
+#### **pricing_components**
+Pricing breakdown per component (per-hour, per-GB, per-request, etc.).
+
+| Column               | Type    | Description                                   |
+|----------------------|---------|-----------------------------------------------|
+| `id`                 | SERIAL  | Primary key                                   |
+| `resource_pricing_id`| INT     | Resource pricing (FK → `resource_pricing.id`) |
+| `component_name`     | TEXT    | Component name                                |
+| `model`              | TEXT    | Pricing model (`per_hour`, `per_gb`, etc.)     |
+| `unit`               | TEXT    | Unit of measure                               |
+| `quantity`           | NUMERIC | Quantity used                                 |
+| `unit_rate`          | NUMERIC | Rate per unit                                 |
+| `subtotal`           | NUMERIC | Subtotal cost for this component              |
+| `currency`           | TEXT    | Currency (`USD`, `EUR`, `GBP`)                |
+
+---
+
 ### Resource Type System
 
 #### **resource_categories**
@@ -452,6 +542,14 @@ resources (parent) ──→ (children) resource_containment
 resources (from) ──→ (to) resource_dependencies
 resource_dependencies (N) ──→ (1) dependency_types
 projects (N) ──→ (1) iac_targets
+projects (1) ──→ (N) project_pricing
+projects (1) ──→ (N) service_pricing
+projects (1) ──→ (N) service_type_pricing
+projects (1) ──→ (N) resource_pricing
+resource_categories (1) ──→ (N) service_pricing
+resource_types (1) ──→ (N) service_type_pricing
+resources (1) ──→ (N) resource_pricing
+resource_pricing (1) ──→ (N) pricing_components
 ```
 
 ---
