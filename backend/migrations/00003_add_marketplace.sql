@@ -1,167 +1,28 @@
+-- +goose Up
+-- +goose StatementBegin
+
 -- Enable UUID extension for marketplace tables
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    avatar VARCHAR(500),
-    is_verified BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-# Projects example: project-1, project-2, project-3
-CREATE TABLE projects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    infra_tool SERIAL  REFERENCES iac_targets(id),
-    name TEXT NOT NULL,
-    cloud_provider TEXT NOT NULL CHECK (cloud_provider IN ('aws', 'azure', 'gcp')),
-    region TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT now()
-);
-# Resource Categories example: Compute, Networking, Storage, Database, Security
-CREATE TABLE resource_categories (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
+-- Update users table to match marketplace schema
+ALTER TABLE users ALTER COLUMN id SET DEFAULT uuid_generate_v4();
 
-# Resource Kinds example: VirtualMachine, Container, Function, Network, LoadBalancer
-CREATE TABLE resource_kinds (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS avatar VARCHAR(500),
+    ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false,
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
-# Resource Types example: EC2, Lambda, S3, RDS, VPC
-CREATE TABLE resource_types (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    cloud_provider TEXT NOT NULL,
-    category_id INT REFERENCES resource_categories(id),
-    kind_id INT REFERENCES resource_kinds(id),
-    is_regional BOOLEAN DEFAULT true,
-    is_global BOOLEAN DEFAULT false,
-    UNIQUE (name, cloud_provider)
-);
+UPDATE users
+SET name = COALESCE(name, 'Unknown');
 
-# Resources example: subnet-1, vpc-1, ec2-1, lambda-1, s3-1, rds-1
-CREATE TABLE resources (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    resource_type_id INT REFERENCES resource_types(id),
-    name TEXT NOT NULL,
+ALTER TABLE users
+    ALTER COLUMN name TYPE VARCHAR(255),
+    ALTER COLUMN name SET NOT NULL;
 
-    -- Visual positioning
-    pos_x INT NOT NULL,
-    pos_y INT NOT NULL,
+ALTER TABLE users DROP COLUMN IF EXISTS email;
 
-    -- JSON config (CIDR, instance_type, tags...)
-    config JSONB NOT NULL DEFAULT '{}',
-
-    created_at TIMESTAMP DEFAULT now()
-);
-
-# Resource Containment example: VPC → Subnet → EC2
-CREATE TABLE resource_containment (
-    parent_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    child_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    PRIMARY KEY (parent_resource_id, child_resource_id)
-);
-
-# Dependency Types example: uses, depends_on, connects_to, references
-CREATE TABLE dependency_types (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
-
-# Resource Dependencies example: subnet-1 → vpc-1
-CREATE TABLE resource_dependencies (
-    from_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    to_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    dependency_type_id INT REFERENCES dependency_types(id),
-    PRIMARY KEY (from_resource_id, to_resource_id)
-);
-
-# Resource Constraints example: subnet must be inside a vpc
-CREATE TABLE resource_constraints (
-    id SERIAL PRIMARY KEY,
-    resource_type_id INT REFERENCES resource_types(id),
-    constraint_type TEXT NOT NULL,
-    constraint_value TEXT NOT NULL
-);
-
-# IaC Targets example: Terraform, Pulumi, CDK
-CREATE TABLE iac_targets (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
-
-# Pricing estimates for projects and services/types
-CREATE TABLE project_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing per service (resource category)
-CREATE TABLE service_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    category_id INT REFERENCES resource_categories(id),
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing per service type (resource type)
-CREATE TABLE service_type_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    resource_type_id INT REFERENCES resource_types(id),
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing per resource
-CREATE TABLE resource_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing breakdown per component (e.g., per-hour, per-GB, per-request)
-CREATE TABLE pricing_components (
-    id SERIAL PRIMARY KEY,
-    resource_pricing_id INT REFERENCES resource_pricing(id) ON DELETE CASCADE,
-    component_name TEXT NOT NULL,
-    model TEXT NOT NULL CHECK (model IN ('per_hour', 'per_gb', 'per_request', 'one_time', 'tiered', 'percentage')),
-    unit TEXT NOT NULL,
-    quantity NUMERIC(14, 4) NOT NULL,
-    unit_rate NUMERIC(14, 6) NOT NULL,
-    subtotal NUMERIC(14, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP'))
-);
+DROP INDEX IF EXISTS idx_users_deleted_at;
+ALTER TABLE users DROP COLUMN IF EXISTS deleted_at;
 
 -- Marketplace: Categories table
 CREATE TABLE categories (
@@ -369,3 +230,79 @@ CREATE TRIGGER update_reviews_updated_at
 BEFORE UPDATE ON reviews
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+
+-- Drop triggers and functions
+DROP TRIGGER IF EXISTS update_reviews_updated_at ON reviews;
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+DROP TRIGGER IF EXISTS update_templates_updated_at ON templates;
+DROP TRIGGER IF EXISTS trigger_update_template_rating ON reviews;
+
+DROP FUNCTION IF EXISTS update_updated_at_column();
+DROP FUNCTION IF EXISTS update_template_rating();
+
+-- Drop marketplace indexes
+DROP INDEX IF EXISTS idx_template_components_template;
+DROP INDEX IF EXISTS idx_template_features_template;
+DROP INDEX IF EXISTS idx_template_use_cases_template;
+DROP INDEX IF EXISTS idx_template_compliance_template;
+DROP INDEX IF EXISTS idx_template_iac_formats_template;
+DROP INDEX IF EXISTS idx_template_technologies_tech;
+DROP INDEX IF EXISTS idx_template_technologies_template;
+DROP INDEX IF EXISTS idx_reviews_created_at;
+DROP INDEX IF EXISTS idx_reviews_rating;
+DROP INDEX IF EXISTS idx_reviews_user;
+DROP INDEX IF EXISTS idx_reviews_template;
+DROP INDEX IF EXISTS idx_templates_created_at;
+DROP INDEX IF EXISTS idx_templates_is_new;
+DROP INDEX IF EXISTS idx_templates_is_popular;
+DROP INDEX IF EXISTS idx_templates_price;
+DROP INDEX IF EXISTS idx_templates_downloads;
+DROP INDEX IF EXISTS idx_templates_rating;
+DROP INDEX IF EXISTS idx_templates_cloud_provider;
+DROP INDEX IF EXISTS idx_templates_author;
+DROP INDEX IF EXISTS idx_templates_category;
+
+-- Drop marketplace tables (reverse order)
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS template_components;
+DROP TABLE IF EXISTS template_features;
+DROP TABLE IF EXISTS template_use_cases;
+DROP TABLE IF EXISTS template_compliance;
+DROP TABLE IF EXISTS template_iac_formats;
+DROP TABLE IF EXISTS template_technologies;
+DROP TABLE IF EXISTS compliance_standards;
+DROP TABLE IF EXISTS iac_formats;
+DROP TABLE IF EXISTS technologies;
+DROP TABLE IF EXISTS templates;
+DROP TABLE IF EXISTS categories;
+
+-- Revert users table to pre-marketplace schema
+ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS email TEXT;
+
+UPDATE users
+SET email = COALESCE(email, CONCAT('user+', id, '@example.com'));
+
+ALTER TABLE users
+    ALTER COLUMN email SET NOT NULL,
+    ALTER COLUMN name TYPE TEXT,
+    ALTER COLUMN name DROP NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email);
+
+ALTER TABLE users
+    DROP COLUMN IF EXISTS avatar,
+    DROP COLUMN IF EXISTS is_verified,
+    DROP COLUMN IF EXISTS updated_at;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP;
+CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users(deleted_at);
+
+-- +goose StatementEnd

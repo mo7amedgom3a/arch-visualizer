@@ -3,11 +3,14 @@ package seed
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	"gorm.io/gorm"
 )
 
 // SeedDatabase seeds the database with realistic use case data
@@ -30,6 +33,11 @@ func SeedDatabase() error {
 	users, err := seedUsers(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to seed users: %w", err)
+	}
+
+	// Seed marketplace data
+	if err := seedMarketplaceData(ctx, users); err != nil {
+		return fmt.Errorf("failed to seed marketplace data: %w", err)
 	}
 
 	// Seed projects and resources based on scenarios
@@ -168,7 +176,7 @@ func seedReferenceData(ctx context.Context) error {
 
 // seedUsers creates sample users
 func seedUsers(ctx context.Context) ([]*models.User, error) {
-	userRepo, err := repository.NewUserRepository()
+	db, err := database.Connect()
 	if err != nil {
 		return nil, err
 	}
@@ -176,29 +184,241 @@ func seedUsers(ctx context.Context) ([]*models.User, error) {
 	fmt.Println("\n👥 Seeding users...")
 
 	users := []*models.User{
-		{Email: "alice@example.com", Name: stringPtr("Alice Johnson")},
-		{Email: "bob@example.com", Name: stringPtr("Bob Smith")},
-		{Email: "charlie@example.com", Name: stringPtr("Charlie Brown")},
+		{Name: "Alice Johnson", Avatar: stringPtr("https://example.com/avatars/alice.png"), IsVerified: true},
+		{Name: "Bob Smith", Avatar: stringPtr("https://example.com/avatars/bob.png"), IsVerified: false},
+		{Name: "Charlie Brown", Avatar: stringPtr("https://example.com/avatars/charlie.png"), IsVerified: true},
 	}
 
 	var createdUsers []*models.User
 	for _, user := range users {
-		// Check if user exists
-		existing, err := userRepo.FindByEmail(ctx, user.Email)
-		if err == nil && existing != nil {
-			fmt.Printf("  ⚠ User %s already exists, skipping\n", user.Email)
-			createdUsers = append(createdUsers, existing)
+		var existing models.User
+		err := db.WithContext(ctx).Where("name = ?", user.Name).First(&existing).Error
+		if err == nil {
+			fmt.Printf("  ⚠ User %s already exists, skipping\n", user.Name)
+			existingUser := existing
+			createdUsers = append(createdUsers, &existingUser)
 			continue
 		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("failed to check user %s: %w", user.Name, err)
+		}
 
-		if err := userRepo.Create(ctx, user); err != nil {
-			return nil, fmt.Errorf("failed to create user %s: %w", user.Email, err)
+		if err := db.WithContext(ctx).Create(user).Error; err != nil {
+			return nil, fmt.Errorf("failed to create user %s: %w", user.Name, err)
 		}
 		createdUsers = append(createdUsers, user)
-		fmt.Printf("  ✓ Created user: %s (%s)\n", user.Email, *user.Name)
+		fmt.Printf("  ✓ Created user: %s\n", user.Name)
 	}
 
 	return createdUsers, nil
+}
+
+// seedMarketplaceData seeds marketplace tables (categories, templates, and related data)
+func seedMarketplaceData(ctx context.Context, users []*models.User) error {
+	db, err := database.Connect()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("\n🛍️  Seeding marketplace data...")
+
+	categories := []models.Category{
+		{Name: "Web Applications", Slug: "web-applications"},
+		{Name: "Data Analytics", Slug: "data-analytics"},
+		{Name: "Security", Slug: "security"},
+	}
+	for _, cat := range categories {
+		if err := db.WithContext(ctx).FirstOrCreate(&cat, models.Category{Slug: cat.Slug}).Error; err != nil {
+			return fmt.Errorf("failed to seed marketplace category %s: %w", cat.Name, err)
+		}
+	}
+	fmt.Printf("  ✓ Seeded %d marketplace categories\n", len(categories))
+
+	technologies := []models.Technology{
+		{Name: "Kubernetes", Slug: "kubernetes"},
+		{Name: "PostgreSQL", Slug: "postgresql"},
+		{Name: "Redis", Slug: "redis"},
+		{Name: "Amazon S3", Slug: "amazon-s3"},
+		{Name: "AWS Glue", Slug: "aws-glue"},
+	}
+	for _, tech := range technologies {
+		if err := db.WithContext(ctx).FirstOrCreate(&tech, models.Technology{Slug: tech.Slug}).Error; err != nil {
+			return fmt.Errorf("failed to seed marketplace technology %s: %w", tech.Name, err)
+		}
+	}
+	fmt.Printf("  ✓ Seeded %d marketplace technologies\n", len(technologies))
+
+	iacFormats := []models.IACFormat{
+		{Name: "Terraform", Slug: "terraform"},
+		{Name: "Pulumi", Slug: "pulumi"},
+		{Name: "CloudFormation", Slug: "cloudformation"},
+	}
+	for _, format := range iacFormats {
+		if err := db.WithContext(ctx).FirstOrCreate(&format, models.IACFormat{Slug: format.Slug}).Error; err != nil {
+			return fmt.Errorf("failed to seed marketplace IaC format %s: %w", format.Name, err)
+		}
+	}
+	fmt.Printf("  ✓ Seeded %d marketplace IaC formats\n", len(iacFormats))
+
+	complianceStandards := []models.ComplianceStandard{
+		{Name: "SOC 2", Slug: "soc-2"},
+		{Name: "HIPAA", Slug: "hipaa"},
+	}
+	for _, compliance := range complianceStandards {
+		if err := db.WithContext(ctx).FirstOrCreate(&compliance, models.ComplianceStandard{Slug: compliance.Slug}).Error; err != nil {
+			return fmt.Errorf("failed to seed compliance standard %s: %w", compliance.Name, err)
+		}
+	}
+	fmt.Printf("  ✓ Seeded %d compliance standards\n", len(complianceStandards))
+
+	if len(users) == 0 {
+		return nil
+	}
+
+	var webCat, dataCat models.Category
+	db.WithContext(ctx).Where("slug = ?", "web-applications").First(&webCat)
+	db.WithContext(ctx).Where("slug = ?", "data-analytics").First(&dataCat)
+
+	var terraformFormat, pulumiFormat models.IACFormat
+	db.WithContext(ctx).Where("slug = ?", "terraform").First(&terraformFormat)
+	db.WithContext(ctx).Where("slug = ?", "pulumi").First(&pulumiFormat)
+
+	var soc2Standard models.ComplianceStandard
+	db.WithContext(ctx).Where("slug = ?", "soc-2").First(&soc2Standard)
+
+	var kubernetesTech, postgresTech, redisTech, s3Tech, glueTech models.Technology
+	db.WithContext(ctx).Where("slug = ?", "kubernetes").First(&kubernetesTech)
+	db.WithContext(ctx).Where("slug = ?", "postgresql").First(&postgresTech)
+	db.WithContext(ctx).Where("slug = ?", "redis").First(&redisTech)
+	db.WithContext(ctx).Where("slug = ?", "amazon-s3").First(&s3Tech)
+	db.WithContext(ctx).Where("slug = ?", "aws-glue").First(&glueTech)
+
+	authorOne := users[0]
+	authorTwo := users[0]
+	if len(users) > 1 {
+		authorTwo = users[1]
+	}
+
+	webAppTemplate := &models.Template{
+		Title:            "Scalable Web App",
+		Description:      "Highly available web application stack with autoscaling and caching.",
+		CategoryID:       webCat.ID,
+		CloudProvider:    "AWS",
+		EstimatedCostMin: 50,
+		EstimatedCostMax: 250,
+		AuthorID:         authorOne.ID,
+		ImageURL:         stringPtr("https://example.com/images/scalable-web-app.png"),
+		IsPopular:        true,
+		IsNew:            true,
+		LastUpdated:      time.Now(),
+		Resources:        8,
+		DeploymentTime:   stringPtr("30-45 minutes"),
+		Regions:          stringPtr("us-east-1, us-west-2"),
+	}
+	if err := db.WithContext(ctx).Where("title = ? AND author_id = ?", webAppTemplate.Title, webAppTemplate.AuthorID).FirstOrCreate(webAppTemplate).Error; err != nil {
+		return fmt.Errorf("failed to seed template %s: %w", webAppTemplate.Title, err)
+	}
+
+	dataLakeTemplate := &models.Template{
+		Title:            "Data Lake Starter",
+		Description:      "Starter data lake with ingestion, catalog, and analytics components.",
+		CategoryID:       dataCat.ID,
+		CloudProvider:    "AWS",
+		EstimatedCostMin: 75,
+		EstimatedCostMax: 300,
+		AuthorID:         authorTwo.ID,
+		ImageURL:         stringPtr("https://example.com/images/data-lake-starter.png"),
+		IsPopular:        false,
+		IsNew:            true,
+		LastUpdated:      time.Now(),
+		Resources:        6,
+		DeploymentTime:   stringPtr("45-60 minutes"),
+		Regions:          stringPtr("us-east-1"),
+	}
+	if err := db.WithContext(ctx).Where("title = ? AND author_id = ?", dataLakeTemplate.Title, dataLakeTemplate.AuthorID).FirstOrCreate(dataLakeTemplate).Error; err != nil {
+		return fmt.Errorf("failed to seed template %s: %w", dataLakeTemplate.Title, err)
+	}
+
+	if err := db.WithContext(ctx).Model(webAppTemplate).Association("Technologies").Replace(
+		&kubernetesTech, &postgresTech, &redisTech,
+	); err != nil {
+		return fmt.Errorf("failed to seed template technologies for %s: %w", webAppTemplate.Title, err)
+	}
+	if err := db.WithContext(ctx).Model(webAppTemplate).Association("IACFormats").Replace(&terraformFormat); err != nil {
+		return fmt.Errorf("failed to seed template IaC formats for %s: %w", webAppTemplate.Title, err)
+	}
+	if err := db.WithContext(ctx).Model(webAppTemplate).Association("ComplianceStandards").Replace(&soc2Standard); err != nil {
+		return fmt.Errorf("failed to seed template compliance for %s: %w", webAppTemplate.Title, err)
+	}
+
+	if err := db.WithContext(ctx).Model(dataLakeTemplate).Association("Technologies").Replace(&s3Tech, &glueTech); err != nil {
+		return fmt.Errorf("failed to seed template technologies for %s: %w", dataLakeTemplate.Title, err)
+	}
+	if err := db.WithContext(ctx).Model(dataLakeTemplate).Association("IACFormats").Replace(&pulumiFormat); err != nil {
+		return fmt.Errorf("failed to seed template IaC formats for %s: %w", dataLakeTemplate.Title, err)
+	}
+
+	webUseCases := []models.TemplateUseCase{
+		{TemplateID: webAppTemplate.ID, Icon: stringPtr("rocket"), Title: "Launch MVPs", Description: stringPtr("Deploy quickly with production-ready defaults."), DisplayOrder: 1},
+		{TemplateID: webAppTemplate.ID, Icon: stringPtr("scale"), Title: "Auto Scaling", Description: stringPtr("Scale seamlessly with traffic spikes."), DisplayOrder: 2},
+	}
+	for _, useCase := range webUseCases {
+		if err := db.WithContext(ctx).FirstOrCreate(&useCase, models.TemplateUseCase{TemplateID: useCase.TemplateID, Title: useCase.Title}).Error; err != nil {
+			return fmt.Errorf("failed to seed template use case %s: %w", useCase.Title, err)
+		}
+	}
+
+	webFeatures := []models.TemplateFeature{
+		{TemplateID: webAppTemplate.ID, Feature: "Multi-AZ load balancer with autoscaling", DisplayOrder: 1},
+		{TemplateID: webAppTemplate.ID, Feature: "Managed PostgreSQL with read replicas", DisplayOrder: 2},
+		{TemplateID: webAppTemplate.ID, Feature: "Redis cache for session storage", DisplayOrder: 3},
+	}
+	for _, feature := range webFeatures {
+		if err := db.WithContext(ctx).FirstOrCreate(&feature, models.TemplateFeature{TemplateID: feature.TemplateID, Feature: feature.Feature}).Error; err != nil {
+			return fmt.Errorf("failed to seed template feature %s: %w", feature.Feature, err)
+		}
+	}
+
+	webComponents := []models.TemplateComponent{
+		{TemplateID: webAppTemplate.ID, Name: "Application Load Balancer", Service: "ELB", MonthlyCost: 18.5, Purpose: stringPtr("Distribute traffic across instances"), DisplayOrder: 1},
+		{TemplateID: webAppTemplate.ID, Name: "Auto Scaling Group", Service: "EC2", MonthlyCost: 120.0, Purpose: stringPtr("Scale compute capacity"), DisplayOrder: 2},
+		{TemplateID: webAppTemplate.ID, Name: "PostgreSQL Cluster", Service: "RDS", MonthlyCost: 65.0, Purpose: stringPtr("Primary data store"), DisplayOrder: 3},
+	}
+	for _, component := range webComponents {
+		if err := db.WithContext(ctx).FirstOrCreate(&component, models.TemplateComponent{TemplateID: component.TemplateID, Name: component.Name}).Error; err != nil {
+			return fmt.Errorf("failed to seed template component %s: %w", component.Name, err)
+		}
+	}
+
+	dataFeatures := []models.TemplateFeature{
+		{TemplateID: dataLakeTemplate.ID, Feature: "S3 data lake with lifecycle policies", DisplayOrder: 1},
+		{TemplateID: dataLakeTemplate.ID, Feature: "Glue catalog for metadata management", DisplayOrder: 2},
+		{TemplateID: dataLakeTemplate.ID, Feature: "Athena-ready query layer", DisplayOrder: 3},
+	}
+	for _, feature := range dataFeatures {
+		if err := db.WithContext(ctx).FirstOrCreate(&feature, models.TemplateFeature{TemplateID: feature.TemplateID, Feature: feature.Feature}).Error; err != nil {
+			return fmt.Errorf("failed to seed template feature %s: %w", feature.Feature, err)
+		}
+	}
+
+	if len(users) > 1 {
+		review := models.Review{
+			TemplateID:     webAppTemplate.ID,
+			UserID:         users[1].ID,
+			Rating:         5,
+			Title:          "Great starting point",
+			Content:        "The template saved us a ton of setup time and scaled well.",
+			UseCase:        stringPtr("SaaS web app"),
+			TeamSize:       stringPtr("5-10"),
+			DeploymentTime: stringPtr("40 minutes"),
+		}
+		if err := db.WithContext(ctx).FirstOrCreate(&review, models.Review{TemplateID: review.TemplateID, UserID: review.UserID}).Error; err != nil {
+			return fmt.Errorf("failed to seed review: %w", err)
+		}
+	}
+
+	fmt.Println("  ✓ Seeded marketplace templates and related data")
+	return nil
 }
 
 // seedScenarios creates projects and resources based on the use case scenarios

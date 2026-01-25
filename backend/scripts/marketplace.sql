@@ -1,6 +1,7 @@
--- Enable UUID extension for marketplace tables
+-- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Users/Authors table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
@@ -9,161 +10,8 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-# Projects example: project-1, project-2, project-3
-CREATE TABLE projects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    infra_tool SERIAL  REFERENCES iac_targets(id),
-    name TEXT NOT NULL,
-    cloud_provider TEXT NOT NULL CHECK (cloud_provider IN ('aws', 'azure', 'gcp')),
-    region TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT now()
-);
-# Resource Categories example: Compute, Networking, Storage, Database, Security
-CREATE TABLE resource_categories (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
 
-# Resource Kinds example: VirtualMachine, Container, Function, Network, LoadBalancer
-CREATE TABLE resource_kinds (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
-
-# Resource Types example: EC2, Lambda, S3, RDS, VPC
-CREATE TABLE resource_types (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    cloud_provider TEXT NOT NULL,
-    category_id INT REFERENCES resource_categories(id),
-    kind_id INT REFERENCES resource_kinds(id),
-    is_regional BOOLEAN DEFAULT true,
-    is_global BOOLEAN DEFAULT false,
-    UNIQUE (name, cloud_provider)
-);
-
-# Resources example: subnet-1, vpc-1, ec2-1, lambda-1, s3-1, rds-1
-CREATE TABLE resources (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    resource_type_id INT REFERENCES resource_types(id),
-    name TEXT NOT NULL,
-
-    -- Visual positioning
-    pos_x INT NOT NULL,
-    pos_y INT NOT NULL,
-
-    -- JSON config (CIDR, instance_type, tags...)
-    config JSONB NOT NULL DEFAULT '{}',
-
-    created_at TIMESTAMP DEFAULT now()
-);
-
-# Resource Containment example: VPC → Subnet → EC2
-CREATE TABLE resource_containment (
-    parent_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    child_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    PRIMARY KEY (parent_resource_id, child_resource_id)
-);
-
-# Dependency Types example: uses, depends_on, connects_to, references
-CREATE TABLE dependency_types (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
-
-# Resource Dependencies example: subnet-1 → vpc-1
-CREATE TABLE resource_dependencies (
-    from_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    to_resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    dependency_type_id INT REFERENCES dependency_types(id),
-    PRIMARY KEY (from_resource_id, to_resource_id)
-);
-
-# Resource Constraints example: subnet must be inside a vpc
-CREATE TABLE resource_constraints (
-    id SERIAL PRIMARY KEY,
-    resource_type_id INT REFERENCES resource_types(id),
-    constraint_type TEXT NOT NULL,
-    constraint_value TEXT NOT NULL
-);
-
-# IaC Targets example: Terraform, Pulumi, CDK
-CREATE TABLE iac_targets (
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
-);
-
-# Pricing estimates for projects and services/types
-CREATE TABLE project_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing per service (resource category)
-CREATE TABLE service_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    category_id INT REFERENCES resource_categories(id),
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing per service type (resource type)
-CREATE TABLE service_type_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    resource_type_id INT REFERENCES resource_types(id),
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing per resource
-CREATE TABLE resource_pricing (
-    id SERIAL PRIMARY KEY,
-    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-    resource_id UUID REFERENCES resources(id) ON DELETE CASCADE,
-    total_cost NUMERIC(12, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP')),
-    period TEXT NOT NULL CHECK (period IN ('hourly', 'monthly', 'yearly')),
-    duration_seconds BIGINT NOT NULL,
-    provider TEXT NOT NULL CHECK (provider IN ('aws', 'azure', 'gcp')),
-    region TEXT,
-    calculated_at TIMESTAMP DEFAULT now()
-);
-
-# Pricing breakdown per component (e.g., per-hour, per-GB, per-request)
-CREATE TABLE pricing_components (
-    id SERIAL PRIMARY KEY,
-    resource_pricing_id INT REFERENCES resource_pricing(id) ON DELETE CASCADE,
-    component_name TEXT NOT NULL,
-    model TEXT NOT NULL CHECK (model IN ('per_hour', 'per_gb', 'per_request', 'one_time', 'tiered', 'percentage')),
-    unit TEXT NOT NULL,
-    quantity NUMERIC(14, 4) NOT NULL,
-    unit_rate NUMERIC(14, 6) NOT NULL,
-    subtotal NUMERIC(14, 4) NOT NULL,
-    currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP'))
-);
-
--- Marketplace: Categories table
+-- Categories table
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -171,7 +19,7 @@ CREATE TABLE categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Templates table
+-- Templates table
 CREATE TABLE templates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title VARCHAR(255) NOT NULL,
@@ -198,7 +46,7 @@ CREATE TABLE templates (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Technologies lookup table
+-- Technologies lookup table
 CREATE TABLE technologies (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -206,14 +54,14 @@ CREATE TABLE technologies (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Template Technologies junction table (Many-to-Many)
+-- Template Technologies junction table (Many-to-Many)
 CREATE TABLE template_technologies (
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
     technology_id UUID NOT NULL REFERENCES technologies(id) ON DELETE CASCADE,
     PRIMARY KEY (template_id, technology_id)
 );
 
--- Marketplace: IAC Formats lookup table
+-- IAC Formats lookup table
 CREATE TABLE iac_formats (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -221,14 +69,14 @@ CREATE TABLE iac_formats (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Template IAC Formats junction table (Many-to-Many)
+-- Template IAC Formats junction table (Many-to-Many)
 CREATE TABLE template_iac_formats (
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
     iac_format_id UUID NOT NULL REFERENCES iac_formats(id) ON DELETE CASCADE,
     PRIMARY KEY (template_id, iac_format_id)
 );
 
--- Marketplace: Compliance standards lookup table
+-- Compliance standards lookup table
 CREATE TABLE compliance_standards (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -236,14 +84,14 @@ CREATE TABLE compliance_standards (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Template Compliance junction table (Many-to-Many)
+-- Template Compliance junction table (Many-to-Many)
 CREATE TABLE template_compliance (
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
     compliance_id UUID NOT NULL REFERENCES compliance_standards(id) ON DELETE CASCADE,
     PRIMARY KEY (template_id, compliance_id)
 );
 
--- Marketplace: Template Use Cases
+-- Template Use Cases
 CREATE TABLE template_use_cases (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
@@ -254,7 +102,7 @@ CREATE TABLE template_use_cases (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Template What You Get items
+-- Template What You Get items
 CREATE TABLE template_features (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
@@ -263,7 +111,7 @@ CREATE TABLE template_features (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Template Components
+-- Template Components
 CREATE TABLE template_components (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
@@ -276,7 +124,7 @@ CREATE TABLE template_components (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace: Reviews table
+-- Reviews table
 CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
@@ -293,7 +141,7 @@ CREATE TABLE reviews (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Marketplace indexes
+-- Create indexes for better query performance
 CREATE INDEX idx_templates_category ON templates(category_id);
 CREATE INDEX idx_templates_author ON templates(author_id);
 CREATE INDEX idx_templates_cloud_provider ON templates(cloud_provider);
@@ -319,12 +167,12 @@ CREATE INDEX idx_template_use_cases_template ON template_use_cases(template_id);
 CREATE INDEX idx_template_features_template ON template_features(template_id);
 CREATE INDEX idx_template_components_template ON template_components(template_id);
 
--- Marketplace: triggers to update derived fields
+-- Create trigger to update template rating when reviews are added/updated
 CREATE OR REPLACE FUNCTION update_template_rating()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE templates
-    SET
+    SET 
         rating = (
             SELECT COALESCE(AVG(rating), 0)
             FROM reviews
@@ -337,7 +185,7 @@ BEGIN
         ),
         updated_at = CURRENT_TIMESTAMP
     WHERE id = COALESCE(NEW.template_id, OLD.template_id);
-
+    
     RETURN COALESCE(NEW, OLD);
 END;
 $$ LANGUAGE plpgsql;
@@ -347,6 +195,7 @@ AFTER INSERT OR UPDATE OR DELETE ON reviews
 FOR EACH ROW
 EXECUTE FUNCTION update_template_rating();
 
+-- Create trigger to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN

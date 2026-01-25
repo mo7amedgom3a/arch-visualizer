@@ -271,14 +271,16 @@ The system uses **PostgreSQL** to store projects, resources, constraints, and th
 ### Core Tables
 
 #### **users**
-Stores user authentication and profiles.
+Stores user profiles (also used by marketplace authors and reviewers).
 
-| Column     | Type      | Description                    |
-|------------|-----------|--------------------------------|
-| `id`       | UUID      | Primary key                    |
-| `email`    | TEXT      | Unique email address           |
-| `name`     | TEXT      | User's display name            |
-| `created_at` | TIMESTAMP | Account creation timestamp    |
+| Column       | Type        | Description                    |
+|--------------|-------------|--------------------------------|
+| `id`         | UUID        | Primary key                    |
+| `name`       | VARCHAR(255) | User's display name            |
+| `avatar`     | VARCHAR(500) | Optional avatar URL            |
+| `is_verified`| BOOLEAN     | Verification status            |
+| `created_at` | TIMESTAMP   | Account creation timestamp     |
+| `updated_at` | TIMESTAMP   | Last update timestamp          |
 
 ---
 
@@ -394,6 +396,183 @@ Pricing breakdown per component (per-hour, per-GB, per-request, etc.).
 | `unit_rate`          | NUMERIC | Rate per unit                                 |
 | `subtotal`           | NUMERIC | Subtotal cost for this component              |
 | `currency`           | TEXT    | Currency (`USD`, `EUR`, `GBP`)                |
+
+---
+
+### Marketplace
+
+#### **categories**
+Marketplace categories for templates.
+
+| Column       | Type        | Description            |
+|--------------|-------------|------------------------|
+| `id`         | UUID        | Primary key            |
+| `name`       | VARCHAR(100) | Category name          |
+| `slug`       | VARCHAR(100) | URL-friendly slug      |
+| `created_at` | TIMESTAMP   | Creation timestamp     |
+
+---
+
+#### **templates**
+Marketplace templates with pricing and metadata.
+
+| Column              | Type        | Description                                  |
+|---------------------|-------------|----------------------------------------------|
+| `id`                | UUID        | Primary key                                  |
+| `title`             | VARCHAR(255) | Template title                               |
+| `description`       | TEXT        | Template description                         |
+| `category_id`       | UUID        | Category (FK → `categories.id`)              |
+| `cloud_provider`    | VARCHAR(50) | Cloud (`AWS`, `Azure`, `GCP`, `Multi-Cloud`) |
+| `rating`            | DECIMAL     | Average rating (0–5)                         |
+| `review_count`      | INTEGER     | Count of reviews                             |
+| `downloads`         | INTEGER     | Total downloads                              |
+| `price`             | DECIMAL     | One-time price                               |
+| `is_subscription`   | BOOLEAN     | Subscription flag                            |
+| `subscription_price`| DECIMAL     | Subscription price                           |
+| `estimated_cost_min`| DECIMAL     | Estimated monthly min cost                   |
+| `estimated_cost_max`| DECIMAL     | Estimated monthly max cost                   |
+| `author_id`         | UUID        | Author (FK → `users.id`)                     |
+| `image_url`         | VARCHAR(500) | Template image URL                           |
+| `is_popular`        | BOOLEAN     | Popular flag                                 |
+| `is_new`            | BOOLEAN     | New flag                                     |
+| `last_updated`      | TIMESTAMP   | Last updated timestamp                        |
+| `resources`         | INTEGER     | Number of resources                          |
+| `deployment_time`   | VARCHAR(50) | Estimated deployment time                    |
+| `regions`           | TEXT        | Supported regions                            |
+| `created_at`        | TIMESTAMP   | Creation timestamp                           |
+| `updated_at`        | TIMESTAMP   | Update timestamp                             |
+
+---
+
+#### **technologies**
+Technology tags for templates.
+
+| Column       | Type        | Description        |
+|--------------|-------------|--------------------|
+| `id`         | UUID        | Primary key        |
+| `name`       | VARCHAR(100) | Technology name    |
+| `slug`       | VARCHAR(100) | URL-friendly slug  |
+| `created_at` | TIMESTAMP   | Creation timestamp |
+
+---
+
+#### **iac_formats**
+IaC formats supported per template.
+
+| Column       | Type        | Description        |
+|--------------|-------------|--------------------|
+| `id`         | UUID        | Primary key        |
+| `name`       | VARCHAR(100) | Format name        |
+| `slug`       | VARCHAR(100) | URL-friendly slug  |
+| `created_at` | TIMESTAMP   | Creation timestamp |
+
+---
+
+#### **compliance_standards**
+Compliance standards associated with templates.
+
+| Column       | Type        | Description        |
+|--------------|-------------|--------------------|
+| `id`         | UUID        | Primary key        |
+| `name`       | VARCHAR(100) | Standard name      |
+| `slug`       | VARCHAR(100) | URL-friendly slug  |
+| `created_at` | TIMESTAMP   | Creation timestamp |
+
+---
+
+#### **template_technologies**
+Join table for template → technology (many-to-many).
+
+| Column         | Type | Description                        |
+|----------------|------|------------------------------------|
+| `template_id`  | UUID | Template (FK → `templates.id`)     |
+| `technology_id`| UUID | Technology (FK → `technologies.id`)|
+
+---
+
+#### **template_iac_formats**
+Join table for template → IaC format (many-to-many).
+
+| Column        | Type | Description                        |
+|---------------|------|------------------------------------|
+| `template_id` | UUID | Template (FK → `templates.id`)     |
+| `iac_format_id` | UUID | IaC format (FK → `iac_formats.id`) |
+
+---
+
+#### **template_compliance**
+Join table for template → compliance (many-to-many).
+
+| Column         | Type | Description                           |
+|----------------|------|---------------------------------------|
+| `template_id`  | UUID | Template (FK → `templates.id`)        |
+| `compliance_id`| UUID | Compliance (FK → `compliance_standards.id`) |
+
+---
+
+#### **template_use_cases**
+Template use-case items.
+
+| Column        | Type        | Description                       |
+|---------------|-------------|-----------------------------------|
+| `id`          | UUID        | Primary key                       |
+| `template_id` | UUID        | Template (FK → `templates.id`)    |
+| `icon`        | VARCHAR(100) | Icon identifier                   |
+| `title`       | VARCHAR(255) | Use case title                    |
+| `description` | TEXT        | Use case description              |
+| `display_order` | INTEGER   | UI display order                  |
+| `created_at`  | TIMESTAMP   | Creation timestamp                |
+
+---
+
+#### **template_features**
+Template feature items.
+
+| Column        | Type      | Description                    |
+|---------------|-----------|--------------------------------|
+| `id`          | UUID      | Primary key                    |
+| `template_id` | UUID      | Template (FK → `templates.id`) |
+| `feature`     | TEXT      | Feature description            |
+| `display_order` | INTEGER | UI display order               |
+| `created_at`  | TIMESTAMP | Creation timestamp             |
+
+---
+
+#### **template_components**
+Individual components in a template.
+
+| Column        | Type        | Description                    |
+|---------------|-------------|--------------------------------|
+| `id`          | UUID        | Primary key                    |
+| `template_id` | UUID        | Template (FK → `templates.id`) |
+| `name`        | VARCHAR(255) | Component name                 |
+| `service`     | VARCHAR(255) | Cloud service name             |
+| `configuration` | TEXT      | Optional configuration         |
+| `monthly_cost` | DECIMAL    | Monthly cost                   |
+| `purpose`     | TEXT        | Purpose/role                   |
+| `display_order` | INTEGER   | UI display order               |
+| `created_at`  | TIMESTAMP   | Creation timestamp             |
+
+---
+
+#### **reviews**
+User reviews for templates.
+
+| Column        | Type        | Description                    |
+|---------------|-------------|--------------------------------|
+| `id`          | UUID        | Primary key                    |
+| `template_id` | UUID        | Template (FK → `templates.id`) |
+| `user_id`     | UUID        | User (FK → `users.id`)         |
+| `rating`      | INTEGER     | Rating (1–5)                   |
+| `title`       | VARCHAR(255) | Review title                   |
+| `content`     | TEXT        | Review content                 |
+| `use_case`    | VARCHAR(255) | Use case label                 |
+| `team_size`   | VARCHAR(50) | Team size                      |
+| `deployment_time` | VARCHAR(50) | Deployment time             |
+| `helpful_count` | INTEGER   | Helpful votes count            |
+| `creator_response` | TEXT   | Optional creator response      |
+| `created_at`  | TIMESTAMP   | Creation timestamp             |
+| `updated_at`  | TIMESTAMP   | Update timestamp               |
 
 ---
 
@@ -532,6 +711,8 @@ This enables **rule-driven, provider-independent validation** with no logic hard
 
 ```
 users (1) ──→ (N) projects
+users (1) ──→ (N) templates
+users (1) ──→ (N) reviews
 projects (1) ──→ (N) resources
 resources (N) ──→ (1) resource_types
 resource_types (N) ──→ (1) resource_categories
@@ -550,6 +731,14 @@ resource_categories (1) ──→ (N) service_pricing
 resource_types (1) ──→ (N) service_type_pricing
 resources (1) ──→ (N) resource_pricing
 resource_pricing (1) ──→ (N) pricing_components
+categories (1) ──→ (N) templates
+templates (1) ──→ (N) template_use_cases
+templates (1) ──→ (N) template_features
+templates (1) ──→ (N) template_components
+templates (1) ──→ (N) reviews
+templates (N) ──→ (N) technologies
+templates (N) ──→ (N) iac_formats
+templates (N) ──→ (N) compliance_standards
 ```
 
 ---
