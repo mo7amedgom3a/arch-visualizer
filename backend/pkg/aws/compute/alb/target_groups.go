@@ -6,7 +6,6 @@ import (
 
 	awsmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/compute"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
-	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
 	awscomputeservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 )
@@ -19,17 +18,10 @@ func TargetGroupRunner() {
 	fmt.Println("TARGET GROUP OPERATIONS")
 	fmt.Println("============================================")
 
-	// Initialize AWS client
-	client, err := awssdk.NewAWSClient(ctx)
-	if err != nil {
-		fmt.Printf("Error creating AWS client: %v\n", err)
-		return
-	}
-
 	// Initialize compute service
-	computeService := awscomputeservice.NewComputeService(client)
+	computeService := awscomputeservice.NewComputeService()
 
-	region := client.GetRegion()
+	region := "us-east-1"
 	fmt.Printf("\nRegion: %s\n", region)
 
 	// Create a target group

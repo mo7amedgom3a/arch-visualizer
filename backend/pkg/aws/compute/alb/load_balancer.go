@@ -27,13 +27,13 @@ func ALBRunner() {
 		return
 	}
 
-	region := client.GetRegion()
+	region := "us-east-1"
 	fmt.Printf("\nRegion: %s\n", region)
 
 	// Initialize compute service for load balancer operations
 	// Note: Since AWS account doesn't support creating load balancers,
 	// we'll use mock data for all operations
-	computeService := awscomputeservice.NewComputeService(client)
+	computeService := awscomputeservice.NewComputeService()
 
 	// Use mock mode - skip real SDK calls
 	useMockData := true

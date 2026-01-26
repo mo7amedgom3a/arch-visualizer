@@ -26,11 +26,11 @@ func ASGRunner() {
 		return
 	}
 
-	region := client.GetRegion()
+	region := "us-east-1"
 	fmt.Printf("\nRegion: %s\n", region)
 
 	// Initialize compute service for ASG operations
-	computeService := awscomputeservice.NewComputeService(client)
+	computeService := awscomputeservice.NewComputeService()
 
 	// Use mock mode - skip real SDK calls
 	useMockData := true
@@ -259,7 +259,7 @@ func updateAutoScalingGroup(ctx context.Context, computeService *awscomputeservi
 	// Convert to domain model
 	arn := awsASGOutput.AutoScalingGroupARN
 	createdTime := awsASGOutput.CreatedTime.Format("2006-01-02T15:04:05Z07:00")
-	region := client.GetRegion()
+	region := "us-east-1"
 	return &domaincompute.AutoScalingGroup{
 		ID:                awsASGOutput.AutoScalingGroupName,
 		ARN:               &arn,
