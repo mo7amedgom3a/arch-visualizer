@@ -8,9 +8,9 @@ import (
 	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/storage/s3"
 	// awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/compute/lambda"
 	// iam "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/aws/iam"
-	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario1_basic_web_app"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario1_basic_web_app"
 	// "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario2_high_availability"
-	scenario4 "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario4_lambda_s3"
+	//scenario4 "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario4_lambda_s3"
 )
 
 func main() {
@@ -29,8 +29,9 @@ func main() {
 	// awslambda.LambdaPricingRunner()
 
 	// Lambda + S3 use case scenario
-	scenario4.LambdaS3Runner()
+	//scenario4.LambdaS3Runner()
 
 	// To fetch and save Lambda policies, uncomment the following:
 	// iam.FetchAndSaveLambdaPolicies()
+	scenario1_basic_web_app.BasicWebAppRunner()
 }

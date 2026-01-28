@@ -6,8 +6,13 @@ import (
 	"time"
 
 	awspricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
+	awscomputeservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
+	awsiamservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
+	awsstorageservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/storage"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 	usecasescommon "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/common"
 )
 
@@ -20,39 +25,62 @@ func LambdaS3Runner() {
 	fmt.Println("SCENARIO 4: LAMBDA + S3 INTEGRATION")
 	fmt.Println("============================================")
 	fmt.Printf("Region: %s\n", usecasescommon.FormatRegionName(region))
-	fmt.Println("\n[MOCK MODE] All resources are simulated - no AWS SDK calls")
+	fmt.Println("\n[OUTPUT MODE] Domain models + AWS output models")
 
-	// Initialize mock ID generator
-	gen := usecasescommon.NewMockIDGenerator()
+	// Initialize virtual services
+	computeService := awscomputeservice.NewComputeService()
+	iamService := awsiamservice.NewIAMService()
+	storageService := awsstorageservice.NewStorageService()
 
 	// Step 1: Create S3 bucket for Lambda code and data
 	fmt.Println("\n--- Step 1: Creating S3 Bucket ---")
-	s3Bucket := usecasescommon.CreateMockS3Bucket("lambda-data-bucket-12345", region, gen)
-	if err := s3Bucket.Validate(); err != nil {
-		fmt.Printf("✗ S3 bucket validation failed: %v\n", err)
+	s3Bucket, s3Output, err := usecasescommon.CreateS3BucketWithOutput(ctx, storageService, &domainstorage.S3Bucket{
+		Name:   "lambda-data-bucket-12345",
+		Region: region,
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create S3 bucket: %v\n", err)
 		return
 	}
-	fmt.Printf("✓ S3 Bucket created: %s\n", s3Bucket.Name)
-	if s3Bucket.ARN != nil {
-		fmt.Printf("  ARN: %s\n", *s3Bucket.ARN)
+	fmt.Printf("✓ S3 Bucket created: %s\n", s3Output.Name)
+	if s3Output.ARN != "" {
+		fmt.Printf("  ARN: %s\n", s3Output.ARN)
 	}
-	if s3Bucket.BucketDomainName != nil {
-		fmt.Printf("  Domain: %s\n", *s3Bucket.BucketDomainName)
+	if s3Output.BucketDomainName != "" {
+		fmt.Printf("  Domain: %s\n", s3Output.BucketDomainName)
 	}
-	if s3Bucket.BucketRegionalDomainName != nil {
-		fmt.Printf("  Regional Domain: %s\n", *s3Bucket.BucketRegionalDomainName)
+	if s3Output.BucketRegionalDomainName != "" {
+		fmt.Printf("  Regional Domain: %s\n", s3Output.BucketRegionalDomainName)
 	}
 
 	// Step 2: Create IAM Role for Lambda function
 	fmt.Println("\n--- Step 2: Creating IAM Role for Lambda ---")
-	lambdaRole := usecasescommon.CreateMockIAMRoleForLambda(
-		"lambda-s3-access-role",
-		"IAM role for Lambda function to access S3 bucket",
-		gen,
-	)
-	fmt.Printf("✓ IAM Role created: %s\n", lambdaRole.Name)
-	if lambdaRole.ARN != nil {
-		fmt.Printf("  ARN: %s\n", *lambdaRole.ARN)
+	assumeRolePolicy := `{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Principal": {
+					"Service": "lambda.amazonaws.com"
+				},
+				"Action": "sts:AssumeRole"
+			}
+		]
+	}`
+	roleDescription := "IAM role for Lambda function to access S3 bucket"
+	lambdaRole, roleOutput, err := usecasescommon.CreateRoleWithOutput(ctx, iamService, &domainiam.Role{
+		Name:             "lambda-s3-access-role",
+		Description:      &roleDescription,
+		Path:             stringPtr("/"),
+		AssumeRolePolicy: assumeRolePolicy,
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create IAM Role: %v\n", err)
+		return
+	}
+	fmt.Printf("✓ IAM Role created: %s\n", roleOutput.Name)
+	if roleOutput.ARN != "" {
+		fmt.Printf("  ARN: %s\n", roleOutput.ARN)
 	}
 	fmt.Printf("  Trust Policy: Allows lambda.amazonaws.com to assume role\n")
 
@@ -77,15 +105,18 @@ func LambdaS3Runner() {
 		]
 	}`, s3Bucket.Name, s3Bucket.Name)
 
-	s3Policy := &domainiam.Policy{
-		ID:             "lambda-s3-access-policy",
+	s3Policy, policyOutput, err := usecasescommon.CreatePolicyWithOutput(ctx, iamService, &domainiam.Policy{
 		Name:           "LambdaS3AccessPolicy",
 		Description:    stringPtr("Policy allowing Lambda to access S3 bucket"),
 		Path:           stringPtr("/"),
 		PolicyDocument: s3PolicyDocument,
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create IAM Policy: %v\n", err)
+		return
 	}
 
-	fmt.Printf("✓ IAM Policy created: %s\n", s3Policy.Name)
+	fmt.Printf("✓ IAM Policy created: %s\n", policyOutput.Name)
 	fmt.Printf("  Permissions:\n")
 	fmt.Printf("    - s3:GetObject (read objects from bucket)\n")
 	fmt.Printf("    - s3:PutObject (write objects to bucket)\n")
@@ -93,8 +124,16 @@ func LambdaS3Runner() {
 	fmt.Printf("    - s3:ListBucket (list bucket contents)\n")
 	fmt.Printf("  Resource: %s and %s/*\n", s3Bucket.Name, s3Bucket.Name)
 
-	// Step 4: Attach policy to role (simulated)
+	// Step 4: Attach policy to role
 	fmt.Println("\n--- Step 4: Attaching IAM Policy to Role ---")
+	if policyOutput.ARN == "" {
+		fmt.Printf("✗ IAM Policy ARN missing\n")
+		return
+	}
+	if err := usecasescommon.AttachPolicyToRole(ctx, iamService, policyOutput.ARN, lambdaRole.Name); err != nil {
+		fmt.Printf("✗ Failed to attach policy to role: %v\n", err)
+		return
+	}
 	fmt.Printf("✓ Policy '%s' attached to role '%s'\n", s3Policy.Name, lambdaRole.Name)
 	fmt.Printf("  Lambda function will now have permissions to:\n")
 	fmt.Printf("    - Read from S3 bucket: %s\n", s3Bucket.Name)
@@ -104,6 +143,10 @@ func LambdaS3Runner() {
 
 	// Step 5: Create Lambda function with S3 code deployment
 	fmt.Println("\n--- Step 5: Creating Lambda Function ---")
+	if roleOutput.ARN == "" {
+		fmt.Printf("✗ IAM Role ARN missing\n")
+		return
+	}
 	s3CodeBucket := "lambda-code-bucket-12345"
 	s3CodeKey := "functions/data-processor.zip"
 	runtime := "python3.9"
@@ -111,49 +154,51 @@ func LambdaS3Runner() {
 	memorySize := 256
 	timeout := 30
 
-	lambdaFunction := usecasescommon.CreateMockLambdaFunction(
-		"data-processor-function",
-		*lambdaRole.ARN,
-		region,
-		&s3CodeBucket,
-		&s3CodeKey,
-		&runtime,
-		&handler,
-		&memorySize,
-		&timeout,
-		gen,
-	)
-
-	// Add environment variables
-	lambdaFunction.Environment = map[string]string{
-		"S3_BUCKET_NAME": s3Bucket.Name,
-		"REGION":         region,
-		"LOG_LEVEL":      "INFO",
-	}
-
-	// Add tags
-	lambdaFunction.Tags = map[string]string{
-		"Environment": "dev",
-		"Service":     "data-processing",
-		"ManagedBy":   "arch-visualizer",
-	}
-
-	if err := lambdaFunction.Validate(); err != nil {
-		fmt.Printf("✗ Lambda function validation failed: %v\n", err)
+	lambdaFunction, lambdaOutput, err := usecasescommon.CreateLambdaFunctionWithOutput(ctx, computeService, &domaincompute.LambdaFunction{
+		FunctionName: "data-processor-function",
+		RoleARN:      roleOutput.ARN,
+		Region:       region,
+		S3Bucket:     &s3CodeBucket,
+		S3Key:        &s3CodeKey,
+		Runtime:      &runtime,
+		Handler:      &handler,
+		MemorySize:   &memorySize,
+		Timeout:      &timeout,
+		Environment: map[string]string{
+			"S3_BUCKET_NAME": s3Bucket.Name,
+			"REGION":         region,
+			"LOG_LEVEL":      "INFO",
+		},
+		Tags: map[string]string{
+			"Environment": "dev",
+			"Service":     "data-processing",
+			"ManagedBy":   "arch-visualizer",
+		},
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create Lambda Function: %v\n", err)
 		return
 	}
 
-	fmt.Printf("✓ Lambda Function created: %s\n", lambdaFunction.FunctionName)
-	if lambdaFunction.ARN != nil {
-		fmt.Printf("  ARN: %s\n", *lambdaFunction.ARN)
+	fmt.Printf("✓ Lambda Function created: %s\n", lambdaOutput.FunctionName)
+	if lambdaOutput.ARN != "" {
+		fmt.Printf("  ARN: %s\n", lambdaOutput.ARN)
 	}
-	if lambdaFunction.InvokeARN != nil {
-		fmt.Printf("  Invoke ARN: %s\n", *lambdaFunction.InvokeARN)
+	if lambdaOutput.InvokeARN != "" {
+		fmt.Printf("  Invoke ARN: %s\n", lambdaOutput.InvokeARN)
 	}
-	fmt.Printf("  Runtime: %s\n", *lambdaFunction.Runtime)
-	fmt.Printf("  Handler: %s\n", *lambdaFunction.Handler)
-	fmt.Printf("  Memory: %d MB\n", *lambdaFunction.MemorySize)
-	fmt.Printf("  Timeout: %d seconds\n", *lambdaFunction.Timeout)
+	if lambdaOutput.Runtime != nil {
+		fmt.Printf("  Runtime: %s\n", *lambdaOutput.Runtime)
+	}
+	if lambdaOutput.Handler != nil {
+		fmt.Printf("  Handler: %s\n", *lambdaOutput.Handler)
+	}
+	if lambdaOutput.MemorySize != nil {
+		fmt.Printf("  Memory: %d MB\n", *lambdaOutput.MemorySize)
+	}
+	if lambdaOutput.Timeout != nil {
+		fmt.Printf("  Timeout: %d seconds\n", *lambdaOutput.Timeout)
+	}
 	fmt.Printf("  Code Location: s3://%s/%s\n", s3CodeBucket, s3CodeKey)
 	fmt.Printf("  IAM Role: %s\n", lambdaFunction.RoleARN)
 	fmt.Printf("  Environment Variables:\n")
@@ -168,15 +213,19 @@ func LambdaS3Runner() {
 	fmt.Printf("S3 Bucket: %s\n", s3Bucket.Name)
 	fmt.Printf("  - Purpose: Data storage for Lambda function\n")
 	fmt.Printf("  - Region: %s\n", s3Bucket.Region)
-	fmt.Printf("\nIAM Role: %s\n", lambdaRole.Name)
+	fmt.Printf("\nIAM Role: %s\n", roleOutput.Name)
 	fmt.Printf("  - Purpose: Grants Lambda function permissions\n")
 	fmt.Printf("  - Trust Policy: lambda.amazonaws.com\n")
 	fmt.Printf("  - Attached Policies:\n")
-	fmt.Printf("    - %s (S3 access)\n", s3Policy.Name)
+	fmt.Printf("    - %s (S3 access)\n", policyOutput.Name)
 	fmt.Printf("\nLambda Function: %s\n", lambdaFunction.FunctionName)
 	fmt.Printf("  - Purpose: Process data from S3 bucket\n")
-	fmt.Printf("  - Runtime: %s\n", *lambdaFunction.Runtime)
-	fmt.Printf("  - Memory: %d MB\n", *lambdaFunction.MemorySize)
+	if lambdaFunction.Runtime != nil {
+		fmt.Printf("  - Runtime: %s\n", *lambdaFunction.Runtime)
+	}
+	if lambdaFunction.MemorySize != nil {
+		fmt.Printf("  - Memory: %d MB\n", *lambdaFunction.MemorySize)
+	}
 	fmt.Printf("  - IAM Role: %s\n", lambdaFunction.RoleARN)
 	fmt.Printf("  - Environment: S3_BUCKET_NAME=%s\n", s3Bucket.Name)
 
@@ -184,9 +233,9 @@ func LambdaS3Runner() {
 	fmt.Println("\n============================================")
 	fmt.Println("IAM POLICY DETAILS")
 	fmt.Println("============================================")
-	fmt.Printf("Policy Name: %s\n", s3Policy.Name)
+	fmt.Printf("Policy Name: %s\n", policyOutput.Name)
 	fmt.Printf("Policy Document:\n")
-	fmt.Println(s3Policy.PolicyDocument)
+	fmt.Println(policyOutput.PolicyDocument)
 	fmt.Printf("\nThis policy allows the Lambda function to:\n")
 	fmt.Printf("  1. Read objects from S3 bucket (%s)\n", s3Bucket.Name)
 	fmt.Printf("  2. Write objects to S3 bucket (%s)\n", s3Bucket.Name)

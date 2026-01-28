@@ -6,6 +6,8 @@ import (
 	"time"
 
 	awspricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
+	awscomputeservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
+	awsnetworkingservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
@@ -21,18 +23,30 @@ func BasicWebAppRunner() {
 	fmt.Println("SCENARIO 1: BASIC WEB APPLICATION")
 	fmt.Println("============================================")
 	fmt.Printf("Region: %s\n", usecasescommon.FormatRegionName(region))
-	fmt.Println("\n[MOCK MODE] All resources are simulated - no AWS SDK calls")
+	fmt.Println("\n[OUTPUT MODE] Domain models + AWS output models")
 
-	// Initialize mock ID generator
-	gen := usecasescommon.NewMockIDGenerator()
+	// Initialize virtual services
+	networkingService := awsnetworkingservice.NewNetworkingService()
+	computeService := awscomputeservice.NewComputeService()
 
 	// Step 1: Create VPC
 	fmt.Println("\n--- Step 1: Creating VPC ---")
-	vpc := usecasescommon.CreateMockVPC(region, "web-app-vpc", "10.0.0.0/16", gen)
-	fmt.Printf("✓ VPC created: %s (%s)\n", vpc.Name, vpc.ID)
-	fmt.Printf("  CIDR: %s\n", vpc.CIDR)
-	if vpc.ARN != nil {
-		fmt.Printf("  ARN: %s\n", *vpc.ARN)
+	vpcDomain := &domainnetworking.VPC{
+		Name:               "web-app-vpc",
+		Region:             region,
+		CIDR:               "10.0.0.0/16",
+		EnableDNS:          true,
+		EnableDNSHostnames: true,
+	}
+	vpc, vpcOutput, err := usecasescommon.CreateVPCWithOutput(ctx, networkingService, vpcDomain)
+	if err != nil {
+		fmt.Printf("✗ Failed to create VPC: %v\n", err)
+		return
+	}
+	fmt.Printf("✓ VPC created: %s (%s)\n", vpcOutput.Name, vpcOutput.ID)
+	fmt.Printf("  CIDR: %s\n", vpcOutput.CIDR)
+	if vpcOutput.ARN != "" {
+		fmt.Printf("  ARN: %s\n", vpcOutput.ARN)
 	}
 
 	// Step 2: Get availability zones
@@ -42,9 +56,30 @@ func BasicWebAppRunner() {
 
 	// Step 3: Create public subnets
 	fmt.Println("\n--- Step 3: Creating Public Subnets ---")
-	publicSubnet1 := usecasescommon.CreateMockSubnet(vpc.ID, "public-subnet-1", "10.0.1.0/24", azs[0], gen)
-	publicSubnet2 := usecasescommon.CreateMockSubnet(vpc.ID, "public-subnet-2", "10.0.2.0/24", azs[1], gen)
-	publicSubnets := []*domainnetworking.Subnet{publicSubnet1, publicSubnet2}
+	publicSubnets := []*domainnetworking.Subnet{}
+	publicSubnetConfigs := []struct {
+		Name string
+		CIDR string
+		AZ   string
+	}{
+		{Name: "public-subnet-1", CIDR: "10.0.1.0/24", AZ: azs[0]},
+		{Name: "public-subnet-2", CIDR: "10.0.2.0/24", AZ: azs[1]},
+	}
+	for _, cfg := range publicSubnetConfigs {
+		subnet, subnetOutput, err := usecasescommon.CreateSubnetWithOutput(ctx, networkingService, &domainnetworking.Subnet{
+			Name:             cfg.Name,
+			VPCID:            vpc.ID,
+			CIDR:             cfg.CIDR,
+			AvailabilityZone: &cfg.AZ,
+			IsPublic:         true,
+		})
+		if err != nil {
+			fmt.Printf("✗ Failed to create public subnet %s: %v\n", cfg.Name, err)
+			return
+		}
+		publicSubnets = append(publicSubnets, subnet)
+		_ = subnetOutput
+	}
 	fmt.Printf("✓ Created %d public subnets:\n", len(publicSubnets))
 	for i, subnet := range publicSubnets {
 		fmt.Printf("  %d. %s (%s) in %s\n", i+1, subnet.Name, subnet.ID, *subnet.AvailabilityZone)
@@ -52,9 +87,30 @@ func BasicWebAppRunner() {
 
 	// Step 4: Create private subnets
 	fmt.Println("\n--- Step 4: Creating Private Subnets ---")
-	privateSubnet1 := usecasescommon.CreateMockSubnet(vpc.ID, "private-subnet-1", "10.0.10.0/24", azs[0], gen)
-	privateSubnet2 := usecasescommon.CreateMockSubnet(vpc.ID, "private-subnet-2", "10.0.11.0/24", azs[1], gen)
-	privateSubnets := []*domainnetworking.Subnet{privateSubnet1, privateSubnet2}
+	privateSubnets := []*domainnetworking.Subnet{}
+	privateSubnetConfigs := []struct {
+		Name string
+		CIDR string
+		AZ   string
+	}{
+		{Name: "private-subnet-1", CIDR: "10.0.10.0/24", AZ: azs[0]},
+		{Name: "private-subnet-2", CIDR: "10.0.11.0/24", AZ: azs[1]},
+	}
+	for _, cfg := range privateSubnetConfigs {
+		subnet, subnetOutput, err := usecasescommon.CreateSubnetWithOutput(ctx, networkingService, &domainnetworking.Subnet{
+			Name:             cfg.Name,
+			VPCID:            vpc.ID,
+			CIDR:             cfg.CIDR,
+			AvailabilityZone: &cfg.AZ,
+			IsPublic:         false,
+		})
+		if err != nil {
+			fmt.Printf("✗ Failed to create private subnet %s: %v\n", cfg.Name, err)
+			return
+		}
+		privateSubnets = append(privateSubnets, subnet)
+		_ = subnetOutput
+	}
 	fmt.Printf("✓ Created %d private subnets:\n", len(privateSubnets))
 	for i, subnet := range privateSubnets {
 		fmt.Printf("  %d. %s (%s) in %s\n", i+1, subnet.Name, subnet.ID, *subnet.AvailabilityZone)
@@ -62,83 +118,153 @@ func BasicWebAppRunner() {
 
 	// Step 5: Create Internet Gateway
 	fmt.Println("\n--- Step 5: Creating Internet Gateway ---")
-	igw := usecasescommon.CreateMockInternetGateway(vpc.ID, "web-app-igw", gen)
-	fmt.Printf("✓ Internet Gateway created: %s (%s)\n", igw.Name, igw.ID)
-	if igw.ARN != nil {
-		fmt.Printf("  ARN: %s\n", *igw.ARN)
+	igw, igwOutput, err := usecasescommon.CreateInternetGatewayWithOutput(ctx, networkingService, &domainnetworking.InternetGateway{
+		Name:  "web-app-igw",
+		VPCID: vpc.ID,
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create Internet Gateway: %v\n", err)
+		return
+	}
+	if err := usecasescommon.AttachInternetGateway(ctx, networkingService, igw.ID, vpc.ID); err != nil {
+		fmt.Printf("✗ Failed to attach Internet Gateway: %v\n", err)
+		return
+	}
+	fmt.Printf("✓ Internet Gateway created: %s (%s)\n", igwOutput.Name, igwOutput.ID)
+	if igwOutput.ARN != "" {
+		fmt.Printf("  ARN: %s\n", igwOutput.ARN)
 	}
 	fmt.Printf("  Attached to VPC: %s\n", igw.VPCID)
 
 	// Step 6: Create public route table
 	fmt.Println("\n--- Step 6: Creating Public Route Table ---")
-	publicRT := usecasescommon.CreateMockRouteTable(vpc.ID, "public-route-table", gen)
-	fmt.Printf("✓ Public Route Table created: %s (%s)\n", publicRT.Name, publicRT.ID)
+	publicRT, publicRTOutput, err := usecasescommon.CreateRouteTableWithOutput(ctx, networkingService, &domainnetworking.RouteTable{
+		Name:  "public-route-table",
+		VPCID: vpc.ID,
+		Routes: []domainnetworking.Route{
+			{
+				DestinationCIDR: "0.0.0.0/0",
+				TargetID:        igw.ID,
+				TargetType:      "internet_gateway",
+			},
+		},
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create public route table: %v\n", err)
+		return
+	}
+	fmt.Printf("✓ Public Route Table created: %s (%s)\n", publicRTOutput.Name, publicRTOutput.ID)
 	fmt.Printf("  Route: 0.0.0.0/0 -> %s (Internet Gateway)\n", igw.ID)
 
 	// Step 7: Create private route table
 	fmt.Println("\n--- Step 7: Creating Private Route Table ---")
-	privateRT := usecasescommon.CreateMockRouteTable(vpc.ID, "private-route-table", gen)
-	fmt.Printf("✓ Private Route Table created: %s (%s)\n", privateRT.Name, privateRT.ID)
+	privateRT, privateRTOutput, err := usecasescommon.CreateRouteTableWithOutput(ctx, networkingService, &domainnetworking.RouteTable{
+		Name:  "private-route-table",
+		VPCID: vpc.ID,
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create private route table: %v\n", err)
+		return
+	}
+	fmt.Printf("✓ Private Route Table created: %s (%s)\n", privateRTOutput.Name, privateRTOutput.ID)
 	fmt.Printf("  Note: No internet gateway route (private subnets)\n")
 
 	// Step 8: Associate route tables with subnets
 	fmt.Println("\n--- Step 8: Associating Route Tables with Subnets ---")
-	fmt.Printf("✓ Associated public route table with public subnets\n")
 	for _, subnet := range publicSubnets {
+		if err := usecasescommon.AssociateRouteTable(ctx, networkingService, publicRT.ID, subnet.ID); err != nil {
+			fmt.Printf("✗ Failed to associate public route table: %v\n", err)
+			return
+		}
 		fmt.Printf("  - %s -> %s\n", subnet.Name, publicRT.Name)
 	}
-	fmt.Printf("✓ Associated private route table with private subnets\n")
 	for _, subnet := range privateSubnets {
+		if err := usecasescommon.AssociateRouteTable(ctx, networkingService, privateRT.ID, subnet.ID); err != nil {
+			fmt.Printf("✗ Failed to associate private route table: %v\n", err)
+			return
+		}
 		fmt.Printf("  - %s -> %s\n", subnet.Name, privateRT.Name)
 	}
 
 	// Step 9: Create security groups
 	fmt.Println("\n--- Step 9: Creating Security Groups ---")
-	webSG := usecasescommon.CreateMockSecurityGroup(vpc.ID, "web-sg", "Security group for web tier", gen)
-	appSG := usecasescommon.CreateMockSecurityGroup(vpc.ID, "app-sg", "Security group for application tier", gen)
-	dbSG := usecasescommon.CreateMockSecurityGroup(vpc.ID, "db-sg", "Security group for database tier", gen)
+	webSG, webSGOutput, err := usecasescommon.CreateSecurityGroupWithOutput(ctx, networkingService, &domainnetworking.SecurityGroup{
+		Name:        "web-sg",
+		VPCID:       vpc.ID,
+		Description: "Security group for web tier",
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create web security group: %v\n", err)
+		return
+	}
+	appSG, appSGOutput, err := usecasescommon.CreateSecurityGroupWithOutput(ctx, networkingService, &domainnetworking.SecurityGroup{
+		Name:        "app-sg",
+		VPCID:       vpc.ID,
+		Description: "Security group for application tier",
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create app security group: %v\n", err)
+		return
+	}
+	dbSG, dbSGOutput, err := usecasescommon.CreateSecurityGroupWithOutput(ctx, networkingService, &domainnetworking.SecurityGroup{
+		Name:        "db-sg",
+		VPCID:       vpc.ID,
+		Description: "Security group for database tier",
+	})
+	if err != nil {
+		fmt.Printf("✗ Failed to create db security group: %v\n", err)
+		return
+	}
 	securityGroups := map[string]*domainnetworking.SecurityGroup{
 		"web": webSG,
 		"app": appSG,
 		"db":  dbSG,
 	}
 	fmt.Printf("✓ Created %d security groups:\n", len(securityGroups))
-	for tier, sg := range securityGroups {
-		fmt.Printf("  - %s: %s (%s) - %s\n", tier, sg.Name, sg.ID, sg.Description)
-	}
+	fmt.Printf("  - web: %s (%s) - %s\n", webSGOutput.Name, webSGOutput.ID, webSGOutput.Description)
+	fmt.Printf("  - app: %s (%s) - %s\n", appSGOutput.Name, appSGOutput.ID, appSGOutput.Description)
+	fmt.Printf("  - db: %s (%s) - %s\n", dbSGOutput.Name, dbSGOutput.ID, dbSGOutput.Description)
 
 	// Step 10: Create EC2 instances in public subnets (web tier)
 	fmt.Println("\n--- Step 10: Creating EC2 Instances (Web Tier) ---")
 	webInstances := []*domaincompute.Instance{}
 	for i, subnet := range publicSubnets {
-		instance := usecasescommon.CreateMockEC2Instance(
-			fmt.Sprintf("web-server-%d", i+1),
-			"t3.micro",
-			subnet.ID,
-			webSG.ID,
-			region,
-			*subnet.AvailabilityZone,
-			gen,
-		)
+		instance, instanceOutput, err := usecasescommon.CreateInstanceWithOutput(ctx, computeService, &domaincompute.Instance{
+			Name:             fmt.Sprintf("web-server-%d", i+1),
+			Region:           region,
+			AvailabilityZone: subnet.AvailabilityZone,
+			InstanceType:     "t3.micro",
+			AMI:              "ami-0c55b159cbfafe1f0",
+			SubnetID:         subnet.ID,
+			SecurityGroupIDs: []string{webSG.ID},
+		})
+		if err != nil {
+			fmt.Printf("✗ Failed to create web instance: %v\n", err)
+			return
+		}
 		webInstances = append(webInstances, instance)
-		fmt.Printf("✓ Created: %s (%s) in %s\n", instance.Name, instance.ID, *subnet.AvailabilityZone)
+		fmt.Printf("✓ Created: %s (%s) in %s\n", instanceOutput.Name, instanceOutput.ID, *subnet.AvailabilityZone)
 	}
 
 	// Step 11: Create EC2 instances in private subnets (app tier)
 	fmt.Println("\n--- Step 11: Creating EC2 Instances (Application Tier) ---")
 	appInstances := []*domaincompute.Instance{}
 	for i, subnet := range privateSubnets {
-		instance := usecasescommon.CreateMockEC2Instance(
-			fmt.Sprintf("app-server-%d", i+1),
-			"t3.small",
-			subnet.ID,
-			appSG.ID,
-			region,
-			*subnet.AvailabilityZone,
-			gen,
-		)
+		instance, instanceOutput, err := usecasescommon.CreateInstanceWithOutput(ctx, computeService, &domaincompute.Instance{
+			Name:             fmt.Sprintf("app-server-%d", i+1),
+			Region:           region,
+			AvailabilityZone: subnet.AvailabilityZone,
+			InstanceType:     "t3.small",
+			AMI:              "ami-0c55b159cbfafe1f0",
+			SubnetID:         subnet.ID,
+			SecurityGroupIDs: []string{appSG.ID},
+		})
+		if err != nil {
+			fmt.Printf("✗ Failed to create app instance: %v\n", err)
+			return
+		}
 		appInstances = append(appInstances, instance)
-		fmt.Printf("✓ Created: %s (%s) in %s\n", instance.Name, instance.ID, *subnet.AvailabilityZone)
+		fmt.Printf("✓ Created: %s (%s) in %s\n", instanceOutput.Name, instanceOutput.ID, *subnet.AvailabilityZone)
 	}
 
 	// Step 12: Display architecture summary
