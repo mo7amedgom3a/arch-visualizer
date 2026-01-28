@@ -16,6 +16,7 @@ type Resource struct {
 	Name           string         `gorm:"type:text;not null" json:"name"`
 	PosX           int            `gorm:"not null" json:"pos_x"`
 	PosY           int            `gorm:"not null" json:"pos_y"`
+	IsVisualOnly   bool           `gorm:"default:false" json:"is_visual_only"`
 	Config         datatypes.JSON `gorm:"type:jsonb;not null;default:'{}'" json:"config"`
 	CreatedAt      time.Time      `gorm:"default:now()" json:"created_at"`
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`

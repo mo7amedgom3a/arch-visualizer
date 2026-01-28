@@ -1,0 +1,122 @@
+{
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "position": {
+        "x": 280,
+        "y": 120
+      },
+      "data": {
+        "label": "Region",
+        "resourceType": "region",
+        "config": {
+          "name": "us-east-1"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": null
+    },
+    {
+      "id": "vpc-2",
+      "type": "containerNode",
+      "position": {
+        "x": 20,
+        "y": 40
+      },
+      "data": {
+        "label": "VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "project-vpc",
+          "cidr": "10.0.0.0/16",
+          "regionId": "us-east-1"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "region-1"
+    },
+    {
+      "id": "route-table-3",
+      "type": "resourceNode",
+      "position": {
+        "x": 60,
+        "y": 30
+      },
+      "data": {
+        "label": "Main Route Table",
+        "resourceType": "route-table",
+        "config": {
+          "isMain": true,
+          "vpcId": "vpc-2"
+        },
+        "status": "valid"
+      },
+      "parentId": "vpc-2"
+    },
+    {
+      "id": "subnet-4",
+      "type": "containerNode",
+      "position": {
+        "x": 60,
+        "y": 80
+      },
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "name": "project-subnet-private2-us-east-1b",
+          "cidr": "10.0.144.0/16",
+          "availabilityZoneId": "us-east-1b"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-2"
+    },
+    {
+      "id": "ec2-5",
+      "type": "resourceNode",
+      "position": {
+        "x": 100,
+        "y": 80
+      },
+      "data": {
+        "label": "EC2",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro",
+          "ami": "ami-0123456789",
+          "name": "web-server"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "subnet-4"
+    },
+    {
+      "id": "security-group-6",
+      "type": "containerNode",
+      "position": {
+        "x": 40,
+        "y": 60
+      },
+      "data": {
+        "label": "Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "default-sg",
+          "description": "Default SG"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-2"
+    }
+  ],
+  "edges": [],
+  "variables": [],
+  "timestamp": 1769555019056
+}
