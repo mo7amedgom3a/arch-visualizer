@@ -1,9 +1,9 @@
 package compute
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
+
+	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
 )
 
 // LambdaFunction represents a cloud-agnostic Lambda function
@@ -56,27 +56,27 @@ type LambdaVPCConfig struct {
 func (f *LambdaFunction) Validate() error {
 	// Function name is required
 	if f.FunctionName == "" {
-		return errors.New("function_name is required")
+		return domainerrors.New(domainerrors.CodeLambdaFunctionNameRequired, domainerrors.KindValidation, "function_name is required")
 	}
 
 	// Validate function name format
 	if err := validateFunctionName(f.FunctionName); err != nil {
-		return fmt.Errorf("invalid function_name: %w", err)
+		return domainerrors.Wrap(err, domainerrors.CodeLambdaInvalidFunctionName, domainerrors.KindValidation, "invalid function_name")
 	}
 
 	// Role ARN is required
 	if f.RoleARN == "" {
-		return errors.New("role_arn is required")
+		return domainerrors.New(domainerrors.CodeLambdaRoleARNRequired, domainerrors.KindValidation, "role_arn is required")
 	}
 
 	// Validate role ARN format
 	if err := validateRoleARN(f.RoleARN); err != nil {
-		return fmt.Errorf("invalid role_arn: %w", err)
+		return domainerrors.Wrap(err, domainerrors.CodeLambdaInvalidRoleARN, domainerrors.KindValidation, "invalid role_arn")
 	}
 
 	// Region is required
 	if f.Region == "" {
-		return errors.New("region is required")
+		return domainerrors.New(domainerrors.CodeLambdaRegionRequired, domainerrors.KindValidation, "region is required")
 	}
 
 	// Code source validation - must have either S3 OR Container image (not both)
@@ -84,68 +84,71 @@ func (f *LambdaFunction) Validate() error {
 	hasContainerImage := f.PackageType != nil && *f.PackageType == "Image" && f.ImageURI != nil && *f.ImageURI != ""
 
 	if !hasS3Code && !hasContainerImage {
-		return errors.New("either S3 code (s3_bucket and s3_key) or container image (package_type='Image' and image_uri) is required")
+		return domainerrors.New(domainerrors.CodeLambdaCodeSourceRequired, domainerrors.KindValidation, "either S3 code (s3_bucket and s3_key) or container image (package_type='Image' and image_uri) is required")
 	}
 
 	if hasS3Code && hasContainerImage {
-		return errors.New("cannot specify both S3 code and container image - choose one deployment method")
+		return domainerrors.New(domainerrors.CodeLambdaCodeSourceConflict, domainerrors.KindValidation, "cannot specify both S3 code and container image - choose one deployment method")
 	}
 
 	// S3 code validation
 	if hasS3Code {
 		if f.S3Bucket == nil || *f.S3Bucket == "" {
-			return errors.New("s3_bucket is required when using S3 code deployment")
+			return domainerrors.New(domainerrors.CodeLambdaS3BucketRequired, domainerrors.KindValidation, "s3_bucket is required when using S3 code deployment")
 		}
 		if f.S3Key == nil || *f.S3Key == "" {
-			return errors.New("s3_key is required when using S3 code deployment")
+			return domainerrors.New(domainerrors.CodeLambdaS3KeyRequired, domainerrors.KindValidation, "s3_key is required when using S3 code deployment")
 		}
 		// Runtime and Handler are required for S3/zip deployments
 		if f.Runtime == nil || *f.Runtime == "" {
-			return errors.New("runtime is required when using S3 code deployment")
+			return domainerrors.New(domainerrors.CodeLambdaRuntimeRequired, domainerrors.KindValidation, "runtime is required when using S3 code deployment")
 		}
 		if f.Handler == nil || *f.Handler == "" {
-			return errors.New("handler is required when using S3 code deployment")
+			return domainerrors.New(domainerrors.CodeLambdaHandlerRequired, domainerrors.KindValidation, "handler is required when using S3 code deployment")
 		}
 	}
 
 	// Container image validation
 	if hasContainerImage {
 		if f.PackageType == nil || *f.PackageType != "Image" {
-			return errors.New("package_type must be 'Image' when using container image deployment")
+			return domainerrors.New(domainerrors.CodeLambdaPackageTypeInvalid, domainerrors.KindValidation, "package_type must be 'Image' when using container image deployment")
 		}
 		if f.ImageURI == nil || *f.ImageURI == "" {
-			return errors.New("image_uri is required when using container image deployment")
+			return domainerrors.New(domainerrors.CodeLambdaImageURIRequired, domainerrors.KindValidation, "image_uri is required when using container image deployment")
 		}
 		// Runtime and Handler should not be set for container images
 		if f.Runtime != nil && *f.Runtime != "" {
-			return errors.New("runtime should not be set when using container image deployment")
+			return domainerrors.New(domainerrors.CodeLambdaRuntimeNotAllowed, domainerrors.KindValidation, "runtime should not be set when using container image deployment")
 		}
 		if f.Handler != nil && *f.Handler != "" {
-			return errors.New("handler should not be set when using container image deployment")
+			return domainerrors.New(domainerrors.CodeLambdaHandlerNotAllowed, domainerrors.KindValidation, "handler should not be set when using container image deployment")
 		}
 	}
 
 	// Memory size validation
 	if f.MemorySize != nil {
 		if *f.MemorySize < 128 || *f.MemorySize > 10240 {
-			return errors.New("memory_size must be between 128 and 10240 MB")
+			return domainerrors.New(domainerrors.CodeLambdaInvalidMemorySize, domainerrors.KindValidation, "memory_size must be between 128 and 10240 MB").
+				WithMeta("memory_size", *f.MemorySize)
 		}
 		if *f.MemorySize%64 != 0 {
-			return errors.New("memory_size must be a multiple of 64 MB")
+			return domainerrors.New(domainerrors.CodeLambdaInvalidMemorySize, domainerrors.KindValidation, "memory_size must be a multiple of 64 MB").
+				WithMeta("memory_size", *f.MemorySize)
 		}
 	}
 
 	// Timeout validation
 	if f.Timeout != nil {
 		if *f.Timeout < 1 || *f.Timeout > 900 {
-			return errors.New("timeout must be between 1 and 900 seconds")
+			return domainerrors.New(domainerrors.CodeLambdaInvalidTimeout, domainerrors.KindValidation, "timeout must be between 1 and 900 seconds").
+				WithMeta("timeout", *f.Timeout)
 		}
 	}
 
 	// VPC config validation
 	if f.VPCConfig != nil {
 		if len(f.VPCConfig.SubnetIDs) == 0 && len(f.VPCConfig.SecurityGroupIDs) == 0 {
-			return errors.New("vpc_config must have at least one subnet_id or security_group_id")
+			return domainerrors.New(domainerrors.CodeLambdaInvalidVPCConfig, domainerrors.KindValidation, "vpc_config must have at least one subnet_id or security_group_id")
 		}
 	}
 
@@ -156,22 +159,22 @@ func (f *LambdaFunction) Validate() error {
 // Rules: 1-64 characters, alphanumeric + hyphens/underscores
 func validateFunctionName(name string) error {
 	if len(name) < 1 {
-		return errors.New("function name must be at least 1 character long")
+		return domainerrors.New(domainerrors.CodeLambdaInvalidFunctionName, domainerrors.KindValidation, "function name must be at least 1 character long")
 	}
 	if len(name) > 64 {
-		return errors.New("function name must be at most 64 characters long")
+		return domainerrors.New(domainerrors.CodeLambdaInvalidFunctionName, domainerrors.KindValidation, "function name must be at most 64 characters long")
 	}
 
 	// Must start with a letter, number, or underscore
 	firstChar := name[0]
 	if !isAlphanumericOrUnderscore(firstChar) {
-		return errors.New("function name must start with a letter, number, or underscore")
+		return domainerrors.New(domainerrors.CodeLambdaInvalidFunctionName, domainerrors.KindValidation, "function name must start with a letter, number, or underscore")
 	}
 
 	// Can only contain alphanumeric characters, hyphens, and underscores
 	validPattern := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 	if !validPattern.MatchString(name) {
-		return errors.New("function name can only contain alphanumeric characters, hyphens, and underscores")
+		return domainerrors.New(domainerrors.CodeLambdaInvalidFunctionName, domainerrors.KindValidation, "function name can only contain alphanumeric characters, hyphens, and underscores")
 	}
 
 	return nil
@@ -180,13 +183,13 @@ func validateFunctionName(name string) error {
 // validateRoleARN validates IAM role ARN format
 func validateRoleARN(arn string) error {
 	if arn == "" {
-		return errors.New("role ARN cannot be empty")
+		return domainerrors.New(domainerrors.CodeLambdaInvalidRoleARN, domainerrors.KindValidation, "role ARN cannot be empty")
 	}
 
 	// Basic ARN format validation: arn:aws:iam::account-id:role/role-name
 	arnPattern := regexp.MustCompile(`^arn:aws:iam::\d{12}:role/[\w+=,.@-]+$`)
 	if !arnPattern.MatchString(arn) {
-		return errors.New("role ARN must be in format: arn:aws:iam::account-id:role/role-name")
+		return domainerrors.New(domainerrors.CodeLambdaInvalidRoleARN, domainerrors.KindValidation, "role ARN must be in format: arn:aws:iam::account-id:role/role-name")
 	}
 
 	return nil

@@ -1,5 +1,9 @@
 package compute
 
+import (
+	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
+)
+
 // InstanceTypeInfo contains detailed information about an EC2 instance type
 type InstanceTypeInfo struct {
 	// Name is the instance type name (e.g., "t3.micro", "m5.large")
@@ -45,16 +49,16 @@ type InstanceTypeInfo struct {
 // Validate performs basic validation on the instance type info
 func (i *InstanceTypeInfo) Validate() error {
 	if i.Name == "" {
-		return ErrInstanceTypeNameRequired
+		return awserrors.NewInstanceTypeNameRequired()
 	}
 	if !i.Category.IsValid() {
-		return ErrInvalidCategory
+		return awserrors.NewInvalidCategory(string(i.Category))
 	}
 	if i.VCPU <= 0 {
-		return ErrInvalidVCPU
+		return awserrors.NewInvalidVCPU(i.VCPU)
 	}
 	if i.MemoryGiB <= 0 {
-		return ErrInvalidMemory
+		return awserrors.NewInvalidMemory(int(i.MemoryGiB))
 	}
 	return nil
 }

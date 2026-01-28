@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 
+	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -22,7 +23,7 @@ func Connect() (*gorm.DB, error) {
 	// Load configuration from .env file
 	cfg, err := config.Load()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load configuration: %w", err)
+		return nil, platformerrors.NewDatabaseConfigError("failed to load configuration").WithMeta("cause", err.Error())
 	}
 
 	// Get database connection string from config
@@ -36,18 +37,18 @@ func Connect() (*gorm.DB, error) {
 	// Open connection
 	db, err := gorm.Open(postgres.Open(dsn), gormConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, platformerrors.NewDatabaseConnectionFailed(err)
 	}
 
 	// Test connection
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get underlying sql.DB: %w", err)
+		return nil, platformerrors.NewDatabaseConnectionFailed(err).WithMeta("operation", "get_sql_db")
 	}
 	fmt.Println("Connected to database")
 
 	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, platformerrors.NewDatabaseConnectionFailed(err).WithMeta("operation", "ping")
 	}
 
 	DB = db

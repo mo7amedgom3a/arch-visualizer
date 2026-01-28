@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
 
@@ -16,7 +17,7 @@ type ProjectRepository struct {
 func NewProjectRepository() (*ProjectRepository, error) {
 	base, err := NewBaseRepository()
 	if err != nil {
-		return nil, err
+		return nil, platformerrors.NewDatabaseConnectionFailed(err)
 	}
 	return &ProjectRepository{BaseRepository: base}, nil
 }
@@ -36,7 +37,7 @@ func (r *ProjectRepository) FindByID(ctx context.Context, id uuid.UUID) (*models
 		Preload("Resources.ResourceType").
 		First(&project, "id = ?", id).Error
 	if err != nil {
-		return nil, err
+		return nil, platformerrors.HandleGormError(err, "project", "ProjectRepository.FindByID")
 	}
 	return &project, nil
 }

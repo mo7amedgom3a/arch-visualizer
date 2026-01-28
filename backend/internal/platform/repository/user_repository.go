@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
 
@@ -16,7 +17,7 @@ type UserRepository struct {
 func NewUserRepository() (*UserRepository, error) {
 	base, err := NewBaseRepository()
 	if err != nil {
-		return nil, err
+		return nil, platformerrors.NewDatabaseConnectionFailed(err)
 	}
 	return &UserRepository{BaseRepository: base}, nil
 }
@@ -31,7 +32,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*models.Us
 	var user models.User
 	err := r.GetDB(ctx).First(&user, "id = ?", id).Error
 	if err != nil {
-		return nil, err
+		return nil, platformerrors.HandleGormError(err, "user", "UserRepository.FindByID")
 	}
 	return &user, nil
 }
@@ -41,7 +42,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*models
 	var user models.User
 	err := r.GetDB(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil {
-		return nil, err
+		return nil, platformerrors.HandleGormError(err, "user", "UserRepository.FindByEmail")
 	}
 	return &user, nil
 }

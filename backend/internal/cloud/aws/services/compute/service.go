@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
+	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
@@ -31,7 +33,8 @@ func NewComputeService() *ComputeService {
 
 func (s *ComputeService) CreateInstance(ctx context.Context, instance *awsec2.Instance) (*awsec2outputs.InstanceOutput, error) {
 	if instance == nil {
-		return nil, fmt.Errorf("instance is nil")
+		return nil, domainerrors.New(awserrors.CodeEC2InstanceCreationFailed, domainerrors.KindValidation, "instance is nil").
+			WithOp("ComputeService.CreateInstance")
 	}
 
 	instanceID := services.GenerateInstanceID(instance.Name)
@@ -169,7 +172,8 @@ func (s *ComputeService) ListInstanceTypesByCategory(ctx context.Context, catego
 
 func (s *ComputeService) CreateLaunchTemplate(ctx context.Context, template *awslttemplate.LaunchTemplate) (*awslttemplateoutputs.LaunchTemplateOutput, error) {
 	if template == nil {
-		return nil, fmt.Errorf("template is nil")
+		return nil, domainerrors.New(awserrors.CodeEC2InstanceCreationFailed, domainerrors.KindValidation, "template is nil").
+			WithOp("ComputeService.CreateLaunchTemplate")
 	}
 
 	name := "test-template"
@@ -289,7 +293,8 @@ func (s *ComputeService) ListLaunchTemplateVersions(ctx context.Context, id stri
 
 func (s *ComputeService) CreateLoadBalancer(ctx context.Context, lb *awsloadbalancer.LoadBalancer) (*awsloadbalanceroutputs.LoadBalancerOutput, error) {
 	if lb == nil {
-		return nil, fmt.Errorf("load balancer is nil")
+		return nil, domainerrors.New(awserrors.CodeLoadBalancerCreationFailed, domainerrors.KindValidation, "load balancer is nil").
+			WithOp("ComputeService.CreateLoadBalancer")
 	}
 
 	internal := false
@@ -362,7 +367,8 @@ func (s *ComputeService) ListLoadBalancers(ctx context.Context, filters map[stri
 
 func (s *ComputeService) CreateTargetGroup(ctx context.Context, tg *awsloadbalancer.TargetGroup) (*awsloadbalanceroutputs.TargetGroupOutput, error) {
 	if tg == nil {
-		return nil, fmt.Errorf("target group is nil")
+		return nil, domainerrors.New(awserrors.CodeLoadBalancerCreationFailed, domainerrors.KindValidation, "target group is nil").
+			WithOp("ComputeService.CreateTargetGroup")
 	}
 
 	targetType := "instance"
@@ -438,7 +444,8 @@ func (s *ComputeService) ListTargetGroups(ctx context.Context, filters map[strin
 
 func (s *ComputeService) CreateListener(ctx context.Context, listener *awsloadbalancer.Listener) (*awsloadbalanceroutputs.ListenerOutput, error) {
 	if listener == nil {
-		return nil, fmt.Errorf("listener is nil")
+		return nil, domainerrors.New(awserrors.CodeLoadBalancerCreationFailed, domainerrors.KindValidation, "listener is nil").
+			WithOp("ComputeService.CreateListener")
 	}
 
 	listenerID := fmt.Sprintf("%s/%s", listener.LoadBalancerARN, services.GenerateDeterministicID(listener.LoadBalancerARN)[:16])
@@ -522,7 +529,8 @@ func (s *ComputeService) ListTargetGroupTargets(ctx context.Context, targetGroup
 
 func (s *ComputeService) CreateAutoScalingGroup(ctx context.Context, asg *awsautoscaling.AutoScalingGroup) (*awsautoscalingoutputs.AutoScalingGroupOutput, error) {
 	if asg == nil {
-		return nil, fmt.Errorf("auto scaling group is nil")
+		return nil, domainerrors.New(awserrors.CodeAutoScalingGroupCreationFailed, domainerrors.KindValidation, "auto scaling group is nil").
+			WithOp("ComputeService.CreateAutoScalingGroup")
 	}
 
 	name := "test-asg"
@@ -636,7 +644,8 @@ func (s *ComputeService) DetachInstances(ctx context.Context, asgName string, in
 
 func (s *ComputeService) PutScalingPolicy(ctx context.Context, policy *awsautoscaling.ScalingPolicy) (*awsautoscalingoutputs.ScalingPolicyOutput, error) {
 	if policy == nil {
-		return nil, fmt.Errorf("policy is nil")
+		return nil, domainerrors.New(awserrors.CodeAutoScalingGroupCreationFailed, domainerrors.KindValidation, "policy is nil").
+			WithOp("ComputeService.CreateScalingPolicy")
 	}
 
 	policyARN := fmt.Sprintf("arn:aws:autoscaling:us-east-1:123456789012:scalingPolicy:uuid:autoScalingGroupName/%s:policyName/%s", policy.AutoScalingGroupName, policy.PolicyName)
@@ -662,7 +671,8 @@ func (s *ComputeService) DeleteScalingPolicy(ctx context.Context, policyName, as
 
 func (s *ComputeService) CreateLambdaFunction(ctx context.Context, function *awslambda.Function) (*awslambdaoutputs.FunctionOutput, error) {
 	if function == nil {
-		return nil, fmt.Errorf("function is nil")
+		return nil, domainerrors.New(awserrors.CodeLambdaFunctionCreationFailed, domainerrors.KindValidation, "function is nil").
+			WithOp("ComputeService.CreateLambdaFunction")
 	}
 
 	arn := fmt.Sprintf("arn:aws:lambda:us-east-1:123456789012:function:%s", function.FunctionName)

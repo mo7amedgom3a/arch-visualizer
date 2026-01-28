@@ -1,20 +1,27 @@
 package compute
 
-import "errors"
+import (
+	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
+)
 
 var (
 	// ErrInstanceTypeNameRequired is returned when instance type name is missing
-	ErrInstanceTypeNameRequired = errors.New("instance type name is required")
+	// Deprecated: Use awserrors.NewInstanceTypeNameRequired() instead
+	ErrInstanceTypeNameRequired = awserrors.NewInstanceTypeNameRequired()
 
 	// ErrInvalidCategory is returned when an invalid category is provided
-	ErrInvalidCategory = errors.New("invalid instance category")
+	// Deprecated: Use awserrors.NewInvalidCategory() instead
+	ErrInvalidCategory = awserrors.NewInvalidCategory("")
 
 	// ErrInvalidVCPU is returned when VCPU count is invalid
-	ErrInvalidVCPU = errors.New("VCPU count must be greater than 0")
+	// Deprecated: Use awserrors.NewInvalidVCPU() instead
+	ErrInvalidVCPU = awserrors.NewInvalidVCPU(0)
 
 	// ErrInvalidMemory is returned when memory is invalid
-	ErrInvalidMemory = errors.New("memory must be greater than 0")
+	// Deprecated: Use awserrors.NewInvalidMemory() instead
+	ErrInvalidMemory = awserrors.NewInvalidMemory(0)
 
 	// ErrInstanceTypeNotFound is returned when an instance type is not found
-	ErrInstanceTypeNotFound = errors.New("instance type not found")
+	// Deprecated: Use awserrors.NewInstanceTypeNotFound() instead
+	ErrInstanceTypeNotFound = awserrors.NewInstanceTypeNotFound("")
 )

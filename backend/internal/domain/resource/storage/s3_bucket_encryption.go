@@ -1,6 +1,10 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+
+	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
+)
 
 // S3BucketEncryption models server-side encryption configuration for a bucket
 type S3BucketEncryption struct {
@@ -23,7 +27,7 @@ type S3BucketDefaultEncryption struct {
 // Validate ensures encryption configuration is valid
 func (e *S3BucketEncryption) Validate() error {
 	if e.Bucket == "" {
-		return fmt.Errorf("bucket is required")
+		return domainerrors.New(domainerrors.CodeS3BucketRequired, domainerrors.KindValidation, "bucket is required")
 	}
 	return e.Rule.Validate()
 }
@@ -41,12 +45,14 @@ func (d *S3BucketDefaultEncryption) Validate() error {
 	}
 
 	if !validAlgorithms[d.SSEAlgorithm] {
-		return fmt.Errorf("invalid sse_algorithm: %s", d.SSEAlgorithm)
+		return domainerrors.New(domainerrors.CodeS3InvalidSSEAlgorithm, domainerrors.KindValidation, fmt.Sprintf("invalid sse_algorithm: %s", d.SSEAlgorithm)).
+			WithMeta("sse_algorithm", d.SSEAlgorithm)
 	}
 
 	if d.SSEAlgorithm == "aws:kms" {
 		if d.KMSMasterKeyID == nil || *d.KMSMasterKeyID == "" {
-			return fmt.Errorf("kms_master_key_id is required when sse_algorithm is aws:kms")
+			return domainerrors.New(domainerrors.CodeRequiredFieldMissing, domainerrors.KindValidation, "kms_master_key_id is required when sse_algorithm is aws:kms").
+				WithMeta("field", "kms_master_key_id")
 		}
 	}
 

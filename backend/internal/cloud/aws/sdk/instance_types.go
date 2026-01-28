@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
 	awsmodel "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/instance_types"
 )
 
@@ -82,7 +83,7 @@ func (s *InstanceTypeService) GetInstanceType(ctx context.Context, name string, 
 	}
 	s.cacheMutex.RUnlock()
 
-	return nil, awsmodel.ErrInstanceTypeNotFound
+	return nil, awserrors.NewInstanceTypeNotFound(name)
 }
 
 // ListInstanceTypes lists all available instance types
@@ -183,7 +184,7 @@ func (s *InstanceTypeService) loadFromAWS(ctx context.Context, name string, regi
 	}
 
 	if len(output.InstanceTypes) == 0 {
-		return nil, awsmodel.ErrInstanceTypeNotFound
+		return nil, awserrors.NewInstanceTypeNotFound(name)
 	}
 
 	return s.convertAWSInstanceType(output.InstanceTypes[0], region), nil

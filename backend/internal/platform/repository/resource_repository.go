@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
 
@@ -16,14 +17,18 @@ type ResourceRepository struct {
 func NewResourceRepository() (*ResourceRepository, error) {
 	base, err := NewBaseRepository()
 	if err != nil {
-		return nil, err
+		return nil, errors.NewDatabaseConnectionFailed(err)
 	}
 	return &ResourceRepository{BaseRepository: base}, nil
 }
 
 // Create creates a new resource
 func (r *ResourceRepository) Create(ctx context.Context, resource *models.Resource) error {
-	return r.GetDB(ctx).Create(resource).Error
+	err := r.GetDB(ctx).Create(resource).Error
+	if err != nil {
+		return errors.HandleGormError(err, "resource", "ResourceRepository.Create")
+	}
+	return nil
 }
 
 // FindByID finds a resource by ID with related data
@@ -38,7 +43,7 @@ func (r *ResourceRepository) FindByID(ctx context.Context, id uuid.UUID) (*model
 		Preload("ChildResources").
 		First(&resource, "id = ?", id).Error
 	if err != nil {
-		return nil, err
+		return nil, errors.HandleGormError(err, "resource", "ResourceRepository.FindByID")
 	}
 	return &resource, nil
 }
@@ -65,12 +70,20 @@ func (r *ResourceRepository) FindByProjectIDAndType(ctx context.Context, project
 
 // Update updates an existing resource
 func (r *ResourceRepository) Update(ctx context.Context, resource *models.Resource) error {
-	return r.GetDB(ctx).Save(resource).Error
+	err := r.GetDB(ctx).Save(resource).Error
+	if err != nil {
+		return errors.HandleGormError(err, "resource", "ResourceRepository.Update")
+	}
+	return nil
 }
 
 // Delete deletes a resource by ID
 func (r *ResourceRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.GetDB(ctx).Delete(&models.Resource{}, "id = ?", id).Error
+	err := r.GetDB(ctx).Delete(&models.Resource{}, "id = ?", id).Error
+	if err != nil {
+		return errors.HandleGormError(err, "resource", "ResourceRepository.Delete")
+	}
+	return nil
 }
 
 // CreateContainment creates a parent-child relationship
