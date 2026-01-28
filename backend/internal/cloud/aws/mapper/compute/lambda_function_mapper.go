@@ -1,6 +1,8 @@
 package compute
 
 import (
+	"time"
+
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda"
 	awslambdaoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda/outputs"
@@ -254,4 +256,77 @@ func ToDomainLambdaFunctionFromOutput(output *awslambdaoutputs.FunctionOutput) *
 	}
 
 	return domain
+}
+
+// ToDomainLambdaFunctionOutputFromOutput converts AWS FunctionOutput directly to domain LambdaFunctionOutput
+func ToDomainLambdaFunctionOutputFromOutput(output *awslambdaoutputs.FunctionOutput) *domaincompute.LambdaFunctionOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	invokeARN := &output.InvokeARN
+	if output.InvokeARN == "" {
+		invokeARN = nil
+	}
+
+	// FunctionOutput doesn't have CreationTime
+	var createdAt *time.Time
+
+	// Convert MemorySize and Timeout from *int32 to *int
+	var memorySize *int
+	if output.MemorySize != nil {
+		ms := int(*output.MemorySize)
+		memorySize = &ms
+	}
+
+	var timeout *int
+	if output.Timeout != nil {
+		t := int(*output.Timeout)
+		timeout = &t
+	}
+
+	// Convert VPCConfig
+	var vpcConfig *domaincompute.LambdaVPCConfig
+	if output.VPCConfig != nil {
+		vpcConfig = &domaincompute.LambdaVPCConfig{
+			SubnetIDs:        output.VPCConfig.SubnetIDs,
+			SecurityGroupIDs: output.VPCConfig.SecurityGroupIDs,
+		}
+	}
+
+	// Convert Version from string to *string
+	var version *string
+	if output.Version != "" {
+		version = &output.Version
+	}
+
+	return &domaincompute.LambdaFunctionOutput{
+		FunctionName:    output.FunctionName,
+		ARN:              arn,
+		InvokeARN:        invokeARN,
+		QualifiedARN:     output.QualifiedARN,
+		Region:           output.Region,
+		S3Bucket:         output.S3Bucket,
+		S3Key:            output.S3Key,
+		S3ObjectVersion:   output.S3ObjectVersion,
+		PackageType:      output.PackageType,
+		ImageURI:          output.ImageURI,
+		Runtime:          output.Runtime,
+		Handler:          output.Handler,
+		MemorySize:       memorySize,
+		Timeout:          timeout,
+		Environment:      output.Environment,
+		Layers:           output.Layers,
+		VPCConfig:        vpcConfig,
+		Version:          version,
+		LastModified:     output.LastModified,
+		CodeSize:         output.CodeSize,
+		CodeSHA256:       output.CodeSHA256,
+		CreatedAt:        createdAt,
+	}
 }

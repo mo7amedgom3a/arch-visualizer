@@ -68,6 +68,33 @@ domainInstance := awsmapper.ToDomainInstanceFromOutput(awsOutput)
 // domainInstance has ID and ARN populated
 ```
 
+#### `ToDomainInstanceOutputFromOutput(output *awsec2outputs.InstanceOutput) *domaincompute.InstanceOutput`
+
+Converts AWS EC2 output model directly to domain `InstanceOutput` DTO. This is used by the output service interface to return focused output models.
+
+**Key Conversions:**
+- AWS `ID` → Output `ID`
+- AWS `ARN` → Output `ARN` (as pointer, nil if empty)
+- AWS `State` → Output `State` (converted to InstanceState enum)
+- AWS `CreationTime` → Output `CreatedAt` (as pointer)
+- AWS `PrivateDNS`, `PublicDNS` → Output DNS fields
+- AWS `VPCID` → Output `VPCID` (as pointer)
+
+**Example:**
+```go
+awsOutput := &awsec2outputs.InstanceOutput{
+    ID: "i-1234567890abcdef0",
+    ARN: "arn:aws:ec2:us-east-1:123456789012:instance/i-1234567890abcdef0",
+    Name: "web-server",
+    State: "running",
+    CreationTime: time.Now(),
+    // ... other fields
+}
+
+instanceOutput := awsmapper.ToDomainInstanceOutputFromOutput(awsOutput)
+// instanceOutput is a focused output DTO with cloud-generated fields
+```
+
 ## Input vs Output Models
 
 ### When to Use Each Function
@@ -75,8 +102,11 @@ domainInstance := awsmapper.ToDomainInstanceFromOutput(awsOutput)
 1. **Creating Instance**: `FromDomainInstance()` → AWS service → `ToDomainInstanceFromOutput()`
 2. **Getting Instance**: AWS service → `ToDomainInstanceFromOutput()`
 3. **Updating Instance**: `FromDomainInstance()` → AWS service → `ToDomainInstanceFromOutput()`
+4. **Using Output Service**: `FromDomainInstance()` → AWS service → `ToDomainInstanceOutputFromOutput()`
 
 ### Mapping Flow
+
+#### Standard Service Flow (Returns Domain Model)
 
 ```
 Domain Instance (Input)
@@ -87,6 +117,34 @@ AWS InstanceOutput (Output Model)
     ↓ ToDomainInstanceFromOutput()
 Domain Instance (with ID/ARN)
 ```
+
+#### Output Service Flow (Returns Output DTO)
+
+```
+Domain Instance (Input)
+    ↓ FromDomainInstance()
+AWS Instance (Input Model)
+    ↓ AWS Service CreateInstance()
+AWS InstanceOutput (Output Model)
+    ↓ ToDomainInstanceOutputFromOutput()
+InstanceOutput DTO (focused on cloud-generated fields)
+```
+
+### Output Mapper Functions
+
+For each resource type, there are now two output mapping functions:
+
+1. **`ToDomain*FromOutput()`** - Converts to full domain model (for standard service interface)
+2. **`ToDomain*OutputFromOutput()`** - Converts to output DTO (for output service interface)
+
+Available output mapper functions:
+- `ToDomainInstanceOutputFromOutput()` - Instance output DTO
+- `ToDomainLoadBalancerOutputFromOutput()` - Load balancer output DTO
+- `ToDomainTargetGroupOutputFromOutput()` - Target group output DTO
+- `ToDomainListenerOutputFromOutput()` - Listener output DTO
+- `ToDomainLaunchTemplateOutputFromOutput()` - Launch template output DTO
+- `ToDomainAutoScalingGroupOutputFromOutput()` - Auto scaling group output DTO
+- `ToDomainLambdaFunctionOutputFromOutput()` - Lambda function output DTO
 
 ## Field Mapping Details
 

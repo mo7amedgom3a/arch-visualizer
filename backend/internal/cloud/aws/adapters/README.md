@@ -215,15 +215,55 @@ When you call `adapter.CreateVPC()`:
 - **Adapter Handles Both**: Automatically converts between input/output models
 - **Domain Layer**: Always receives domain models, but with ID/ARN after operations
 
+## Output Service Interfaces
+
+In addition to the standard service interfaces, adapters can also implement output service interfaces that return dedicated output DTOs. This provides a cleaner separation between input configuration and output metadata.
+
+### Output Service Pattern
+
+```go
+// Standard service returns full domain model
+instance, err := adapter.CreateInstance(ctx, domainInstance)
+// instance is *domaincompute.Instance with all fields
+
+// Output service returns focused output DTO
+output, err := adapter.CreateInstanceOutput(ctx, domainInstance)
+// output is *domaincompute.InstanceOutput with cloud-generated fields
+```
+
+### Benefits
+
+1. **Clear Separation**: Input configuration vs. output metadata
+2. **Focused Models**: Output DTOs contain only cloud-generated fields
+3. **Type Safety**: Dedicated types for outputs prevent confusion
+4. **Backward Compatible**: Original service methods still available
+
+### Implementation
+
+Adapters implement both interfaces:
+
+```go
+type AWSComputeAdapter struct {
+    awsService awsservice.AWSComputeService
+}
+
+// Implements ComputeService (standard interface)
+var _ domaincompute.ComputeService = (*AWSComputeAdapter)(nil)
+
+// Implements ComputeOutputService (output interface)
+var _ domaincompute.ComputeOutputService = (*AWSComputeAdapter)(nil)
+```
+
 ## Adding New Adapters
 
 To add adapters for other resource types:
 
 1. Create new directory: `adapters/{resource_type}/`
 2. Implement domain service interface
-3. Use mappers for conversion
-4. Add factory pattern
-5. Write tests
+3. Implement domain output service interface (optional but recommended)
+4. Use mappers for conversion (including output mappers)
+5. Add factory pattern
+6. Write tests
 
 Example: `adapters/compute/` for EC2, Lambda, etc.
 

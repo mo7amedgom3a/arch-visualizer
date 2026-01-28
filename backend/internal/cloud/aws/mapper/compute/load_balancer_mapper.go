@@ -97,3 +97,66 @@ func ToDomainLoadBalancerFromOutput(output *awsoutputs.LoadBalancerOutput) *doma
 
 	return domainLB
 }
+
+// ToDomainLoadBalancerOutputFromOutput converts AWS LoadBalancer output directly to domain LoadBalancerOutput
+func ToDomainLoadBalancerOutputFromOutput(output *awsoutputs.LoadBalancerOutput) *domaincompute.LoadBalancerOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	dnsName := &output.DNSName
+	if output.DNSName == "" {
+		dnsName = nil
+	}
+
+	zoneID := &output.ZoneID
+	if output.ZoneID == "" {
+		zoneID = nil
+	}
+
+	lbType := domaincompute.LoadBalancerTypeApplication
+	if output.Type == "network" {
+		lbType = domaincompute.LoadBalancerTypeNetwork
+	}
+
+	state := domaincompute.LoadBalancerStateActive
+	switch output.State {
+	case "provisioning":
+		state = domaincompute.LoadBalancerStateProvisioning
+	case "active_impaired":
+		state = domaincompute.LoadBalancerStateActiveImpaired
+	case "failed":
+		state = domaincompute.LoadBalancerStateFailed
+	}
+
+	// Extract region from ARN if available
+	region := ""
+	if output.ARN != "" {
+		parts := strings.Split(output.ARN, ":")
+		if len(parts) >= 4 {
+			region = parts[3]
+		}
+	}
+
+	createdAt := &output.CreatedTime
+
+	return &domaincompute.LoadBalancerOutput{
+		ID:               output.ID,
+		ARN:              arn,
+		Name:             output.Name,
+		Region:           region,
+		Type:             lbType,
+		Internal:         output.Internal,
+		SecurityGroupIDs: output.SecurityGroupIDs,
+		SubnetIDs:        output.SubnetIDs,
+		DNSName:          dnsName,
+		ZoneID:           zoneID,
+		State:            state,
+		CreatedAt:        createdAt,
+	}
+}

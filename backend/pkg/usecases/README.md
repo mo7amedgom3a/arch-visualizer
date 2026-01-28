@@ -148,6 +148,57 @@ Provides region selection and validation:
 - `FormatRegionName()`: Formats region code to human-readable name
 - `DisplayRegions()`: Prints all available regions
 
+## Output Models and Output Service Interfaces
+
+The codebase now includes dedicated output models and output service interfaces that provide a cleaner separation between input configuration and output metadata.
+
+### Output Models
+
+Each resource type has dedicated output DTOs that focus on cloud-generated fields:
+
+- **InstanceOutput**: Cloud-generated identifiers, runtime state, IP addresses, DNS names
+- **LoadBalancerOutput**: DNS names, zone IDs, state information
+- **VPCOutput**: State, creation time, owner information
+- **SubnetOutput**: Available IP count, state, creation time
+- And more for other resource types
+
+### Output Service Interfaces
+
+In addition to standard service interfaces, output service interfaces are available:
+
+```go
+// Standard service returns full domain model
+instance, err := computeService.CreateInstance(ctx, instance)
+// instance is *compute.Instance with all fields
+
+// Output service returns focused output DTO
+output, err := computeOutputService.CreateInstanceOutput(ctx, instance)
+// output is *compute.InstanceOutput with cloud-generated fields
+```
+
+### Benefits
+
+1. **Clear Separation**: Input configuration vs. output metadata
+2. **Focused Models**: Output DTOs contain only relevant fields
+3. **Type Safety**: Dedicated types prevent confusion
+4. **Backward Compatible**: Original service methods still available
+
+### Usage in Use Cases
+
+Use cases can leverage output service interfaces when they only need cloud-generated fields:
+
+```go
+// Get instance output (focused on runtime state)
+output, err := computeOutputService.GetInstanceOutput(ctx, instanceID)
+fmt.Printf("Instance State: %s\n", output.State)
+fmt.Printf("Created: %s\n", output.CreatedAt)
+
+// Get load balancer output (focused on DNS and state)
+lbOutput, err := computeOutputService.GetLoadBalancerOutput(ctx, lbARN)
+fmt.Printf("DNS Name: %s\n", *lbOutput.DNSName)
+fmt.Printf("Zone ID: %s\n", *lbOutput.ZoneID)
+```
+
 ## Mock Data Pattern
 
 All use cases follow the same pattern:
@@ -156,6 +207,7 @@ All use cases follow the same pattern:
 3. **Realistic data**: Mock IDs and ARNs follow AWS naming conventions
 4. **Validation**: Domain models are validated before use
 5. **Cost estimation**: Uses real pricing service with mock resource metadata
+6. **Output models**: Can use output service interfaces for focused output DTOs
 
 ## Resource Dependencies
 

@@ -70,6 +70,89 @@ type ComputeResource interface {
 
 This allows polymorphic handling of different compute resource types.
 
+### ComputeService
+
+The `ComputeService` interface provides cloud-agnostic operations for compute resources:
+
+```go
+type ComputeService interface {
+    CreateInstance(ctx context.Context, instance *Instance) (*Instance, error)
+    GetInstance(ctx context.Context, id string) (*Instance, error)
+    // ... other operations
+}
+```
+
+This interface returns domain models with output fields (ID, ARN, State) populated after operations.
+
+### ComputeOutputService
+
+The `ComputeOutputService` interface provides operations that return dedicated output DTOs:
+
+```go
+type ComputeOutputService interface {
+    CreateInstanceOutput(ctx context.Context, instance *Instance) (*InstanceOutput, error)
+    GetInstanceOutput(ctx context.Context, id string) (*InstanceOutput, error)
+    // ... other operations
+}
+```
+
+This interface returns specialized output models that focus on cloud-generated fields and calculated outputs, providing a cleaner separation between input configuration and output metadata.
+
+## Output Models
+
+The package includes dedicated output DTOs for each resource type that focus on cloud-generated fields and runtime state:
+
+### InstanceOutput
+
+Represents the output data for a compute instance after creation/update:
+
+```go
+type InstanceOutput struct {
+    ID               string
+    ARN              *string
+    Name             string
+    Region           string
+    AvailabilityZone *string
+    InstanceType     string
+    AMI              string
+    SubnetID         string
+    SecurityGroupIDs []string
+    PrivateIP        *string
+    PublicIP         *string
+    PrivateDNS       *string
+    PublicDNS        *string
+    VPCID            *string
+    KeyName          *string
+    IAMInstanceProfile *string
+    State            InstanceState
+    CreatedAt        *time.Time
+}
+```
+
+### Other Output Models
+
+- `LoadBalancerOutput` - Load balancer output with DNS names and zone IDs
+- `TargetGroupOutput` - Target group output with health check state
+- `ListenerOutput` - Listener output with action configuration
+- `LaunchTemplateOutput` - Launch template output with version information
+- `AutoScalingGroupOutput` - Auto scaling group output with capacity and state
+- `LambdaFunctionOutput` - Lambda function output with ARNs and metadata
+
+### Converting Domain Models to Output
+
+Helper functions are provided to convert domain models to output DTOs:
+
+```go
+instance := &domaincompute.Instance{
+    ID: "i-123",
+    ARN: stringPtr("arn:aws:..."),
+    // ... other fields
+}
+
+output := domaincompute.ToInstanceOutput(instance)
+// output is now an InstanceOutput with all relevant fields
+```
+
 ## Validation Rules
 
 ### Instance Validation

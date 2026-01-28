@@ -90,3 +90,53 @@ func FromDomainInstance(domainInstance *domaincompute.Instance) *awsec2.Instance
 
 	return awsInstance
 }
+
+// ToDomainInstanceOutputFromOutput converts AWS EC2 instance output directly to domain InstanceOutput
+func ToDomainInstanceOutputFromOutput(output *awsec2outputs.InstanceOutput) *domaincompute.InstanceOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	az := &output.AvailabilityZone
+	if output.AvailabilityZone == "" {
+		az = nil
+	}
+
+	privateDNS := &output.PrivateDNS
+	if output.PrivateDNS == "" {
+		privateDNS = nil
+	}
+
+	vpcID := &output.VPCID
+	if output.VPCID == "" {
+		vpcID = nil
+	}
+
+	createdAt := &output.CreationTime
+
+	return &domaincompute.InstanceOutput{
+		ID:                 output.ID,
+		ARN:                arn,
+		Name:               output.Name,
+		Region:             output.Region,
+		AvailabilityZone:   az,
+		InstanceType:       output.InstanceType,
+		AMI:                output.AMI,
+		SubnetID:           output.SubnetID,
+		SecurityGroupIDs:   output.SecurityGroupIDs,
+		PrivateIP:          &output.PrivateIP,
+		PublicIP:           output.PublicIP,
+		PrivateDNS:         privateDNS,
+		PublicDNS:          output.PublicDNS,
+		VPCID:              vpcID,
+		KeyName:            output.KeyName,
+		IAMInstanceProfile: output.IAMInstanceProfile,
+		State:              domaincompute.InstanceState(output.State),
+		CreatedAt:          createdAt,
+	}
+}

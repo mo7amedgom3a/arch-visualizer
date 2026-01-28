@@ -163,6 +163,46 @@ func ToDomainLaunchTemplateFromOutput(output *awslttemplateoutputs.LaunchTemplat
 	return domain
 }
 
+// ToDomainLaunchTemplateOutputFromOutput converts AWS LaunchTemplateOutput directly to domain LaunchTemplateOutput
+func ToDomainLaunchTemplateOutputFromOutput(output *awslttemplateoutputs.LaunchTemplateOutput) *domaincompute.LaunchTemplateOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	// LaunchTemplateOutput doesn't have NamePrefix
+	var namePrefix *string
+
+	defaultVersion := &output.DefaultVersion
+	if output.DefaultVersion == 0 {
+		defaultVersion = nil
+	}
+
+	latestVersion := &output.LatestVersion
+	if output.LatestVersion == 0 {
+		latestVersion = nil
+	}
+
+	createdAt := &output.CreateTime
+	createdBy := &output.CreatedBy
+
+	return &domaincompute.LaunchTemplateOutput{
+		ID:            output.ID,
+		ARN:           arn,
+		Name:          output.Name,
+		Region:        "", // Region should be set from context
+		NamePrefix:    namePrefix,
+		DefaultVersion: defaultVersion,
+		LatestVersion:  latestVersion,
+		CreatedAt:     createdAt,
+		CreatedBy:     createdBy,
+	}
+}
+
 // ToDomainLaunchTemplateVersion converts AWS LaunchTemplateVersion to domain LaunchTemplateVersion
 func ToDomainLaunchTemplateVersion(aws *awslttemplate.LaunchTemplateVersion) *domaincompute.LaunchTemplateVersion {
 	if aws == nil {

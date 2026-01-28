@@ -67,9 +67,11 @@ Each resource category has its own subdirectory with mappers for that category's
 
 ### 1. Bidirectional Mapping
 
-Every mapper provides two functions:
-- `ToDomain*()` - Converts AWS model → Domain model
-- `FromDomain*()` - Converts Domain model → AWS model
+Every mapper provides multiple conversion functions:
+- `ToDomain*()` - Converts AWS input model → Domain model (backward compatibility)
+- `FromDomain*()` - Converts Domain model → AWS input model
+- `ToDomain*FromOutput()` - Converts AWS output model → Domain model (with ID/ARN)
+- `ToDomain*OutputFromOutput()` - Converts AWS output model → Domain output DTO (new)
 
 ### 2. Null Safety
 
@@ -243,7 +245,7 @@ if len(domainRule.SourceGroupIDs) > 0 {
 
 ## Common Mapping Scenarios
 
-### Scenario 1: Creating a Resource
+### Scenario 1: Creating a Resource (Standard Service)
 
 ```
 Domain Model (User Input)
@@ -251,19 +253,31 @@ Domain Model (User Input)
 AWS Model (with defaults)
     ↓ [Validate]
 AWS Service (create)
-    ↓ [ToDomain*]
-Domain Model (response)
+    ↓ [ToDomain*FromOutput]
+Domain Model (with ID/ARN)
 ```
 
-### Scenario 2: Reading a Resource
+### Scenario 2: Creating a Resource (Output Service)
+
+```
+Domain Model (User Input)
+    ↓ [FromDomain*]
+AWS Model (with defaults)
+    ↓ [Validate]
+AWS Service (create)
+    ↓ [ToDomain*OutputFromOutput]
+Domain Output DTO (focused on cloud-generated fields)
+```
+
+### Scenario 3: Reading a Resource
 
 ```
 AWS Service (get)
-    ↓ [ToDomain*]
-Domain Model (response)
+    ↓ [ToDomain*FromOutput] or [ToDomain*OutputFromOutput]
+Domain Model or Output DTO
 ```
 
-### Scenario 3: Updating a Resource
+### Scenario 4: Updating a Resource
 
 ```
 Domain Model (updates)
@@ -271,8 +285,45 @@ Domain Model (updates)
 AWS Model
     ↓ [Validate]
 AWS Service (update)
-    ↓ [ToDomain*]
-Domain Model (updated)
+    ↓ [ToDomain*FromOutput] or [ToDomain*OutputFromOutput]
+Domain Model or Output DTO (updated)
+```
+
+## Output Model Mapping
+
+### Purpose
+
+Output mapper functions (`ToDomain*OutputFromOutput`) convert AWS output models directly to domain output DTOs. These DTOs focus on:
+
+- Cloud-generated identifiers (ID, ARN)
+- Runtime state information
+- Calculated outputs (DNS names, zone IDs, etc.)
+- Timestamps (created at, updated at)
+
+### When to Use Output Mappers
+
+Use output mappers when:
+- Implementing output service interfaces
+- You only need cloud-generated fields
+- You want a cleaner separation between input and output
+- You're building APIs that return focused response models
+
+### Example
+
+```go
+// AWS service returns output model
+awsOutput := &awsec2outputs.InstanceOutput{
+    ID: "i-123",
+    ARN: "arn:aws:...",
+    State: "running",
+    CreationTime: time.Now(),
+    // ... other fields
+}
+
+// Convert to output DTO
+instanceOutput := awsmapper.ToDomainInstanceOutputFromOutput(awsOutput)
+// instanceOutput is *domaincompute.InstanceOutput
+// Contains only cloud-generated fields and state
 ```
 
 ## Adding New Mappers

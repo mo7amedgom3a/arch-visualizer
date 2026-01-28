@@ -105,3 +105,61 @@ func ToDomainTargetGroupFromOutput(output *awsoutputs.TargetGroupOutput) *domain
 
 	return domainTG
 }
+
+// ToDomainTargetGroupOutputFromOutput converts AWS TargetGroup output directly to domain TargetGroupOutput
+func ToDomainTargetGroupOutputFromOutput(output *awsoutputs.TargetGroupOutput) *domaincompute.TargetGroupOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	protocol := domaincompute.TargetGroupProtocol(output.Protocol)
+
+	targetType := domaincompute.TargetTypeInstance
+	switch output.TargetType {
+	case "ip":
+		targetType = domaincompute.TargetTypeIP
+	case "lambda":
+		targetType = domaincompute.TargetTypeLambda
+	default:
+		targetType = domaincompute.TargetTypeInstance
+	}
+
+	state := domaincompute.TargetGroupStateActive
+	switch output.State {
+	case "draining":
+		state = domaincompute.TargetGroupStateDraining
+	case "deleting":
+		state = domaincompute.TargetGroupStateDeleting
+	case "deleted":
+		state = domaincompute.TargetGroupStateDeleted
+	}
+
+	createdAt := &output.CreatedTime
+
+	return &domaincompute.TargetGroupOutput{
+		ID:   output.ID,
+		ARN:  arn,
+		Name: output.Name,
+		VPCID: output.VPCID,
+		Port: output.Port,
+		Protocol: protocol,
+		TargetType: targetType,
+		HealthCheck: domaincompute.HealthCheckConfig{
+			Path:               output.HealthCheck.Path,
+			Matcher:            output.HealthCheck.Matcher,
+			Interval:           output.HealthCheck.Interval,
+			Timeout:            output.HealthCheck.Timeout,
+			HealthyThreshold:   output.HealthCheck.HealthyThreshold,
+			UnhealthyThreshold: output.HealthCheck.UnhealthyThreshold,
+			Protocol:           output.HealthCheck.Protocol,
+			Port:               output.HealthCheck.Port,
+		},
+		State: state,
+		CreatedAt: createdAt,
+	}
+}

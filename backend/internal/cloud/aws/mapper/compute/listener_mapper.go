@@ -1,6 +1,8 @@
 package compute
 
 import (
+	"time"
+
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
@@ -104,4 +106,60 @@ func ToDomainListenerFromOutput(output *awsoutputs.ListenerOutput) *domaincomput
 	}
 
 	return domainListener
+}
+
+// ToDomainListenerOutputFromOutput converts AWS Listener output directly to domain ListenerOutput
+func ToDomainListenerOutputFromOutput(output *awsoutputs.ListenerOutput) *domaincompute.ListenerOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	protocol := domaincompute.ListenerProtocol(output.Protocol)
+
+	actionType := domaincompute.ListenerActionType(output.DefaultAction.Type)
+	domainAction := domaincompute.ListenerAction{
+		Type: actionType,
+	}
+
+	if output.DefaultAction.TargetGroupARN != nil {
+		domainAction.TargetGroupARN = output.DefaultAction.TargetGroupARN
+	}
+
+	if output.DefaultAction.RedirectConfig != nil {
+		domainAction.RedirectConfig = &domaincompute.RedirectConfig{
+			Protocol:   output.DefaultAction.RedirectConfig.Protocol,
+			Port:       output.DefaultAction.RedirectConfig.Port,
+			StatusCode: output.DefaultAction.RedirectConfig.StatusCode,
+			Host:       output.DefaultAction.RedirectConfig.Host,
+			Path:       output.DefaultAction.RedirectConfig.Path,
+			Query:      output.DefaultAction.RedirectConfig.Query,
+		}
+	}
+
+	if output.DefaultAction.FixedResponseConfig != nil {
+		domainAction.FixedResponseConfig = &domaincompute.FixedResponseConfig{
+			ContentType: output.DefaultAction.FixedResponseConfig.ContentType,
+			MessageBody: output.DefaultAction.FixedResponseConfig.MessageBody,
+			StatusCode:  output.DefaultAction.FixedResponseConfig.StatusCode,
+		}
+	}
+
+	// ListenerOutput doesn't have CreationTime, so we set it to nil
+	var createdAt *time.Time
+
+	return &domaincompute.ListenerOutput{
+		ID:              output.ID,
+		ARN:             arn,
+		LoadBalancerARN: output.LoadBalancerARN,
+		Port:            output.Port,
+		Protocol:        protocol,
+		DefaultAction:   domainAction,
+		Rules:           []domaincompute.ListenerRule{}, // Rules not implemented yet
+		CreatedAt:       createdAt,
+	}
 }

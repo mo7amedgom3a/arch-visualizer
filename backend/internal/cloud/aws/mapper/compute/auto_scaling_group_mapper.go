@@ -149,3 +149,76 @@ func ToDomainAutoScalingGroupFromOutput(output *awsoutputs.AutoScalingGroupOutpu
 
 	return domainASG
 }
+
+// ToDomainAutoScalingGroupOutputFromOutput converts AWS AutoScalingGroup output directly to domain AutoScalingGroupOutput
+func ToDomainAutoScalingGroupOutputFromOutput(output *awsoutputs.AutoScalingGroupOutput) *domaincompute.AutoScalingGroupOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.AutoScalingGroupARN
+	if output.AutoScalingGroupARN == "" {
+		arn = nil
+	}
+
+	// Extract region from ARN if available
+	region := ""
+	if output.AutoScalingGroupARN != "" {
+		parts := strings.Split(output.AutoScalingGroupARN, ":")
+		if len(parts) >= 4 {
+			region = parts[3]
+		}
+	}
+
+	// Convert Launch Template
+	var launchTemplate *domaincompute.LaunchTemplateSpecification
+	if output.LaunchTemplate != nil {
+		launchTemplate = &domaincompute.LaunchTemplateSpecification{
+			ID:      output.LaunchTemplate.LaunchTemplateId,
+			Version: output.LaunchTemplate.Version,
+		}
+	}
+
+	// Convert Health Check Type
+	healthCheckType := domaincompute.AutoScalingGroupHealthCheckTypeEC2
+	if output.HealthCheckType != "" {
+		healthCheckType = domaincompute.AutoScalingGroupHealthCheckType(strings.ToUpper(output.HealthCheckType))
+	}
+
+	// Convert State
+	state := domaincompute.AutoScalingGroupStateActive
+	switch strings.ToLower(output.Status) {
+	case "deleting":
+		state = domaincompute.AutoScalingGroupStateDeleting
+	case "updating":
+		state = domaincompute.AutoScalingGroupStateUpdating
+	}
+
+	// Convert CreatedTime to string
+	var createdTime *string
+	if !output.CreatedTime.IsZero() {
+		timeStr := output.CreatedTime.Format("2006-01-02T15:04:05Z07:00")
+		createdTime = &timeStr
+	}
+
+	// AutoScalingGroupOutput doesn't have NamePrefix field
+	var namePrefix *string
+
+	return &domaincompute.AutoScalingGroupOutput{
+		ID:                    output.AutoScalingGroupName,
+		ARN:                   arn,
+		Name:                  output.AutoScalingGroupName,
+		Region:                region,
+		NamePrefix:            namePrefix,
+		MinSize:               output.MinSize,
+		MaxSize:               output.MaxSize,
+		DesiredCapacity:       &output.DesiredCapacity,
+		VPCZoneIdentifier:     output.VPCZoneIdentifier,
+		LaunchTemplate:        launchTemplate,
+		HealthCheckType:       healthCheckType,
+		HealthCheckGracePeriod: output.HealthCheckGracePeriod,
+		TargetGroupARNs:       output.TargetGroupARNs,
+		State:                 state,
+		CreatedTime:           createdTime,
+	}
+}

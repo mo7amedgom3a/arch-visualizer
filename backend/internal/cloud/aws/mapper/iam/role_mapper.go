@@ -75,3 +75,53 @@ func ToDomainRoleFromOutput(output *awsoutputs.RoleOutput) *domainiam.Role {
 
 	return domainRole
 }
+
+// ToDomainRoleOutputFromOutput converts AWS RoleOutput directly to domain RoleOutput
+func ToDomainRoleOutputFromOutput(output *awsoutputs.RoleOutput) *domainiam.RoleOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	path := &output.Path
+	if output.Path == "" {
+		defaultPath := "/"
+		path = &defaultPath
+	}
+
+	// Convert tags
+	tags := make([]domainiam.PolicyTag, len(output.Tags))
+	for i, tag := range output.Tags {
+		tags[i] = domainiam.PolicyTag{
+			Key:   tag.Key,
+			Value: tag.Value,
+		}
+	}
+
+	// Convert UniqueID from string to *string
+	uniqueID := &output.UniqueID
+	if output.UniqueID == "" {
+		uniqueID = nil
+	}
+
+	// Convert CreateDate from time.Time to *time.Time
+	createDate := &output.CreateDate
+
+	return &domainiam.RoleOutput{
+		ID:                output.ID,
+		ARN:               arn,
+		Name:              output.Name,
+		Description:       output.Description,
+		Path:              path,
+		UniqueID:          uniqueID,
+		AssumeRolePolicy:  output.AssumeRolePolicy,
+		PermissionsBoundary: output.PermissionsBoundary,
+		Tags:              tags,
+		MaxSessionDuration: output.MaxSessionDuration,
+		CreateDate:        createDate,
+	}
+}

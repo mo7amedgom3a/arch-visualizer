@@ -161,6 +161,48 @@ domainInstance := &domaincompute.Instance{
 - `StopInstance()` - Stop a running instance
 - `RebootInstance()` - Reboot an instance
 
+## Output Service Interface
+
+The adapter also implements `ComputeOutputService`, which provides methods that return dedicated output DTOs instead of full domain models. This provides a cleaner separation between input configuration and output metadata.
+
+### Using Output Service Methods
+
+```go
+// Create instance and get output DTO
+output, err := adapter.CreateInstanceOutput(ctx, instance)
+if err != nil {
+    // handle error
+}
+
+// Output DTO focuses on cloud-generated fields
+fmt.Printf("Instance ID: %s\n", output.ID)
+fmt.Printf("ARN: %s\n", *output.ARN)
+fmt.Printf("State: %s\n", output.State)
+fmt.Printf("Created: %s\n", output.CreatedAt)
+```
+
+### Available Output Methods
+
+- `CreateInstanceOutput()` - Returns `*InstanceOutput`
+- `GetInstanceOutput()` - Returns `*InstanceOutput`
+- `UpdateInstanceOutput()` - Returns `*InstanceOutput`
+- `ListInstancesOutput()` - Returns `[]*InstanceOutput`
+- `CreateLoadBalancerOutput()` - Returns `*LoadBalancerOutput`
+- `GetLoadBalancerOutput()` - Returns `*LoadBalancerOutput`
+- `CreateTargetGroupOutput()` - Returns `*TargetGroupOutput`
+- `CreateListenerOutput()` - Returns `*ListenerOutput`
+- `CreateLaunchTemplateOutput()` - Returns `*LaunchTemplateOutput`
+- `CreateAutoScalingGroupOutput()` - Returns `*AutoScalingGroupOutput`
+- `CreateLambdaFunctionOutput()` - Returns `*LambdaFunctionOutput`
+- And more...
+
+### Benefits of Output Service
+
+1. **Clear Separation**: Input configuration vs. output metadata
+2. **Focused Models**: Output DTOs contain only cloud-generated fields
+3. **Type Safety**: Dedicated types for outputs prevent confusion
+4. **Backward Compatible**: Original service methods still available
+
 ## Error Handling
 
 The adapter provides contextual error messages:

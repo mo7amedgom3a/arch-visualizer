@@ -66,3 +66,30 @@ func FromDomainVPC(domainVPC *domainnetworking.VPC) *awsnetworking.VPC {
 	
 	return awsVPC
 }
+
+// ToDomainVPCOutputFromOutput converts AWS VPCOutput directly to domain VPCOutput
+func ToDomainVPCOutputFromOutput(output *awsoutputs.VPCOutput) *domainnetworking.VPCOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	return &domainnetworking.VPCOutput{
+		ID:                 output.ID,
+		ARN:                arn,
+		Name:               output.Name,
+		Region:             output.Region,
+		CIDR:               output.CIDR,
+		IPv6CIDR:           nil, // Not in AWS output
+		EnableDNS:          output.EnableDNSSupport,
+		EnableDNSHostnames: output.EnableDNSHostnames,
+		State:              &output.State,
+		IsDefault:          &output.IsDefault,
+		CreatedAt:          &output.CreationTime,
+		OwnerID:            &output.OwnerID,
+	}
+}

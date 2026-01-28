@@ -25,6 +25,8 @@ func NewAWSComputeAdapter(awsService awsservice.AWSComputeService) domaincompute
 
 // Ensure AWSComputeAdapter implements ComputeService
 var _ domaincompute.ComputeService = (*AWSComputeAdapter)(nil)
+// Ensure AWSComputeAdapter implements ComputeOutputService
+var _ domaincompute.ComputeOutputService = (*AWSComputeAdapter)(nil)
 
 // Instance Operations
 
@@ -703,4 +705,494 @@ func (a *AWSComputeAdapter) ListLambdaFunctions(ctx context.Context, filters map
 	}
 
 	return domainFunctions, nil
+}
+
+// ComputeOutputService implementation
+
+func (a *AWSComputeAdapter) CreateInstanceOutput(ctx context.Context, instance *domaincompute.Instance) (*domaincompute.InstanceOutput, error) {
+	if err := instance.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsInstance := awsmapper.FromDomainInstance(instance)
+	if err := awsInstance.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsInstanceOutput, err := a.awsService.CreateInstance(ctx, awsInstance)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainInstanceOutputFromOutput(awsInstanceOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetInstanceOutput(ctx context.Context, id string) (*domaincompute.InstanceOutput, error) {
+	awsInstanceOutput, err := a.awsService.GetInstance(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainInstanceOutputFromOutput(awsInstanceOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateInstanceOutput(ctx context.Context, instance *domaincompute.Instance) (*domaincompute.InstanceOutput, error) {
+	if err := instance.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsInstance := awsmapper.FromDomainInstance(instance)
+	if err := awsInstance.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsInstanceOutput, err := a.awsService.UpdateInstance(ctx, awsInstance)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainInstanceOutputFromOutput(awsInstanceOutput), nil
+}
+
+func (a *AWSComputeAdapter) ListInstancesOutput(ctx context.Context, filters map[string]string) ([]*domaincompute.InstanceOutput, error) {
+	awsFilters := make(map[string][]string)
+	for key, value := range filters {
+		awsFilters[key] = []string{value}
+	}
+
+	awsInstanceOutputs, err := a.awsService.ListInstances(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.InstanceOutput, len(awsInstanceOutputs))
+	for i, awsInstanceOutput := range awsInstanceOutputs {
+		domainOutputs[i] = awsmapper.ToDomainInstanceOutputFromOutput(awsInstanceOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) CreateLoadBalancerOutput(ctx context.Context, lb *domaincompute.LoadBalancer) (*domaincompute.LoadBalancerOutput, error) {
+	if err := lb.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsLB := awsmapper.FromDomainLoadBalancer(lb)
+	if err := awsLB.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsLBOutput, err := a.awsService.CreateLoadBalancer(ctx, awsLB)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLoadBalancerOutputFromOutput(awsLBOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetLoadBalancerOutput(ctx context.Context, arn string) (*domaincompute.LoadBalancerOutput, error) {
+	awsLBOutput, err := a.awsService.GetLoadBalancer(ctx, arn)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLoadBalancerOutputFromOutput(awsLBOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateLoadBalancerOutput(ctx context.Context, lb *domaincompute.LoadBalancer) (*domaincompute.LoadBalancerOutput, error) {
+	if err := lb.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	if lb.ARN == nil || *lb.ARN == "" {
+		return nil, fmt.Errorf("load balancer ARN is required for update")
+	}
+
+	awsLB := awsmapper.FromDomainLoadBalancer(lb)
+	if err := awsLB.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsLBOutput, err := a.awsService.UpdateLoadBalancer(ctx, *lb.ARN, awsLB)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLoadBalancerOutputFromOutput(awsLBOutput), nil
+}
+
+func (a *AWSComputeAdapter) ListLoadBalancersOutput(ctx context.Context, filters map[string]string) ([]*domaincompute.LoadBalancerOutput, error) {
+	awsFilters := make(map[string][]string)
+	for key, value := range filters {
+		awsFilters[key] = []string{value}
+	}
+
+	awsLBOutputs, err := a.awsService.ListLoadBalancers(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.LoadBalancerOutput, len(awsLBOutputs))
+	for i, awsLBOutput := range awsLBOutputs {
+		domainOutputs[i] = awsmapper.ToDomainLoadBalancerOutputFromOutput(awsLBOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) CreateTargetGroupOutput(ctx context.Context, tg *domaincompute.TargetGroup) (*domaincompute.TargetGroupOutput, error) {
+	if err := tg.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsTG := awsmapper.FromDomainTargetGroup(tg)
+	if err := awsTG.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsTGOutput, err := a.awsService.CreateTargetGroup(ctx, awsTG)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainTargetGroupOutputFromOutput(awsTGOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetTargetGroupOutput(ctx context.Context, arn string) (*domaincompute.TargetGroupOutput, error) {
+	awsTGOutput, err := a.awsService.GetTargetGroup(ctx, arn)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainTargetGroupOutputFromOutput(awsTGOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateTargetGroupOutput(ctx context.Context, tg *domaincompute.TargetGroup) (*domaincompute.TargetGroupOutput, error) {
+	if err := tg.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	if tg.ARN == nil || *tg.ARN == "" {
+		return nil, fmt.Errorf("target group ARN is required for update")
+	}
+
+	awsTG := awsmapper.FromDomainTargetGroup(tg)
+	if err := awsTG.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsTGOutput, err := a.awsService.UpdateTargetGroup(ctx, *tg.ARN, awsTG)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainTargetGroupOutputFromOutput(awsTGOutput), nil
+}
+
+func (a *AWSComputeAdapter) ListTargetGroupsOutput(ctx context.Context, filters map[string]string) ([]*domaincompute.TargetGroupOutput, error) {
+	awsFilters := make(map[string][]string)
+	for key, value := range filters {
+		awsFilters[key] = []string{value}
+	}
+
+	awsTGOutputs, err := a.awsService.ListTargetGroups(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.TargetGroupOutput, len(awsTGOutputs))
+	for i, awsTGOutput := range awsTGOutputs {
+		domainOutputs[i] = awsmapper.ToDomainTargetGroupOutputFromOutput(awsTGOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) CreateListenerOutput(ctx context.Context, listener *domaincompute.Listener) (*domaincompute.ListenerOutput, error) {
+	if err := listener.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsListener := awsmapper.FromDomainListener(listener)
+	if err := awsListener.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsListenerOutput, err := a.awsService.CreateListener(ctx, awsListener)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainListenerOutputFromOutput(awsListenerOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetListenerOutput(ctx context.Context, arn string) (*domaincompute.ListenerOutput, error) {
+	awsListenerOutput, err := a.awsService.GetListener(ctx, arn)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainListenerOutputFromOutput(awsListenerOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateListenerOutput(ctx context.Context, listener *domaincompute.Listener) (*domaincompute.ListenerOutput, error) {
+	if err := listener.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	if listener.ARN == nil || *listener.ARN == "" {
+		return nil, fmt.Errorf("listener ARN is required for update")
+	}
+
+	awsListener := awsmapper.FromDomainListener(listener)
+	if err := awsListener.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsListenerOutput, err := a.awsService.UpdateListener(ctx, *listener.ARN, awsListener)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainListenerOutputFromOutput(awsListenerOutput), nil
+}
+
+func (a *AWSComputeAdapter) ListListenersOutput(ctx context.Context, loadBalancerARN string) ([]*domaincompute.ListenerOutput, error) {
+	awsListenerOutputs, err := a.awsService.ListListeners(ctx, loadBalancerARN)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.ListenerOutput, len(awsListenerOutputs))
+	for i, awsListenerOutput := range awsListenerOutputs {
+		domainOutputs[i] = awsmapper.ToDomainListenerOutputFromOutput(awsListenerOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) CreateLaunchTemplateOutput(ctx context.Context, template *domaincompute.LaunchTemplate) (*domaincompute.LaunchTemplateOutput, error) {
+	if err := template.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsTemplate := awsmapper.FromDomainLaunchTemplate(template)
+	if err := awsTemplate.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsTemplateOutput, err := a.awsService.CreateLaunchTemplate(ctx, awsTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLaunchTemplateOutputFromOutput(awsTemplateOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetLaunchTemplateOutput(ctx context.Context, id string) (*domaincompute.LaunchTemplateOutput, error) {
+	awsTemplateOutput, err := a.awsService.GetLaunchTemplate(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLaunchTemplateOutputFromOutput(awsTemplateOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateLaunchTemplateOutput(ctx context.Context, id string, template *domaincompute.LaunchTemplate) (*domaincompute.LaunchTemplateOutput, error) {
+	if err := template.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsTemplate := awsmapper.FromDomainLaunchTemplate(template)
+	if err := awsTemplate.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsTemplateOutput, err := a.awsService.UpdateLaunchTemplate(ctx, id, awsTemplate)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLaunchTemplateOutputFromOutput(awsTemplateOutput), nil
+}
+
+func (a *AWSComputeAdapter) ListLaunchTemplatesOutput(ctx context.Context, filters map[string]string) ([]*domaincompute.LaunchTemplateOutput, error) {
+	awsFilters := make(map[string][]string)
+	for key, value := range filters {
+		awsFilters[key] = []string{value}
+	}
+
+	awsTemplateOutputs, err := a.awsService.ListLaunchTemplates(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.LaunchTemplateOutput, len(awsTemplateOutputs))
+	for i, awsTemplateOutput := range awsTemplateOutputs {
+		domainOutputs[i] = awsmapper.ToDomainLaunchTemplateOutputFromOutput(awsTemplateOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) CreateAutoScalingGroupOutput(ctx context.Context, asg *domaincompute.AutoScalingGroup) (*domaincompute.AutoScalingGroupOutput, error) {
+	if err := asg.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsASG := awsmapper.FromDomainAutoScalingGroup(asg)
+	if err := awsASG.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsASGOutput, err := a.awsService.CreateAutoScalingGroup(ctx, awsASG)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainAutoScalingGroupOutputFromOutput(awsASGOutput), nil
+}
+
+func (a *AWSComputeAdapter) GetAutoScalingGroupOutput(ctx context.Context, name string) (*domaincompute.AutoScalingGroupOutput, error) {
+	awsASGOutput, err := a.awsService.GetAutoScalingGroup(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainAutoScalingGroupOutputFromOutput(awsASGOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateAutoScalingGroupOutput(ctx context.Context, asg *domaincompute.AutoScalingGroup) (*domaincompute.AutoScalingGroupOutput, error) {
+	if err := asg.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	if asg.Name == "" {
+		return nil, fmt.Errorf("auto scaling group name is required for update")
+	}
+
+	awsASG := awsmapper.FromDomainAutoScalingGroup(asg)
+	if err := awsASG.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsASGOutput, err := a.awsService.UpdateAutoScalingGroup(ctx, asg.Name, awsASG)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainAutoScalingGroupOutputFromOutput(awsASGOutput), nil
+}
+
+func (a *AWSComputeAdapter) ListAutoScalingGroupsOutput(ctx context.Context, filters map[string]string) ([]*domaincompute.AutoScalingGroupOutput, error) {
+	awsFilters := make(map[string][]string)
+	for key, value := range filters {
+		awsFilters[key] = []string{value}
+	}
+
+	awsASGOutputs, err := a.awsService.ListAutoScalingGroups(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.AutoScalingGroupOutput, len(awsASGOutputs))
+	for i, awsASGOutput := range awsASGOutputs {
+		domainOutputs[i] = awsmapper.ToDomainAutoScalingGroupOutputFromOutput(awsASGOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) CreateLambdaFunctionOutput(ctx context.Context, function *domaincompute.LambdaFunction) (*domaincompute.LambdaFunctionOutput, error) {
+	if err := function.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	awsFunction := awsmapper.FromDomainLambdaFunction(function)
+	if err := awsFunction.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsFunctionOutput, err := a.awsService.CreateLambdaFunction(ctx, awsFunction)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutput := awsmapper.ToDomainLambdaFunctionOutputFromOutput(awsFunctionOutput)
+	domainOutput.Region = function.Region
+	return domainOutput, nil
+}
+
+func (a *AWSComputeAdapter) GetLambdaFunctionOutput(ctx context.Context, name string) (*domaincompute.LambdaFunctionOutput, error) {
+	awsFunctionOutput, err := a.awsService.GetLambdaFunction(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	return awsmapper.ToDomainLambdaFunctionOutputFromOutput(awsFunctionOutput), nil
+}
+
+func (a *AWSComputeAdapter) UpdateLambdaFunctionOutput(ctx context.Context, function *domaincompute.LambdaFunction) (*domaincompute.LambdaFunctionOutput, error) {
+	if err := function.Validate(); err != nil {
+		return nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+
+	if function.FunctionName == "" {
+		return nil, fmt.Errorf("function name is required for update")
+	}
+
+	awsFunction := awsmapper.FromDomainLambdaFunction(function)
+	if err := awsFunction.Validate(); err != nil {
+		return nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+
+	awsFunctionOutput, err := a.awsService.UpdateLambdaFunction(ctx, function.FunctionName, awsFunction)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutput := awsmapper.ToDomainLambdaFunctionOutputFromOutput(awsFunctionOutput)
+	domainOutput.Region = function.Region
+	return domainOutput, nil
+}
+
+func (a *AWSComputeAdapter) ListLambdaFunctionsOutput(ctx context.Context, filters map[string]string) ([]*domaincompute.LambdaFunctionOutput, error) {
+	awsFilters := make(map[string][]string)
+	for key, value := range filters {
+		awsFilters[key] = []string{value}
+	}
+
+	awsFunctionOutputs, err := a.awsService.ListLambdaFunctions(ctx, awsFilters)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.LambdaFunctionOutput, len(awsFunctionOutputs))
+	for i, awsFunctionOutput := range awsFunctionOutputs {
+		domainOutputs[i] = awsmapper.ToDomainLambdaFunctionOutputFromOutput(awsFunctionOutput)
+	}
+
+	return domainOutputs, nil
+}
+
+func (a *AWSComputeAdapter) ListTargetGroupTargetsOutput(ctx context.Context, targetGroupARN string) ([]*domaincompute.TargetGroupAttachmentOutput, error) {
+	awsAttachmentOutputs, err := a.awsService.ListTargetGroupTargets(ctx, targetGroupARN)
+	if err != nil {
+		return nil, fmt.Errorf("aws service error: %w", err)
+	}
+
+	domainOutputs := make([]*domaincompute.TargetGroupAttachmentOutput, len(awsAttachmentOutputs))
+	for i, awsAttachmentOutput := range awsAttachmentOutputs {
+		state := &awsAttachmentOutput.State
+		domainOutputs[i] = &domaincompute.TargetGroupAttachmentOutput{
+			TargetGroupARN:   awsAttachmentOutput.TargetGroupARN,
+			TargetID:         awsAttachmentOutput.TargetID,
+			Port:             awsAttachmentOutput.Port,
+			AvailabilityZone: awsAttachmentOutput.AvailabilityZone,
+			State:            state,
+		}
+	}
+
+	return domainOutputs, nil
 }

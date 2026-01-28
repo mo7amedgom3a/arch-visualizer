@@ -113,3 +113,45 @@ func ToDomainS3BucketFromOutput(output *awss3outputs.BucketOutput) *domainstorag
 
 	return domain
 }
+
+// ToDomainS3BucketOutputFromOutput converts AWS BucketOutput directly to domain S3BucketOutput
+func ToDomainS3BucketOutputFromOutput(output *awss3outputs.BucketOutput) *domainstorage.S3BucketOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	bucketDomainName := &output.BucketDomainName
+	if output.BucketDomainName == "" {
+		bucketDomainName = nil
+	}
+
+	bucketRegionalDomainName := &output.BucketRegionalDomainName
+	if output.BucketRegionalDomainName == "" {
+		bucketRegionalDomainName = nil
+	}
+
+	// Convert tags from []struct to map[string]string
+	tags := make(map[string]string)
+	if output.Tags != nil && len(output.Tags) > 0 {
+		for _, tag := range output.Tags {
+			tags[tag.Key] = tag.Value
+		}
+	}
+
+	return &domainstorage.S3BucketOutput{
+		ID:                       output.ID,
+		ARN:                      arn,
+		Name:                     output.Name,
+		NamePrefix:               output.NamePrefix,
+		Region:                   output.Region,
+		ForceDestroy:             output.ForceDestroy,
+		Tags:                     tags,
+		BucketDomainName:         bucketDomainName,
+		BucketRegionalDomainName: bucketRegionalDomainName,
+	}
+}

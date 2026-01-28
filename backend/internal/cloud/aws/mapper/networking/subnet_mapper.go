@@ -70,3 +70,34 @@ func FromDomainSubnet(domainSubnet *domainnetworking.Subnet, availabilityZone st
 	
 	return awsSubnet
 }
+
+// ToDomainSubnetOutputFromOutput converts AWS SubnetOutput directly to domain SubnetOutput
+func ToDomainSubnetOutputFromOutput(output *awsoutputs.SubnetOutput) *domainnetworking.SubnetOutput {
+	if output == nil {
+		return nil
+	}
+
+	arn := &output.ARN
+	if output.ARN == "" {
+		arn = nil
+	}
+
+	az := &output.AvailabilityZone
+	if output.AvailabilityZone == "" {
+		az = nil
+	}
+
+	return &domainnetworking.SubnetOutput{
+		ID:                  output.ID,
+		ARN:                 arn,
+		Name:                output.Name,
+		VPCID:               output.VPCID,
+		CIDR:                output.CIDR,
+		AvailabilityZone:    az,
+		IsPublic:            output.MapPublicIPOnLaunch,
+		State:               &output.State,
+		AvailableIPCount:    &output.AvailableIPCount,
+		MapPublicIPOnLaunch: &output.MapPublicIPOnLaunch,
+		CreatedAt:           &output.CreationTime,
+	}
+}
