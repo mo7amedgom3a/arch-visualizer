@@ -162,13 +162,17 @@ func TestNormalizeFiltersVisualOnly(t *testing.T) {
 		t.Fatalf("Failed to normalize: %v", err)
 	}
 
-	// Verify visual-only node is filtered out
-	if len(diagramGraph.Nodes) != 1 {
-		t.Errorf("Expected 1 node after filtering, got %d", len(diagramGraph.Nodes))
+	// Visual-only nodes are tracked in the graph (for UI parity), but are filtered later
+	// at the domain mapping stage when creating real infrastructure resources.
+	if len(diagramGraph.Nodes) != 2 {
+		t.Errorf("Expected 2 nodes, got %d", len(diagramGraph.Nodes))
 	}
 
-	if _, exists := diagramGraph.Nodes["node-2"]; exists {
-		t.Error("Visual-only node should be filtered out")
+	visualNode, exists := diagramGraph.Nodes["node-2"]
+	if !exists {
+		t.Error("Visual-only node should be present in the graph")
+	} else if !visualNode.IsVisualOnly {
+		t.Error("Visual-only node should have IsVisualOnly=true")
 	}
 
 	if _, exists := diagramGraph.Nodes["node-1"]; !exists {

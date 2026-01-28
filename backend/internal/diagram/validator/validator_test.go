@@ -27,7 +27,7 @@ func TestValidate(t *testing.T) {
 		Type:         "containerNode",
 		ResourceType: "vpc",
 		Label:        "VPC",
-		Config:       map[string]interface{}{"name": "project-vpc"},
+		Config:       map[string]interface{}{"name": "project-vpc", "cidr": "10.0.0.0/16"},
 		ParentID:     stringPtr("region-1"),
 	}
 
@@ -57,7 +57,7 @@ func TestValidateMissingParent(t *testing.T) {
 		Type:         "containerNode",
 		ResourceType: "vpc",
 		Label:        "VPC",
-		Config:       map[string]interface{}{"name": "project-vpc"},
+		Config:       map[string]interface{}{"name": "project-vpc", "cidr": "10.0.0.0/16"},
 		ParentID:     stringPtr("non-existent-parent"),
 	}
 
@@ -95,6 +95,7 @@ func TestValidateContainmentCycle(t *testing.T) {
 		ID:           "node-1",
 		Type:         "containerNode",
 		ResourceType: "vpc",
+		Config:       map[string]interface{}{"cidr": "10.0.0.0/16"},
 		ParentID:     stringPtr("node-2"),
 	}
 
@@ -102,6 +103,10 @@ func TestValidateContainmentCycle(t *testing.T) {
 		ID:           "node-2",
 		Type:         "containerNode",
 		ResourceType: "subnet",
+		Config: map[string]interface{}{
+			"cidr":               "10.0.1.0/24",
+			"availabilityZoneId": "us-east-1a",
+		},
 		ParentID:     stringPtr("node-1"),
 	}
 
@@ -143,7 +148,7 @@ func TestValidateResourceTypes(t *testing.T) {
 		Type:         "resourceNode",
 		ResourceType: "ec2",
 		Label:        "EC2",
-		Config:       map[string]interface{}{},
+		Config:       map[string]interface{}{"instanceType": "t3.micro", "ami": "ami-0123456789"},
 	}
 
 	// Add node with invalid resource type
@@ -152,7 +157,7 @@ func TestValidateResourceTypes(t *testing.T) {
 		Type:         "resourceNode",
 		ResourceType: "unknown-type",
 		Label:        "Unknown",
-		Config:       map[string]interface{}{},
+		Config:       map[string]interface{}{"instanceType": "t3.micro", "ami": "ami-0123456789"},
 	}
 
 	// Validate with options

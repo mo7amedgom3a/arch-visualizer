@@ -187,14 +187,6 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 
 	// Second pass: create edges
 	for _, irEdge := range ir.Edges {
-		// Validate that both source and target nodes exist
-		if _, exists := g.Nodes[irEdge.Source]; !exists {
-			continue // Skip edges to filtered nodes
-		}
-		if _, exists := g.Nodes[irEdge.Target]; !exists {
-			continue // Skip edges to filtered nodes
-		}
-
 		edgeType := "dependency" // default
 		if irEdge.Type != nil {
 			edgeType = *irEdge.Type

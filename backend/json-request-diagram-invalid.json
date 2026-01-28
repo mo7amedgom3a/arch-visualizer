@@ -1,0 +1,219 @@
+{
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "position": { "x": 10, "y": 10 },
+      "data": {
+        "label": "Region A",
+        "resourceType": "region",
+        "config": { "name": "us-east-1" },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": null
+    },
+    {
+      "id": "region-2",
+      "type": "containerNode",
+      "position": { "x": 20, "y": 20 },
+      "data": {
+        "label": "Region B (duplicate)",
+        "resourceType": "region",
+        "config": { "name": "us-west-2" },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": null
+    },
+    {
+      "id": "vpc-1",
+      "type": "containerNode",
+      "position": { "x": 40, "y": 40 },
+      "data": {
+        "label": "VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "bad-vpc",
+          "cidr": "10.0.0.0/16",
+          "regionId": "us-east-1"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "region-1"
+    },
+    {
+      "id": "subnet-a",
+      "type": "containerNode",
+      "position": { "x": 60, "y": 60 },
+      "data": {
+        "label": "Subnet A",
+        "resourceType": "subnet",
+        "config": {
+          "name": "subnet-a",
+          "cidr": "10.0.1.0/24",
+          "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1"
+    },
+    {
+      "id": "subnet-b",
+      "type": "containerNode",
+      "position": { "x": 80, "y": 60 },
+      "data": {
+        "label": "Subnet B (overlaps with A)",
+        "resourceType": "subnet",
+        "config": {
+          "name": "subnet-b",
+          "cidr": "10.0.1.128/25",
+          "availabilityZoneId": "us-east-1b"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1"
+    },
+    {
+      "id": "subnet-c",
+      "type": "containerNode",
+      "position": { "x": 100, "y": 60 },
+      "data": {
+        "label": "Subnet C (invalid cidr + missing AZ)",
+        "resourceType": "subnet",
+        "config": {
+          "name": "subnet-c",
+          "cidr": "10.0.300.0/24"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1"
+    },
+    {
+      "id": "subnet-orphan",
+      "type": "containerNode",
+      "position": { "x": 120, "y": 60 },
+      "data": {
+        "label": "Subnet Orphan (missing parent)",
+        "resourceType": "subnet",
+        "config": {
+          "name": "subnet-orphan",
+          "cidr": "10.0.2.0/24",
+          "availabilityZoneId": "us-east-1c"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-999"
+    },
+    {
+      "id": "ec2-1",
+      "type": "resourceNode",
+      "position": { "x": 60, "y": 100 },
+      "data": {
+        "label": "EC2 (missing ami)",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "subnet-a"
+    },
+    {
+      "id": "bad-type-1",
+      "type": "resourceNode",
+      "position": { "x": 80, "y": 100 },
+      "data": {
+        "label": "Unknown Resource",
+        "resourceType": "not-a-real-type",
+        "config": {},
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1"
+    },
+    {
+      "id": "missing-type-1",
+      "type": "resourceNode",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "label": "Missing ResourceType",
+        "resourceType": "",
+        "config": {},
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1"
+    },
+    {
+      "id": "cycle-1",
+      "type": "containerNode",
+      "position": { "x": 140, "y": 140 },
+      "data": {
+        "label": "Cycle 1",
+        "resourceType": "vpc",
+        "config": { "cidr": "10.10.0.0/16" },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "cycle-2"
+    },
+    {
+      "id": "cycle-2",
+      "type": "containerNode",
+      "position": { "x": 160, "y": 140 },
+      "data": {
+        "label": "Cycle 2",
+        "resourceType": "subnet",
+        "config": {
+          "cidr": "10.10.1.0/24",
+          "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "parentId": "cycle-1"
+    }
+  ],
+  "edges": [
+    {
+      "id": "dep-self-loop",
+      "source": "ec2-1",
+      "target": "ec2-1",
+      "type": "dependency"
+    },
+    {
+      "id": "dep-cycle-1",
+      "source": "ec2-1",
+      "target": "bad-type-1",
+      "type": "dependency"
+    },
+    {
+      "id": "dep-cycle-2",
+      "source": "bad-type-1",
+      "target": "ec2-1",
+      "type": "dependency"
+    },
+    {
+      "id": "dep-missing-src",
+      "source": "missing-node-123",
+      "target": "ec2-1",
+      "type": "dependency"
+    },
+    {
+      "id": "dep-missing-target",
+      "source": "ec2-1",
+      "target": "missing-node-456",
+      "type": "dependency"
+    }
+  ],
+  "variables": [],
+  "timestamp": 1769555019056
+}
+
