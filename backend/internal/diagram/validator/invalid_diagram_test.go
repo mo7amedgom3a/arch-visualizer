@@ -5,6 +5,7 @@ import (
 	"os"
 	"fmt"
 	"testing"
+	"strings"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 )
@@ -41,8 +42,18 @@ func TestInvalidDiagramFixtureReturnsMultipleErrors(t *testing.T) {
 	}
 
 	result := Validate(g, opts)
+	fmt.Println(strings.Repeat("=", 100))
+	fmt.Println("Result", result)
 	if result.Valid {
 		t.Fatalf("expected invalid diagram, got valid")
+	}
+
+	// Loop on the errors and print to console
+	fmt.Println("Validation Errors:")
+	for i, err := range result.Errors {
+		if err != nil {
+			fmt.Printf("Error %d: %+v\n", i+1, err)
+		}
 	}
 
 	// We expect multiple errors (not just one).

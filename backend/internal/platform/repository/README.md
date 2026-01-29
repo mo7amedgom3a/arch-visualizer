@@ -5,10 +5,39 @@ This package provides GORM-based repository implementations for database operati
 ## Repositories
 
 - **BaseRepository**: Common database operations and transaction support
+
+### Core domain
+
 - **UserRepository**: User management operations
 - **ProjectRepository**: Project management operations
 - **ResourceRepository**: Resource management and relationships
 - **PricingRepository**: Pricing data management
+- **ResourceTypeRepository**: Lookup for cloud resource types
+- **DependencyTypeRepository**: Lookup for dependency types
+- **ResourceConstraintRepository**: Validation rules for resource types
+
+### Infrastructure lookups
+
+- **IACTargetRepository**: Lookup for supported IaC tools (Terraform, Pulumi, CDK, etc.)
+- **ResourceCategoryRepository**: Lookup for resource categories (Compute, Storage, Networking)
+- **ResourceKindRepository**: Lookup for resource kinds (VirtualMachine, Container, Function)
+
+### Marketplace
+
+- **CategoryRepository**: Marketplace template categories
+- **TemplateRepository**: Templates with rich relationships and search helpers
+- **ReviewRepository**: Template reviews and helpful votes
+- **IACFormatRepository**: Marketplace IaC formats (Terraform, CDK, etc.)
+- **TechnologyRepository**: Marketplace technology tags
+- **ComplianceStandardRepository**: Compliance standards (SOC2, HIPAA, PCI, etc.)
+
+### Join tables & relationships
+
+- **TemplateComplianceRepository**: Template ↔ compliance associations
+- **TemplateIACFormatRepository**: Template ↔ IaC format associations
+- **TemplateTechnologyRepository**: Template ↔ technology associations
+- **ResourceContainmentRepository**: Resource containment hierarchy (parent/child)
+- **ResourceDependencyRepository**: Directed resource dependencies
 
 ## Usage Example
 

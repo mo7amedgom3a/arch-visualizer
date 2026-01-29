@@ -13,13 +13,21 @@ type BaseRepository struct {
 	db *gorm.DB
 }
 
-// NewBaseRepository creates a new base repository
+// NewBaseRepository creates a new base repository using the default database
+// connection configured via the platform database package.
 func NewBaseRepository() (*BaseRepository, error) {
 	db, err := database.Connect()
 	if err != nil {
 		return nil, platformerrors.NewDatabaseConnectionFailed(err)
 	}
 	return &BaseRepository{db: db}, nil
+}
+
+// NewBaseRepositoryWithDB creates a new base repository with an injected *gorm.DB
+// instance. This is primarily intended for tests or alternative storage backends
+// (e.g., in-memory SQLite) where you want to control the underlying connection.
+func NewBaseRepositoryWithDB(db *gorm.DB) *BaseRepository {
+	return &BaseRepository{db: db}
 }
 
 // GetDB returns the GORM database instance

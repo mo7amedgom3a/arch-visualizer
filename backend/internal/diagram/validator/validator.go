@@ -3,9 +3,11 @@ package validator
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator/schema"
 )
 
 // ValidationError represents a validation error
@@ -36,6 +38,9 @@ type ValidationOptions struct {
 	ValidResourceTypes map[string]bool
 	// Provider is the cloud provider (aws, azure, gcp)
 	Provider string
+	// SchemaRegistry is the schema registry to use for dynamic config validation
+	// If nil, uses the default registry
+	SchemaRegistry *schema.InMemorySchemaRegistry
 }
 
 // Validate performs comprehensive validation on the diagram graph
@@ -54,8 +59,9 @@ func Validate(g *graph.DiagramGraph, opts *ValidationOptions) *ValidationResult 
 	validateDependencyEdges(g, result)
 	validateResourceTypes(g, result, opts)
 	validateRegionNode(g, result)
-	validateConfigSchema(g, result)
+	validateConfigSchemaWithRegistry(g, result, opts)
 	validateCIDRs(g, result)
+	validateContainmentTypes(g, result, opts)
 
 	// Set valid to false if there are any errors
 	if len(result.Errors) > 0 {
@@ -284,56 +290,272 @@ func validateRegionNode(g *graph.DiagramGraph, result *ValidationResult) {
 	}
 }
 
-// validateConfigSchema performs basic type/required-field checks on node config.
-// Note: Config is intentionally flexible; this is a minimal sanity layer.
-func validateConfigSchema(g *graph.DiagramGraph, result *ValidationResult) {
+// validateConfigSchemaWithRegistry performs dynamic config validation using the schema registry.
+// This replaces the hardcoded switch statement with schema-driven validation.
+func validateConfigSchemaWithRegistry(g *graph.DiagramGraph, result *ValidationResult, opts *ValidationOptions) {
+	// Get schema registry
+	registry := schema.DefaultRegistry
+	if opts != nil && opts.SchemaRegistry != nil {
+		registry = opts.SchemaRegistry
+	}
+
+	provider := "aws" // default
+	if opts != nil && opts.Provider != "" {
+		provider = opts.Provider
+	}
+
 	for _, node := range g.Nodes {
 		rt := strings.ToLower(node.ResourceType)
 		if node.Config == nil {
-			// Treat nil config as empty; specific types may require fields.
 			node.Config = map[string]interface{}{}
 		}
 
-		switch rt {
-		case "vpc":
-			requireStringField(node, result, "cidr")
-		case "subnet":
-			requireStringField(node, result, "cidr")
-			requireStringField(node, result, "availabilityZoneId")
-		case "ec2":
-			requireStringField(node, result, "instanceType")
-			requireStringField(node, result, "ami")
-		case "route-table":
-			// isMain is optional but if present, must be bool
-			if v, ok := node.Config["isMain"]; ok {
-				if _, ok := v.(bool); !ok {
-					result.Errors = append(result.Errors, &ValidationError{
-						Code:    "CONFIG_INVALID_TYPE",
-						Message: fmt.Sprintf("Config field 'isMain' must be boolean on node '%s'", node.ID),
-						NodeID:  node.ID,
-					})
-				}
-			}
+		// Get schema for this resource type
+		resourceSchema, exists := registry.Get(rt, provider)
+		if !exists {
+			// No schema found - skip validation (or could add warning)
+			continue
+		}
+
+		// Validate each field according to schema
+		for _, fieldSpec := range resourceSchema.Fields {
+			validateField(node, result, fieldSpec)
 		}
 	}
 }
 
-func requireStringField(node *graph.Node, result *ValidationResult, field string) {
-	v, ok := node.Config[field]
-	if !ok {
+// validateField validates a single field against its specification
+func validateField(node *graph.Node, result *ValidationResult, fieldSpec schema.FieldSpec) {
+	value, exists := node.Config[fieldSpec.Name]
+
+	// Check required fields
+	if fieldSpec.Required && !exists {
 		result.Errors = append(result.Errors, &ValidationError{
 			Code:    "CONFIG_MISSING_FIELD",
-			Message: fmt.Sprintf("Missing required config field '%s' on node '%s' (%s)", field, node.ID, node.ResourceType),
+			Message: fmt.Sprintf("Missing required config field '%s' on node '%s' (%s)", fieldSpec.Name, node.ID, node.ResourceType),
 			NodeID:  node.ID,
 		})
 		return
 	}
-	if _, ok := v.(string); !ok {
+
+	// If field doesn't exist and isn't required, skip further validation
+	if !exists {
+		return
+	}
+
+	// Type validation
+	if !validateFieldType(value, fieldSpec.Type) {
 		result.Errors = append(result.Errors, &ValidationError{
 			Code:    "CONFIG_INVALID_TYPE",
-			Message: fmt.Sprintf("Config field '%s' must be string on node '%s' (%s)", field, node.ID, node.ResourceType),
+			Message: fmt.Sprintf("Config field '%s' must be %s on node '%s' (%s)", fieldSpec.Name, fieldSpec.Type, node.ID, node.ResourceType),
 			NodeID:  node.ID,
 		})
+		return
+	}
+
+	// Constraint validation
+	if fieldSpec.Constraints != nil {
+		validateConstraints(node, result, fieldSpec, value)
+	}
+}
+
+// validateFieldType checks if a value matches the expected type
+func validateFieldType(value interface{}, expectedType schema.FieldType) bool {
+	if value == nil {
+		return false
+	}
+
+	switch expectedType {
+	case schema.FieldTypeString, schema.FieldTypeCIDR:
+		_, ok := value.(string)
+		return ok
+	case schema.FieldTypeInt:
+		// JSON numbers are float64, accept both
+		switch value.(type) {
+		case int, int32, int64, float64:
+			return true
+		}
+		return false
+	case schema.FieldTypeFloat:
+		switch value.(type) {
+		case float32, float64:
+			return true
+		}
+		return false
+	case schema.FieldTypeBool:
+		_, ok := value.(bool)
+		return ok
+	case schema.FieldTypeArray:
+		_, ok := value.([]interface{})
+		return ok
+	case schema.FieldTypeObject:
+		_, ok := value.(map[string]interface{})
+		return ok
+	case schema.FieldTypeAny:
+		return true
+	}
+	return false
+}
+
+// validateConstraints validates field constraints
+func validateConstraints(node *graph.Node, result *ValidationResult, fieldSpec schema.FieldSpec, value interface{}) {
+	c := fieldSpec.Constraints
+	if c == nil {
+		return
+	}
+
+	// String constraints
+	if strVal, ok := value.(string); ok {
+		// Min length
+		if c.MinLength != nil && len(strVal) < *c.MinLength {
+			result.Errors = append(result.Errors, &ValidationError{
+				Code:    "CONFIG_CONSTRAINT_VIOLATION",
+				Message: fmt.Sprintf("Field '%s' must be at least %d characters on node '%s'", fieldSpec.Name, *c.MinLength, node.ID),
+				NodeID:  node.ID,
+			})
+		}
+
+		// Max length
+		if c.MaxLength != nil && len(strVal) > *c.MaxLength {
+			result.Errors = append(result.Errors, &ValidationError{
+				Code:    "CONFIG_CONSTRAINT_VIOLATION",
+				Message: fmt.Sprintf("Field '%s' must be at most %d characters on node '%s'", fieldSpec.Name, *c.MaxLength, node.ID),
+				NodeID:  node.ID,
+			})
+		}
+
+		// Pattern (regex)
+		if c.Pattern != nil {
+			matched, err := regexp.MatchString(*c.Pattern, strVal)
+			if err != nil || !matched {
+				result.Errors = append(result.Errors, &ValidationError{
+					Code:    "CONFIG_CONSTRAINT_VIOLATION",
+					Message: fmt.Sprintf("Field '%s' does not match required pattern on node '%s'", fieldSpec.Name, node.ID),
+					NodeID:  node.ID,
+				})
+			}
+		}
+
+		// Prefix
+		if c.Prefix != nil && !strings.HasPrefix(strVal, *c.Prefix) {
+			result.Errors = append(result.Errors, &ValidationError{
+				Code:    "CONFIG_CONSTRAINT_VIOLATION",
+				Message: fmt.Sprintf("Field '%s' must start with '%s' on node '%s'", fieldSpec.Name, *c.Prefix, node.ID),
+				NodeID:  node.ID,
+			})
+		}
+
+		// Enum
+		if len(c.Enum) > 0 {
+			found := false
+			for _, allowed := range c.Enum {
+				if strVal == allowed {
+					found = true
+					break
+				}
+			}
+			if !found {
+				result.Errors = append(result.Errors, &ValidationError{
+					Code:    "CONFIG_CONSTRAINT_VIOLATION",
+					Message: fmt.Sprintf("Field '%s' must be one of %v on node '%s', got '%s'", fieldSpec.Name, c.Enum, node.ID, strVal),
+					NodeID:  node.ID,
+				})
+			}
+		}
+
+		// CIDR validation
+		if fieldSpec.Type == schema.FieldTypeCIDR {
+			_, _, err := net.ParseCIDR(strVal)
+			if err != nil {
+				result.Errors = append(result.Errors, &ValidationError{
+					Code:    "CONFIG_INVALID_CIDR",
+					Message: fmt.Sprintf("Field '%s' is not a valid CIDR on node '%s': %s", fieldSpec.Name, node.ID, strVal),
+					NodeID:  node.ID,
+				})
+			}
+		}
+	}
+
+	// Number constraints
+	var numVal float64
+	switch v := value.(type) {
+	case int:
+		numVal = float64(v)
+	case int32:
+		numVal = float64(v)
+	case int64:
+		numVal = float64(v)
+	case float64:
+		numVal = v
+	default:
+		return // Not a number, skip number constraints
+	}
+
+	if c.MinValue != nil && numVal < *c.MinValue {
+		result.Errors = append(result.Errors, &ValidationError{
+			Code:    "CONFIG_CONSTRAINT_VIOLATION",
+			Message: fmt.Sprintf("Field '%s' must be at least %.0f on node '%s'", fieldSpec.Name, *c.MinValue, node.ID),
+			NodeID:  node.ID,
+		})
+	}
+
+	if c.MaxValue != nil && numVal > *c.MaxValue {
+		result.Errors = append(result.Errors, &ValidationError{
+			Code:    "CONFIG_CONSTRAINT_VIOLATION",
+			Message: fmt.Sprintf("Field '%s' must be at most %.0f on node '%s'", fieldSpec.Name, *c.MaxValue, node.ID),
+			NodeID:  node.ID,
+		})
+	}
+}
+
+// validateContainmentTypes validates that parent-child relationships follow schema rules
+func validateContainmentTypes(g *graph.DiagramGraph, result *ValidationResult, opts *ValidationOptions) {
+	registry := schema.DefaultRegistry
+	if opts != nil && opts.SchemaRegistry != nil {
+		registry = opts.SchemaRegistry
+	}
+
+	provider := "aws"
+	if opts != nil && opts.Provider != "" {
+		provider = opts.Provider
+	}
+
+	for _, node := range g.Nodes {
+		if node.ParentID == nil {
+			continue // Root node, no parent to validate
+		}
+
+		parent, exists := g.Nodes[*node.ParentID]
+		if !exists {
+			continue // Missing parent handled elsewhere
+		}
+
+		childType := strings.ToLower(node.ResourceType)
+		parentType := strings.ToLower(parent.ResourceType)
+
+		// Get schema for child
+		childSchema, childExists := registry.Get(childType, provider)
+		if !childExists {
+			continue // No schema, skip validation
+		}
+
+		// Check if parent type is valid for this child
+		if len(childSchema.ValidParentTypes) > 0 {
+			validParent := false
+			for _, validType := range childSchema.ValidParentTypes {
+				if validType == parentType {
+					validParent = true
+					break
+				}
+			}
+			if !validParent {
+				result.Warnings = append(result.Warnings, &ValidationError{
+					Code:    "INVALID_CONTAINMENT",
+					Message: fmt.Sprintf("Node '%s' (%s) should not be contained in '%s' (%s). Valid parents: %v", node.ID, childType, parent.ID, parentType, childSchema.ValidParentTypes),
+					NodeID:  node.ID,
+				})
+			}
+		}
 	}
 }
 
