@@ -89,15 +89,16 @@ func TestAWSRuleService_ValidateResource_WithDependencyRules(t *testing.T) {
 
 	// Create a VPC
 	vpc := &resource.Resource{
-		ID:   "vpc-1",
-		Name: "test-vpc",
-		Type: resource.ResourceType{Name: "VPC", Kind: "VPC"},
+		ID:     "vpc-1",
+		Name:   "test-vpc",
+		Type:   resource.ResourceType{Name: "VPC", Kind: "VPC"},
+		Region: "us-east-1",
 	}
 
 	// Create a Subnet that depends on VPC (forbidden)
 	subnet := &resource.Resource{
 		ID:        "subnet-1",
-		Name:       "test-subnet",
+		Name:      "test-subnet",
 		Type:      resource.ResourceType{Name: "Subnet", Kind: "Subnet"},
 		DependsOn: []string{"vpc-1"},
 		ParentID:  stringPtr("vpc-1"),
@@ -146,17 +147,19 @@ func TestAWSRuleService_ValidateResource_WithAllowedDependencies(t *testing.T) {
 
 	// Create a RouteTable
 	routeTable := &resource.Resource{
-		ID:   "rt-1",
-		Name: "test-rt",
-		Type: resource.ResourceType{Name: "RouteTable", Kind: "RouteTable"},
+		ID:       "rt-1",
+		Name:     "test-rt",
+		Type:     resource.ResourceType{Name: "RouteTable", Kind: "RouteTable"},
+		Region:   "us-east-1",
 		ParentID: stringPtr("vpc-1"),
 	}
 
 	// Create a Subnet that depends on RouteTable (allowed)
 	subnet := &resource.Resource{
 		ID:        "subnet-1",
-		Name:       "test-subnet",
+		Name:      "test-subnet",
 		Type:      resource.ResourceType{Name: "Subnet", Kind: "Subnet"},
+		Region:    "us-east-1",
 		DependsOn: []string{"rt-1"},
 		ParentID:  stringPtr("vpc-1"),
 	}

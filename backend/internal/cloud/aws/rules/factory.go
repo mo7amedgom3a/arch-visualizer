@@ -52,19 +52,16 @@ func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, 
 
 // AWS-specific rule creation methods
 func (f *AWSRuleFactory) createRequiresParentRule(resourceType, parentType string) (rules.Rule, error) {
-	// AWS might map resource types differently
-	awsParentType := f.mapResourceTypeToAWS(parentType)
-	return constraints.NewRequiresParentRule(resourceType, awsParentType), nil
+	// Use domain resource type names for parent relationships so rules work directly
+	// with the domain architecture (e.g., "VPC", "Subnet").
+	return constraints.NewRequiresParentRule(resourceType, parentType), nil
 }
 
 func (f *AWSRuleFactory) createAllowedParentRule(resourceType, constraintValue string) (rules.Rule, error) {
 	allowedTypes := f.parseCommaSeparated(constraintValue)
-	// Map to AWS resource types
-	awsAllowedTypes := make([]string, len(allowedTypes))
-	for i, t := range allowedTypes {
-		awsAllowedTypes[i] = f.mapResourceTypeToAWS(t)
-	}
-	return constraints.NewAllowedParentRule(resourceType, awsAllowedTypes), nil
+	// Keep allowed parent types in domain form (e.g., "VPC") so they match
+	// resource.Type.Name directly.
+	return constraints.NewAllowedParentRule(resourceType, allowedTypes), nil
 }
 
 func (f *AWSRuleFactory) createRequiresRegionRule(resourceType, constraintValue string) (rules.Rule, error) {
@@ -86,22 +83,15 @@ func (f *AWSRuleFactory) createMinChildrenRule(resourceType, constraintValue str
 
 func (f *AWSRuleFactory) createAllowedDependenciesRule(resourceType, constraintValue string) (rules.Rule, error) {
 	allowedTypes := f.parseCommaSeparated(constraintValue)
-	// Map to AWS resource types
-	awsAllowedTypes := make([]string, len(allowedTypes))
-	for i, t := range allowedTypes {
-		awsAllowedTypes[i] = f.mapResourceTypeToAWS(t)
-	}
-	return constraints.NewAllowedDependenciesRule(resourceType, awsAllowedTypes), nil
+	// Use domain type names (e.g., "RouteTable", "NATGateway") so dependency
+	// checks operate on the same names as the domain architecture.
+	return constraints.NewAllowedDependenciesRule(resourceType, allowedTypes), nil
 }
 
 func (f *AWSRuleFactory) createForbiddenDependenciesRule(resourceType, constraintValue string) (rules.Rule, error) {
 	forbiddenTypes := f.parseCommaSeparated(constraintValue)
-	// Map to AWS resource types
-	awsForbiddenTypes := make([]string, len(forbiddenTypes))
-	for i, t := range forbiddenTypes {
-		awsForbiddenTypes[i] = f.mapResourceTypeToAWS(t)
-	}
-	return constraints.NewForbiddenDependenciesRule(resourceType, awsForbiddenTypes), nil
+	// Use domain type names (e.g., "VPC", "Subnet") for forbidden dependencies.
+	return constraints.NewForbiddenDependenciesRule(resourceType, forbiddenTypes), nil
 }
 
 // mapResourceTypeToAWS maps domain resource types to AWS-specific types

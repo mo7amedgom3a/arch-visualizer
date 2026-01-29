@@ -59,6 +59,8 @@ func MapDiagramToArchitecture(diagramGraph *graph.DiagramGraph, provider resourc
 	nodeIDToResourceID := make(map[string]string) // IR node ID -> domain resource ID
 	resourceCounter := 0
 
+	// First pass: build complete nodeIDToResourceID map for all nodes
+	// This ensures parent lookups work regardless of processing order
 	for _, node := range diagramGraph.Nodes {
 		// Skip region node - it's handled as project-level config
 		if node.IsRegion() {
@@ -73,6 +75,22 @@ func MapDiagramToArchitecture(diagramGraph *graph.DiagramGraph, provider resourc
 		// Generate domain resource ID (using node ID as base)
 		resourceID := node.ID
 		nodeIDToResourceID[node.ID] = resourceID
+	}
+
+	// Second pass: create domain resources (now all parent IDs are available in the map)
+	for _, node := range diagramGraph.Nodes {
+		// Skip region node - it's handled as project-level config
+		if node.IsRegion() {
+			continue
+		}
+
+		// Skip visual-only nodes - they are tracked but not persisted as real infrastructure
+		if node.IsVisualOnly {
+			continue
+		}
+
+		// Get resource ID from map (already set in first pass)
+		resourceID := nodeIDToResourceID[node.ID]
 
 		// Map IR resource type to domain resource type
 		domainResourceType, err := mapIRResourceTypeToDomain(node.ResourceType)

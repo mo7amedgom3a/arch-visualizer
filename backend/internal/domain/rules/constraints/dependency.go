@@ -6,7 +6,7 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
 )
 
-// AllowedDependenciesRule validates that dependencies are of allowed types
+// AllowedDependenciesRule validates that dependencies are of allowed or forbidden types.
 type AllowedDependenciesRule struct {
 	ResourceType      string
 	AllowedTypes      []string // Allowed dependency types
@@ -14,6 +14,11 @@ type AllowedDependenciesRule struct {
 }
 
 func (r *AllowedDependenciesRule) GetType() rules.RuleType {
+	// If this rule was constructed as a "forbidden" rule (no allowed types, only forbidden),
+	// report its type as ForbiddenDependencies so factories/tests can distinguish it.
+	if len(r.ForbiddenTypes) > 0 && len(r.AllowedTypes) == 0 {
+		return rules.RuleTypeForbiddenDependencies
+	}
 	return rules.RuleTypeAllowedDependencies
 }
 

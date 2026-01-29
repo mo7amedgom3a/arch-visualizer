@@ -1,0 +1,29 @@
+ # `internal/codegen/` — Code Generation Orchestration
+
+This folder orchestrates the **end-to-end pipeline** for generating IaC from a validated architecture.
+
+## Responsibilities (today)
+
+- Accept a **validated** domain `Architecture`
+- Build a domain graph / DAG wrapper
+- Run **topological sort** to get provisioning order
+- Invoke the selected IaC engine (Terraform, Pulumi, …)
+- Return an `iac.Output` (files + content)
+
+## Terraform
+
+Terraform codegen orchestration lives in:
+
+- [`terraform/compiler.go`](terraform/compiler.go)
+
+That compiler handles:
+
+- `architecture.NewGraph(arch)`
+- `graph.GetSortedResources()`
+- `terraformEngine.Generate(ctx, arch, sortedResources)`
+
+## Loose coupling
+
+- Codegen depends on the **interfaces** in `internal/iac`, not on Terraform internals.
+- Provider-specific logic stays in provider packages (e.g. AWS), behind mapper interfaces.
+
