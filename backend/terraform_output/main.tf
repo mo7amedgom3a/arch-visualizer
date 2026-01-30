@@ -1,26 +1,49 @@
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 resource "aws_vpc" "vpc_2" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  instance_tenancy     = "default"
   tags = {
     Name  =  "project-vpc"
   }
 }
 
 resource "aws_subnet" "subnet_4" {
-  availability_zone = "us-east-1b"
-  cidr_block        = "10.0.144.0/24"
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
   tags = {
     Name  =  "public"
   }
   vpc_id = aws_vpc.vpc_2.id
 }
 
+resource "aws_route_table" "route_table_10" {
+  tags = {
+    Name  =  "private-rtb"
+  }
+  vpc_id = aws_vpc.vpc_2.id
+}
+
+resource "aws_route" "route_table_10_route_1" {
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gateway_5.id
+  route_table_id         = aws_route_table.route_table_10.id
+}
+
+resource "aws_route_table_association" "route_table_10_assoc_0" {
+  route_table_id = aws_route_table.route_table_10.id
+  subnet_id      = aws_subnet.subnet_6.id
+}
+
 resource "aws_subnet" "subnet_6" {
-  availability_zone = "us-east-1b"
-  cidr_block        = "10.0.128.0/24"
+  availability_zone       = "us-east-1b"
+  cidr_block              = "10.0.2.0/24"
+  map_public_ip_on_launch = false
   tags = {
     Name  =  "private subnet"
   }
@@ -34,24 +57,25 @@ resource "aws_security_group" "security_group_1" {
     Name  =  "http-sg"
   }
   vpc_id = aws_vpc.vpc_2.id
-}
-
-resource "aws_security_group_rule" "security_group_1_rule_0" {
-  cidr_blocks       = ["0.0.0.0/0"]
-  from_port         = 22
-  protocol          = "tcp"
-  security_group_id = aws_security_group.security_group_1.id
-  to_port           = 22
-  type              = "ingress"
-}
-
-resource "aws_security_group_rule" "security_group_1_rule_1" {
-  cidr_blocks       = ["0.0.0.0/0"]
-  from_port         = 80
-  protocol          = "tcp"
-  security_group_id = aws_security_group.security_group_1.id
-  to_port           = 80
-  type              = "ingress"
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
+  }
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 22
+    protocol    = "tcp"
+    to_port     = 22
+  }
+  ingress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 80
+    protocol    = "tcp"
+    to_port     = 80
+  }
 }
 
 resource "aws_route_table" "route_table_8" {
@@ -79,35 +103,26 @@ resource "aws_internet_gateway" "igw_9" {
   vpc_id = aws_vpc.vpc_2.id
 }
 
-resource "aws_route_table" "route_table_10" {
+resource "aws_eip" "nat_gateway_5_eip" {
+  domain = "vpc"
   tags = {
-    Name  =  "private-rtb"
+    Name  =  "my-nat-gateway-eip"
   }
-  vpc_id = aws_vpc.vpc_2.id
-}
-
-resource "aws_route" "route_table_10_route_1" {
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat_gateway_5.id
-  route_table_id         = aws_route_table.route_table_10.id
-}
-
-resource "aws_route_table_association" "route_table_10_assoc_0" {
-  route_table_id = aws_route_table.route_table_10.id
-  subnet_id      = aws_subnet.subnet_6.id
 }
 
 resource "aws_nat_gateway" "nat_gateway_5" {
-  subnet_id = aws_subnet.subnet_4.id
+  allocation_id = aws_eip.nat_gateway_5_eip.id
+  subnet_id     = aws_subnet.subnet_4.id
   tags = {
     Name  =  "my-nat-gateway"
   }
 }
 
 resource "aws_instance" "ec2_7" {
-  ami           = "ami-0123456789"
-  instance_type = "t3.micro"
-  subnet_id     = aws_subnet.subnet_6.id
+  ami                         = "ami-0123456789"
+  associate_public_ip_address = false
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.subnet_6.id
   tags = {
     Name  =  "web-server"
   }

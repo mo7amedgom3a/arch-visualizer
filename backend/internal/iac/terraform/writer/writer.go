@@ -43,6 +43,40 @@ func RenderMainTF(blocks []mapper.TerraformBlock) (string, error) {
 			body.SetAttributeRaw(k, toks)
 		}
 
+		// Render nested blocks (e.g., ingress, egress for security groups)
+		if len(b.NestedBlocks) > 0 {
+			// Sort nested block types for stable output
+			nestedTypes := make([]string, 0, len(b.NestedBlocks))
+			for nestedType := range b.NestedBlocks {
+				nestedTypes = append(nestedTypes, nestedType)
+			}
+			sort.Strings(nestedTypes)
+
+			for _, nestedType := range nestedTypes {
+				nestedBlocks := b.NestedBlocks[nestedType]
+				for _, nested := range nestedBlocks {
+					nestedBlk := body.AppendNewBlock(nestedType, nil)
+					nestedBody := nestedBlk.Body()
+
+					// Sort nested block attribute keys
+					nestedKeys := make([]string, 0, len(nested.Attributes))
+					for k := range nested.Attributes {
+						nestedKeys = append(nestedKeys, k)
+					}
+					sort.Strings(nestedKeys)
+
+					for _, k := range nestedKeys {
+						v := nested.Attributes[k]
+						toks, err := tokensForTerraformValue(v)
+						if err != nil {
+							return "", fmt.Errorf("nested block %s in %s %v: attribute %q: %w", nestedType, b.Kind, b.Labels, k, err)
+						}
+						nestedBody.SetAttributeRaw(k, toks)
+					}
+				}
+			}
+		}
+
 		root.AppendNewline()
 	}
 
@@ -85,6 +119,46 @@ func RenderVariablesTF(vars []mapper.Variable) (string, error) {
 		}
 		// Optionally set sensitive flag.
 		if v.Sensitive {
+			body.SetAttributeValue("sensitive", cty.BoolVal(true))
+		}
+
+		root.AppendNewline()
+	}
+
+	return string(f.Bytes()), nil
+}
+
+// RenderOutputsTF renders an outputs.tf as a string from the provided output definitions.
+// Returns an empty string if no outputs are provided, or an error if rendering fails.
+func RenderOutputsTF(outputs []mapper.Output) (string, error) {
+	if len(outputs) == 0 {
+		return "", nil
+	}
+
+	f := hclwrite.NewEmptyFile()
+	root := f.Body()
+
+	for _, o := range outputs {
+		if o.Name == "" {
+			return "", fmt.Errorf("output name is empty")
+		}
+		blk := root.AppendNewBlock("output", []string{o.Name})
+		body := blk.Body()
+
+		// Set the output value (required).
+		toks, err := tokensForTerraformValue(o.Value)
+		if err != nil {
+			return "", fmt.Errorf("output %q value: %w", o.Name, err)
+		}
+		body.SetAttributeRaw("value", toks)
+
+		// Optionally set output description.
+		if o.Description != "" {
+			body.SetAttributeValue("description", cty.StringVal(o.Description))
+		}
+
+		// Optionally set sensitive flag.
+		if o.Sensitive {
 			body.SetAttributeValue("sensitive", cty.BoolVal(true))
 		}
 

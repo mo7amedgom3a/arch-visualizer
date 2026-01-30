@@ -23,6 +23,15 @@ type TerraformBlock struct {
 
 	// Attributes are key -> value inside the block.
 	Attributes map[string]TerraformValue
+
+	// NestedBlocks are child blocks like "ingress {}" or "egress {}" in security groups.
+	// Map key is the block type (e.g., "ingress", "egress"), value is a slice of blocks.
+	NestedBlocks map[string][]NestedBlock
+}
+
+// NestedBlock represents a nested block within a Terraform resource (e.g., ingress, egress).
+type NestedBlock struct {
+	Attributes map[string]TerraformValue
 }
 
 // Reference is a helper to express a reference like "aws_vpc.main.id".
@@ -48,3 +57,10 @@ type Variable struct {
 	Sensitive   bool
 }
 
+// Output describes a Terraform output value.
+type Output struct {
+	Name        string
+	Value       TerraformValue // The value expression (usually a reference)
+	Description string
+	Sensitive   bool
+}

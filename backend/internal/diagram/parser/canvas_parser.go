@@ -3,16 +3,36 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 )
 
 // IRDiagram represents the intermediate representation JSON from frontend
 type IRDiagram struct {
-	Nodes     []IRNode      `json:"nodes"`
-	Edges     []IREdge      `json:"edges"`
-	Variables []interface{} `json:"variables"`
-	Timestamp int64         `json:"timestamp"`
+	Nodes     []IRNode     `json:"nodes"`
+	Edges     []IREdge     `json:"edges"`
+	Variables []IRVariable `json:"variables"`
+	Outputs   []IROutput   `json:"outputs"`
+	Timestamp int64        `json:"timestamp"`
+}
+
+// IRVariable represents a Terraform input variable in the IR JSON
+type IRVariable struct {
+	Name        string      `json:"name"`
+	Type        string      `json:"type"` // e.g. "string", "number", "bool", "list(string)"
+	Description string      `json:"description"`
+	Default     interface{} `json:"default,omitempty"`
+	Sensitive   bool        `json:"sensitive,omitempty"`
+}
+
+// IROutput represents a Terraform output value in the IR JSON
+type IROutput struct {
+	Name        string `json:"name"`
+	Value       string `json:"value"` // Expression like "aws_vpc.main.id"
+	Description string `json:"description"`
+	Sensitive   bool   `json:"sensitive,omitempty"`
 }
 
 // IRNode represents a node in the IR JSON
@@ -50,6 +70,7 @@ type IREdge struct {
 
 // ParseIRDiagram parses the IR JSON string into an IRDiagram struct
 // Handles both direct JSON objects and JSON strings
+// Also resolves var.variable_name references using variable defaults
 func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 	// First, try to unmarshal as a JSON string (if the data is double-encoded)
 	var jsonStr string
@@ -63,6 +84,8 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 	if err := json.Unmarshal(jsonData, &diagram); err == nil {
 		// Check if we got nodes - if so, this is the correct format
 		if len(diagram.Nodes) > 0 || (diagram.Nodes != nil && len(diagram.Nodes) == 0) {
+			// Resolve variable references before returning
+			ResolveVariables(&diagram)
 			return &diagram, nil
 		}
 	}
@@ -71,14 +94,15 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 	var nodesArray []IRNode
 	if err := json.Unmarshal(jsonData, &nodesArray); err == nil && len(nodesArray) > 0 {
 		// Successfully parsed as array of nodes
-		// Now try to find edges, variables, timestamp in the remaining data
+		// Now try to find edges, variables, outputs, timestamp in the remaining data
 		diagram = IRDiagram{
 			Nodes:     nodesArray,
 			Edges:     make([]IREdge, 0),
-			Variables: make([]interface{}, 0),
+			Variables: make([]IRVariable, 0),
+			Outputs:   make([]IROutput, 0),
 		}
 
-		// Try to parse the full structure again to get edges/variables/timestamp
+		// Try to parse the full structure again to get edges/variables/outputs/timestamp
 		var rawData map[string]interface{}
 		if err := json.Unmarshal(jsonData, &rawData); err == nil {
 			// Extract edges
@@ -89,7 +113,14 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 
 			// Extract variables
 			if varsArray, ok := rawData["variables"].([]interface{}); ok {
-				diagram.Variables = varsArray
+				varsBytes, _ := json.Marshal(varsArray)
+				json.Unmarshal(varsBytes, &diagram.Variables)
+			}
+
+			// Extract outputs
+			if outputsArray, ok := rawData["outputs"].([]interface{}); ok {
+				outputsBytes, _ := json.Marshal(outputsArray)
+				json.Unmarshal(outputsBytes, &diagram.Outputs)
 			}
 
 			// Extract timestamp
@@ -100,6 +131,8 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 			}
 		}
 
+		// Resolve variable references before returning
+		ResolveVariables(&diagram)
 		return &diagram, nil
 	}
 
@@ -112,7 +145,8 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 	// Reconstruct the diagram structure from raw map
 	diagram = IRDiagram{
 		Edges:     make([]IREdge, 0),
-		Variables: make([]interface{}, 0),
+		Variables: make([]IRVariable, 0),
+		Outputs:   make([]IROutput, 0),
 	}
 
 	// Extract nodes (might be in an array at root or in "nodes" field)
@@ -133,7 +167,14 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 
 	// Extract variables
 	if varsArray, ok := rawData["variables"].([]interface{}); ok {
-		diagram.Variables = varsArray
+		varsBytes, _ := json.Marshal(varsArray)
+		json.Unmarshal(varsBytes, &diagram.Variables)
+	}
+
+	// Extract outputs
+	if outputsArray, ok := rawData["outputs"].([]interface{}); ok {
+		outputsBytes, _ := json.Marshal(outputsArray)
+		json.Unmarshal(outputsBytes, &diagram.Outputs)
 	}
 
 	// Extract timestamp
@@ -143,6 +184,8 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 		diagram.Timestamp = ts
 	}
 
+	// Resolve variable references before returning
+	ResolveVariables(&diagram)
 	return &diagram, nil
 }
 
@@ -150,8 +193,31 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 // Filters out visual-only nodes and builds the graph representation
 func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 	g := &graph.DiagramGraph{
-		Nodes: make(map[string]*graph.Node),
-		Edges: make([]*graph.Edge, 0),
+		Nodes:     make(map[string]*graph.Node),
+		Edges:     make([]*graph.Edge, 0),
+		Variables: make([]graph.Variable, 0),
+		Outputs:   make([]graph.Output, 0),
+	}
+
+	// Convert IR variables to graph variables
+	for _, v := range ir.Variables {
+		g.Variables = append(g.Variables, graph.Variable{
+			Name:        v.Name,
+			Type:        v.Type,
+			Description: v.Description,
+			Default:     v.Default,
+			Sensitive:   v.Sensitive,
+		})
+	}
+
+	// Convert IR outputs to graph outputs
+	for _, o := range ir.Outputs {
+		g.Outputs = append(g.Outputs, graph.Output{
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		})
 	}
 
 	// First pass: create nodes, tracking visual-only flag for all nodes
@@ -238,4 +304,173 @@ func ParseAndNormalize(jsonData []byte) (*graph.DiagramGraph, error) {
 		return nil, err
 	}
 	return NormalizeToGraph(ir)
+}
+
+// ResolveVariables resolves all var.variable_name references in the IR diagram
+// by replacing them with the variable's default value for internal processing.
+// It also stores the original variable references in a special "_varRefs" metadata field
+// so that Terraform generation can use the variable syntax (var.name) instead of resolved values.
+func ResolveVariables(ir *IRDiagram) {
+	// Build a map of variable names to their default values
+	varDefaults := make(map[string]interface{})
+	for _, v := range ir.Variables {
+		if v.Default != nil {
+			varDefaults[v.Name] = v.Default
+		}
+	}
+
+	if len(varDefaults) == 0 {
+		return // No variables with defaults to resolve
+	}
+
+	// Resolve variables in nodes
+	for i := range ir.Nodes {
+		// Initialize _varRefs metadata to track original variable references
+		if ir.Nodes[i].Data.Config == nil {
+			ir.Nodes[i].Data.Config = make(map[string]interface{})
+		}
+		varRefs := make(map[string]string) // field path -> original var reference
+
+		// Track and resolve node ID
+		if hasVarRef(ir.Nodes[i].ID) {
+			varRefs["_id"] = ir.Nodes[i].ID
+			ir.Nodes[i].ID = resolveVarInString(ir.Nodes[i].ID, varDefaults)
+		}
+
+		// Track and resolve parent ID
+		if ir.Nodes[i].ParentID != nil && hasVarRef(*ir.Nodes[i].ParentID) {
+			varRefs["_parentId"] = *ir.Nodes[i].ParentID
+			resolved := resolveVarInString(*ir.Nodes[i].ParentID, varDefaults)
+			ir.Nodes[i].ParentID = &resolved
+		}
+
+		// Track and resolve config values, collecting variable references
+		ir.Nodes[i].Data.Config = resolveVarInMapWithTracking(ir.Nodes[i].Data.Config, varDefaults, "", varRefs)
+
+		// Store the variable references in metadata for Terraform generation
+		if len(varRefs) > 0 {
+			ir.Nodes[i].Data.Config["_varRefs"] = varRefs
+		}
+	}
+
+	// Resolve variables in edges
+	for i := range ir.Edges {
+		ir.Edges[i].Source = resolveVarInString(ir.Edges[i].Source, varDefaults)
+		ir.Edges[i].Target = resolveVarInString(ir.Edges[i].Target, varDefaults)
+	}
+}
+
+// hasVarRef checks if a string contains a variable reference
+func hasVarRef(s string) bool {
+	return strings.Contains(s, "var.")
+}
+
+// resolveVarInMapWithTracking recursively resolves var.variable_name references in a map
+// and tracks the original variable references in varRefs map
+func resolveVarInMapWithTracking(m map[string]interface{}, varDefaults map[string]interface{}, prefix string, varRefs map[string]string) map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+	for k, v := range m {
+		fieldPath := k
+		if prefix != "" {
+			fieldPath = prefix + "." + k
+		}
+		result[k] = resolveVarInValueWithTracking(v, varDefaults, fieldPath, varRefs)
+	}
+	return result
+}
+
+// resolveVarInValueWithTracking resolves var.variable_name references in any value type
+// and tracks original variable references
+func resolveVarInValueWithTracking(v interface{}, varDefaults map[string]interface{}, fieldPath string, varRefs map[string]string) interface{} {
+	switch val := v.(type) {
+	case string:
+		if hasVarRef(val) {
+			// Store the original variable reference
+			varRefs[fieldPath] = val
+		}
+		resolved := resolveVarInString(val, varDefaults)
+		// If the entire string was a variable reference, try to return the actual type
+		if strings.HasPrefix(val, "var.") && !strings.Contains(resolved, "var.") {
+			varName := strings.TrimPrefix(val, "var.")
+			if defaultVal, ok := varDefaults[varName]; ok {
+				return defaultVal
+			}
+		}
+		return resolved
+	case map[string]interface{}:
+		return resolveVarInMapWithTracking(val, varDefaults, fieldPath, varRefs)
+	case []interface{}:
+		result := make([]interface{}, len(val))
+		for i, item := range val {
+			itemPath := fmt.Sprintf("%s[%d]", fieldPath, i)
+			result[i] = resolveVarInValueWithTracking(item, varDefaults, itemPath, varRefs)
+		}
+		return result
+	default:
+		return v
+	}
+}
+
+// varPattern matches var.variable_name patterns
+var varPattern = regexp.MustCompile(`var\.([a-zA-Z_][a-zA-Z0-9_]*)`)
+
+// resolveVarInString resolves var.variable_name references in a string
+func resolveVarInString(s string, varDefaults map[string]interface{}) string {
+	if !strings.Contains(s, "var.") {
+		return s
+	}
+
+	return varPattern.ReplaceAllStringFunc(s, func(match string) string {
+		// Extract variable name (after "var.")
+		varName := strings.TrimPrefix(match, "var.")
+		if defaultVal, ok := varDefaults[varName]; ok {
+			// Convert the default value to string
+			return fmt.Sprintf("%v", defaultVal)
+		}
+		// If variable not found, keep the original reference
+		return match
+	})
+}
+
+// resolveVarInMap recursively resolves var.variable_name references in a map
+func resolveVarInMap(m map[string]interface{}, varDefaults map[string]interface{}) map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+	for k, v := range m {
+		result[k] = resolveVarInValue(v, varDefaults)
+	}
+	return result
+}
+
+// resolveVarInValue resolves var.variable_name references in any value type
+func resolveVarInValue(v interface{}, varDefaults map[string]interface{}) interface{} {
+	switch val := v.(type) {
+	case string:
+		resolved := resolveVarInString(val, varDefaults)
+		// If the entire string was a variable reference, try to return the actual type
+		if strings.HasPrefix(val, "var.") && !strings.Contains(resolved, "var.") {
+			varName := strings.TrimPrefix(val, "var.")
+			if defaultVal, ok := varDefaults[varName]; ok {
+				return defaultVal
+			}
+		}
+		return resolved
+	case map[string]interface{}:
+		return resolveVarInMap(val, varDefaults)
+	case []interface{}:
+		result := make([]interface{}, len(val))
+		for i, item := range val {
+			result[i] = resolveVarInValue(item, varDefaults)
+		}
+		return result
+	default:
+		return v
+	}
 }

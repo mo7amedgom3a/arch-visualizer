@@ -95,18 +95,33 @@ func (m *AWSMapper) mapVPC(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 	}
 
 	attrs := map[string]tfmapper.TerraformValue{
-		"cidr_block": tfString(cidr),
+		// Use variable reference if available, otherwise use resolved value
+		"cidr_block": tfStringOrVar(res.Metadata, "cidr", cidr),
 		"tags":       tfTags(res.Name),
 	}
 
+	// Enable DNS support and hostnames by default (CloudCanvas rule)
+	// Only disable if user explicitly sets them to false
 	if v, ok := getBool(res.Metadata, "enable_dns_hostnames"); ok {
-		attrs["enable_dns_hostnames"] = tfBool(v)
+		attrs["enable_dns_hostnames"] = tfBoolOrVar(res.Metadata, "enable_dns_hostnames", v)
+	} else if v, ok := getBool(res.Metadata, "enableDnsHostnames"); ok {
+		attrs["enable_dns_hostnames"] = tfBoolOrVar(res.Metadata, "enableDnsHostnames", v)
+	} else {
+		// Default: enable DNS hostnames
+		attrs["enable_dns_hostnames"] = tfBool(true)
 	}
 	if v, ok := getBool(res.Metadata, "enable_dns_support"); ok {
-		attrs["enable_dns_support"] = tfBool(v)
+		attrs["enable_dns_support"] = tfBoolOrVar(res.Metadata, "enable_dns_support", v)
+	} else if v, ok := getBool(res.Metadata, "enableDnsSupport"); ok {
+		attrs["enable_dns_support"] = tfBoolOrVar(res.Metadata, "enableDnsSupport", v)
+	} else {
+		// Default: enable DNS support
+		attrs["enable_dns_support"] = tfBool(true)
 	}
 	if v, ok := getString(res.Metadata, "instance_tenancy"); ok && v != "" {
-		attrs["instance_tenancy"] = tfString(v)
+		attrs["instance_tenancy"] = tfStringOrVar(res.Metadata, "instance_tenancy", v)
+	} else if v, ok := getString(res.Metadata, "tenancy"); ok && v != "" {
+		attrs["instance_tenancy"] = tfStringOrVar(res.Metadata, "tenancy", v)
 	}
 
 	return []tfmapper.TerraformBlock{
@@ -133,14 +148,32 @@ func (m *AWSMapper) mapSubnet(res *resource.Resource) ([]tfmapper.TerraformBlock
 
 	attrs := map[string]tfmapper.TerraformValue{
 		"vpc_id":            tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
-		"cidr_block":        tfString(cidr),
-		"availability_zone": tfString(az),
+		"cidr_block":        tfStringOrVar(res.Metadata, "cidr", cidr),
+		"availability_zone": tfStringOrVar(res.Metadata, "availabilityZoneId", az),
 		"tags":              tfTags(res.Name),
 	}
 
+	// Determine if subnet is public and set map_public_ip_on_launch accordingly
+	// Priority:
+	// 1. Explicit map_public_ip_on_launch in metadata (highest priority - user override)
+	// 2. Route table association with Internet Gateway (_isPublicByRouteTable set by generator)
+	//    This is the actual source of truth - if subnet routes to IGW, it's public
+	// 3. Explicit isPublic metadata (fallback)
+	// 4. Name-based detection (lowest priority, fallback)
 	if v, ok := getBool(res.Metadata, "map_public_ip_on_launch"); ok {
+		attrs["map_public_ip_on_launch"] = tfBoolOrVar(res.Metadata, "map_public_ip_on_launch", v)
+	} else if v, ok := getBool(res.Metadata, "_isPublicByRouteTable"); ok {
+		// Route table association is the source of truth for public/private
+		// If subnet has route to IGW, it's public; otherwise it's private
 		attrs["map_public_ip_on_launch"] = tfBool(v)
+	} else if v, ok := getBool(res.Metadata, "isPublic"); ok {
+		attrs["map_public_ip_on_launch"] = tfBoolOrVar(res.Metadata, "isPublic", v)
+	} else if isPublicSubnet(res.Name) {
+		// Fallback: auto-detect public subnet based on name containing "public"
+		attrs["map_public_ip_on_launch"] = tfBool(true)
 	}
+	// Note: if none of the above conditions are met, map_public_ip_on_launch is not set
+	// which means it defaults to false (private subnet behavior)
 
 	return []tfmapper.TerraformBlock{
 		{
@@ -149,6 +182,12 @@ func (m *AWSMapper) mapSubnet(res *resource.Resource) ([]tfmapper.TerraformBlock
 			Attributes: attrs,
 		},
 	}, nil
+}
+
+// isPublicSubnet checks if a subnet name indicates it's a public subnet
+func isPublicSubnet(name string) bool {
+	nameLower := strings.ToLower(name)
+	return strings.Contains(nameLower, "public")
 }
 
 func (m *AWSMapper) mapEC2(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
@@ -165,14 +204,32 @@ func (m *AWSMapper) mapEC2(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 	}
 
 	attrs := map[string]tfmapper.TerraformValue{
-		"ami":           tfString(ami),
-		"instance_type": tfString(instanceType),
+		"ami":           tfStringOrVar(res.Metadata, "ami", ami),
+		"instance_type": tfStringOrVar(res.Metadata, "instanceType", instanceType),
 		"subnet_id":     tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
 		"tags":          tfTags(res.Name),
 	}
 
+	// Handle associate_public_ip_address based on subnet type
+	// Check if explicitly set in metadata first
+	if v, ok := getBool(res.Metadata, "associate_public_ip_address"); ok {
+		attrs["associate_public_ip_address"] = tfBoolOrVar(res.Metadata, "associate_public_ip_address", v)
+	} else {
+		// Determine based on parent subnet info (set by generator) or subnet name
+		isInPublicSubnet := false
+		if v, ok := getBool(res.Metadata, "_parentSubnetIsPublic"); ok {
+			isInPublicSubnet = v
+		} else if parentSubnetName, ok := getString(res.Metadata, "_parentSubnetName"); ok {
+			isInPublicSubnet = isPublicSubnet(parentSubnetName)
+		}
+
+		// Always explicitly set associate_public_ip_address
+		// true for public subnets, false for private subnets
+		attrs["associate_public_ip_address"] = tfBool(isInPublicSubnet)
+	}
+
 	if v, ok := getString(res.Metadata, "keyName"); ok && v != "" {
-		attrs["key_name"] = tfString(v)
+		attrs["key_name"] = tfStringOrVar(res.Metadata, "keyName", v)
 	}
 	if v, ok := getString(res.Metadata, "iamInstanceProfile"); ok && v != "" {
 		attrs["iam_instance_profile"] = tfString(v)
@@ -249,17 +306,15 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 		"tags":        tfTags(res.Name),
 	}
 
-	blocks := []tfmapper.TerraformBlock{
-		{
-			Kind:       "resource",
-			Labels:     []string{"aws_security_group", tfName(res.ID)},
-			Attributes: attrs,
-		},
-	}
+	// Initialize nested blocks for inline ingress/egress rules
+	nestedBlocks := make(map[string][]tfmapper.NestedBlock)
+	var ingressBlocks []tfmapper.NestedBlock
+	var egressBlocks []tfmapper.NestedBlock
+	hasEgressRule := false
 
-	// Parse and add ingress/egress rules
+	// Parse and add inline ingress/egress rules
 	if rules, ok := getArray(res.Metadata, "rules"); ok {
-		for i, ruleRaw := range rules {
+		for _, ruleRaw := range rules {
 			rule, ok := ruleRaw.(map[string]interface{})
 			if !ok {
 				continue
@@ -269,6 +324,7 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 			protocol, _ := getString(rule, "protocol")
 			portRange, _ := getString(rule, "portRange")
 			cidr, _ := getString(rule, "cidr")
+			description, _ := getString(rule, "description")
 
 			if ruleType == "" || protocol == "" {
 				continue
@@ -278,38 +334,72 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 			fromPort, toPort := parsePortRange(portRange)
 
 			ruleAttrs := map[string]tfmapper.TerraformValue{
-				"security_group_id": tfExpr(tfmapper.Reference{ResourceType: "aws_security_group", ResourceName: tfName(res.ID), Attribute: "id"}.Expr()),
-				"protocol":          tfString(protocol),
+				"protocol": tfString(protocol),
 			}
 
-			if fromPort != nil {
-				ruleAttrs["from_port"] = tfNumber(float64(*fromPort))
+			// Add description if provided
+			if description != "" {
+				ruleAttrs["description"] = tfString(description)
 			}
-			if toPort != nil {
-				ruleAttrs["to_port"] = tfNumber(float64(*toPort))
+
+			// For protocol "-1" (all), from_port and to_port must be 0
+			if protocol == "-1" {
+				ruleAttrs["from_port"] = tfNumber(0)
+				ruleAttrs["to_port"] = tfNumber(0)
+			} else {
+				if fromPort != nil {
+					ruleAttrs["from_port"] = tfNumber(float64(*fromPort))
+				}
+				if toPort != nil {
+					ruleAttrs["to_port"] = tfNumber(float64(*toPort))
+				}
 			}
 
 			if cidr != "" {
 				ruleAttrs["cidr_blocks"] = tfList([]tfmapper.TerraformValue{tfString(cidr)})
 			}
 
-			var ruleKind string
-			if ruleType == "ingress" {
-				ruleKind = "aws_security_group_rule"
-				ruleAttrs["type"] = tfString("ingress")
-			} else if ruleType == "egress" {
-				ruleKind = "aws_security_group_rule"
-				ruleAttrs["type"] = tfString("egress")
-			} else {
-				continue
-			}
+			nestedBlock := tfmapper.NestedBlock{Attributes: ruleAttrs}
 
-			blocks = append(blocks, tfmapper.TerraformBlock{
-				Kind:       "resource",
-				Labels:     []string{ruleKind, fmt.Sprintf("%s_rule_%d", tfName(res.ID), i)},
-				Attributes: ruleAttrs,
-			})
+			if ruleType == "ingress" {
+				ingressBlocks = append(ingressBlocks, nestedBlock)
+			} else if ruleType == "egress" {
+				egressBlocks = append(egressBlocks, nestedBlock)
+				hasEgressRule = true
+			}
 		}
+	}
+
+	// Add default egress rule (allow all outbound) if no egress rules are defined
+	// This is AWS best practice - be explicit about egress rules
+	if !hasEgressRule {
+		defaultEgress := tfmapper.NestedBlock{
+			Attributes: map[string]tfmapper.TerraformValue{
+				"from_port":   tfNumber(0),
+				"to_port":     tfNumber(0),
+				"protocol":    tfString("-1"),
+				"cidr_blocks": tfList([]tfmapper.TerraformValue{tfString("0.0.0.0/0")}),
+				"description": tfString("Allow all outbound traffic"),
+			},
+		}
+		egressBlocks = append(egressBlocks, defaultEgress)
+	}
+
+	// Add nested blocks to the map
+	if len(ingressBlocks) > 0 {
+		nestedBlocks["ingress"] = ingressBlocks
+	}
+	if len(egressBlocks) > 0 {
+		nestedBlocks["egress"] = egressBlocks
+	}
+
+	blocks := []tfmapper.TerraformBlock{
+		{
+			Kind:         "resource",
+			Labels:       []string{"aws_security_group", tfName(res.ID)},
+			Attributes:   attrs,
+			NestedBlocks: nestedBlocks,
+		},
 	}
 
 	return blocks, nil
@@ -496,23 +586,46 @@ func (m *AWSMapper) mapNATGateway(res *resource.Resource) ([]tfmapper.TerraformB
 		return nil, fmt.Errorf("nat-gateway requires subnetId (or parent subnet)")
 	}
 
-	attrs := map[string]tfmapper.TerraformValue{
+	blocks := []tfmapper.TerraformBlock{}
+
+	natGatewayAttrs := map[string]tfmapper.TerraformValue{
 		"subnet_id": tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: tfName(subnetID), Attribute: "id"}.Expr()),
 		"tags":      tfTags(res.Name),
 	}
 
-	// allocationId optional; user can reference an EIP allocation id directly.
+	// Check if user provided an allocation_id
 	if alloc, ok := getString(res.Metadata, "allocationId"); ok && alloc != "" {
-		attrs["allocation_id"] = tfString(alloc)
+		// User provided allocation_id, use it directly
+		natGatewayAttrs["allocation_id"] = tfString(alloc)
+	} else {
+		// No allocation_id provided, create an EIP automatically
+		eipName := fmt.Sprintf("%s_eip", tfName(res.ID))
+		eipBlock := tfmapper.TerraformBlock{
+			Kind:   "resource",
+			Labels: []string{"aws_eip", eipName},
+			Attributes: map[string]tfmapper.TerraformValue{
+				"domain": tfString("vpc"),
+				"tags":   tfTags(res.Name + "-eip"),
+			},
+		}
+		blocks = append(blocks, eipBlock)
+
+		// Reference the auto-created EIP
+		natGatewayAttrs["allocation_id"] = tfExpr(tfmapper.Reference{
+			ResourceType: "aws_eip",
+			ResourceName: eipName,
+			Attribute:    "id",
+		}.Expr())
 	}
 
-	return []tfmapper.TerraformBlock{
-		{
-			Kind:       "resource",
-			Labels:     []string{"aws_nat_gateway", tfName(res.ID)},
-			Attributes: attrs,
-		},
-	}, nil
+	// Add NAT Gateway block
+	blocks = append(blocks, tfmapper.TerraformBlock{
+		Kind:       "resource",
+		Labels:     []string{"aws_nat_gateway", tfName(res.ID)},
+		Attributes: natGatewayAttrs,
+	})
+
+	return blocks, nil
 }
 
 func (m *AWSMapper) mapS3(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
@@ -581,6 +694,54 @@ func sanitizeS3BucketName(name string) string {
 
 func tfString(s string) tfmapper.TerraformValue {
 	return tfmapper.TerraformValue{String: &s}
+}
+
+// tfStringOrVar returns a TerraformValue that uses a variable reference if one exists,
+// otherwise uses the resolved string value.
+// fieldKey is the key in metadata to check (e.g., "cidr", "name")
+// metadata is the resource metadata containing _varRefs
+// resolvedValue is the already-resolved value to use if no var ref exists
+func tfStringOrVar(metadata map[string]interface{}, fieldKey string, resolvedValue string) tfmapper.TerraformValue {
+	if varRef := getVarRef(metadata, fieldKey); varRef != "" {
+		// Use the variable reference as an expression
+		return tfExpr(tfmapper.TerraformExpr(varRef))
+	}
+	return tfString(resolvedValue)
+}
+
+// tfBoolOrVar returns a TerraformValue that uses a variable reference if one exists,
+// otherwise uses the resolved bool value.
+func tfBoolOrVar(metadata map[string]interface{}, fieldKey string, resolvedValue bool) tfmapper.TerraformValue {
+	if varRef := getVarRef(metadata, fieldKey); varRef != "" {
+		// Use the variable reference as an expression
+		return tfExpr(tfmapper.TerraformExpr(varRef))
+	}
+	return tfBool(resolvedValue)
+}
+
+// getVarRef retrieves the original variable reference for a field from _varRefs metadata.
+// Returns empty string if no variable reference exists for that field.
+func getVarRef(metadata map[string]interface{}, fieldKey string) string {
+	if metadata == nil {
+		return ""
+	}
+	varRefs, ok := metadata["_varRefs"].(map[string]interface{})
+	if !ok {
+		// Try as map[string]string
+		if varRefsStr, ok := metadata["_varRefs"].(map[string]string); ok {
+			return varRefsStr[fieldKey]
+		}
+		return ""
+	}
+	if ref, ok := varRefs[fieldKey].(string); ok {
+		return ref
+	}
+	return ""
+}
+
+// hasVarRef checks if a field has a variable reference in metadata
+func hasVarRefForField(metadata map[string]interface{}, fieldKey string) bool {
+	return getVarRef(metadata, fieldKey) != ""
 }
 
 func tfBool(b bool) tfmapper.TerraformValue {

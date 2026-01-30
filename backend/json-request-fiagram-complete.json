@@ -2,7 +2,7 @@
   "cloud-canvas-project-06acd98f-dcae-41c5-8a53-20006260bedf": {
     "nodes": [
       {
-        "id": "region-1",
+        "id": "var.aws_region",
         "type": "containerNode",
         "position": { "x": 440, "y": 40 },
         "dragHandle": ".container-node",
@@ -37,24 +37,21 @@
         "type": "containerNode",
         "position": { "x": 20, "y": 40 },
         "dragHandle": ".container-node",
-        "parentId": "region-1",
+        "parentId": "var.aws_region",
         "extent": "parent",
         "data": {
           "label": "VPC",
           "resourceType": "vpc",
           "config": {
             "name": "project-vpc",
-            "cidr": "10.0.0.0/16",
+            "cidr": "var.vpc_cidr",
             "regionId": "us-east-1",
             "isDefault": false,
             "dnsOptions": { "enableDnsSupport": true, "enableDnsHostnames": true },
             "tenancy": "default",
             "tags": [ { "key": "Name", "value": "project-vpc" } ],
             "enableDnsHostnames": true,
-            "enableDnsSupport": true,
-            "availabilityZoneId": "us-east-1a",
-            "instanceType": "t3.micro",
-            "securityGroups": "sg-1"
+            "enableDnsSupport": true
           },
           "status": "valid",
           "isVisualOnly": false
@@ -118,31 +115,10 @@
           "label": "Subnet",
           "resourceType": "subnet",
           "config": {
-            "0": {
-              "id": "preview-subnet-private2-us-east-1b",
-              "name": "project-subnet-private2-us-east-1b",
-              "cidr": "10.0.144.0/16",
-              "vpcId": "preview-vpc-1234",
-              "availabilityZoneId": "us-east-1b",
-              "enableDnsSupport": true,
-              "enableDnsHostnames": true,
-              "tags": [ { "key": "Name", "value": "project-subnet-private2-us-east-1b" } ]
-            },
-            "1": {
-              "id": "preview-subnet-private-3",
-              "name": "project-subnet-private-3",
-              "cidr": "10.0.128.0/20",
-              "vpcId": "preview-vpc-1234",
-              "availabilityZoneId": "us-east-1a",
-              "enableDnsSupport": true,
-              "enableDnsHostnames": true,
-              "tags": [ { "key": "Name", "value": "project-subnet-private-3" } ]
-            },
             "name": "public",
-            "cidr": "10.0.144.0/24",
-            "availabilityZoneId": "us-east-1b",
-            "isPublic": false,
-            "tenancy": "default"
+            "cidr": "10.0.1.0/24",
+            "availabilityZoneId": "us-east-1a",
+            "isPublic": true
           },
           "status": "valid",
           "isVisualOnly": false
@@ -169,9 +145,7 @@
           "config": {
             "connectivityType": "public",
             "name": "my-nat-gateway",
-            "subnetId": "subnet-4",
-            "allocationId": "",
-            "availabilityZoneId": "us-east-1a"
+            "subnetId": "subnet-4"
           },
           "status": "valid",
           "isVisualOnly": false
@@ -194,33 +168,10 @@
           "label": "Subnet",
           "resourceType": "subnet",
           "config": {
-            "0": {
-              "id": "preview-subnet-private2-us-east-1b",
-              "name": "project-subnet-private2-us-east-1b",
-              "cidr": "10.0.144.0/16",
-              "vpcId": "preview-vpc-1234",
-              "availabilityZoneId": "us-east-1b",
-              "enableDnsSupport": true,
-              "enableDnsHostnames": true,
-              "tags": [ { "key": "Name", "value": "project-subnet-private2-us-east-1b" } ]
-            },
-            "1": {
-              "id": "preview-subnet-private-3",
-              "name": "project-subnet-private-3",
-              "cidr": "10.0.128.0/20",
-              "vpcId": "preview-vpc-1234",
-              "availabilityZoneId": "us-east-1a",
-              "enableDnsSupport": true,
-              "enableDnsHostnames": true,
-              "tags": [ { "key": "Name", "value": "project-subnet-private-3" } ]
-            },
             "name": "private subnet",
-            "cidr": "10.0.128.0/24",
+            "cidr": "10.0.2.0/24",
             "availabilityZoneId": "us-east-1b",
-            "isPublic": false,
-            "connectivityType": "public",
-            "instanceType": "t3.micro",
-            "securityGroups": "sg-1"
+            "isPublic": false
           },
           "status": "valid",
           "isVisualOnly": false
@@ -245,7 +196,7 @@
           "label": "EC2",
           "resourceType": "ec2",
           "config": {
-            "instanceType": "t3.micro",
+            "instanceType": "var.instance_type",
             "ami": "ami-0123456789",
             "name": "web-server",
             "securityGroups": [
@@ -267,9 +218,7 @@
                   }
                 ]
               }
-            ],
-            "availabilityZoneId": "us-east-1a",
-            "connectivityType": "public"
+            ]
           },
           "status": "valid",
           "isVisualOnly": false
@@ -394,13 +343,7 @@
           "label": "Internet Gateway",
           "resourceType": "igw",
           "config": {
-            "0": {
-              "id": "preview-igw-1234",
-              "name": "project-igw",
-              "tags": [ { "key": "Name", "value": "project-igw" } ]
-            },
-            "name": "project-igw",
-            "availabilityZoneId": "us-east-1a"
+            "name": "project-igw"
           },
           "status": "valid",
           "isVisualOnly": false
@@ -502,7 +445,70 @@
       }
     ],
     "edges": [],
-    "variables": [],
+    "variables": [
+      {
+        "name": "aws_region",
+        "type": "string",
+        "description": "AWS region to deploy resources",
+        "default": "us-east-1"
+      },
+      {
+        "name": "environment",
+        "type": "string",
+        "description": "Environment name (e.g., dev, staging, prod)",
+        "default": "dev"
+      },
+      {
+        "name": "vpc_cidr",
+        "type": "string",
+        "description": "CIDR block for the VPC",
+        "default": "10.0.0.0/16"
+      },
+      {
+        "name": "instance_type",
+        "type": "string",
+        "description": "EC2 instance type",
+        "default": "t3.micro"
+      },
+      {
+        "name": "enable_nat_gateway",
+        "type": "bool",
+        "description": "Whether to create NAT Gateway for private subnets",
+        "default": true
+      }
+    ],
+    "outputs": [
+      {
+        "name": "vpc_id",
+        "value": "aws_vpc.vpc_2.id",
+        "description": "The ID of the VPC"
+      },
+      {
+        "name": "public_subnet_id",
+        "value": "aws_subnet.subnet_4.id",
+        "description": "The ID of the public subnet"
+      },
+      {
+        "name": "private_subnet_id",
+        "value": "aws_subnet.subnet_6.id",
+        "description": "The ID of the private subnet"
+      },
+      {
+        "name": "nat_gateway_id",
+        "value": "aws_nat_gateway.nat_gateway_5.id",
+        "description": "The ID of the NAT Gateway"
+      },
+      {
+        "name": "web_server_private_ip",
+        "value": "aws_instance.ec2_7.private_ip",
+        "description": "Private IP address of the web server"
+      },
+      {
+        "name": "security_group_id",
+        "value": "aws_security_group.security_group_1.id",
+        "description": "The ID of the security group"
+      }
+    ],
     "timestamp": 1769788647467
   }
 }

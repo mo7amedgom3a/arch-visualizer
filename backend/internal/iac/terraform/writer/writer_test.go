@@ -94,5 +94,70 @@ func TestTokensForExpr_ProducesTraversal(t *testing.T) {
 	}
 }
 
+func TestRenderOutputsTF_SimpleOutput(t *testing.T) {
+	expr := mapper.TerraformExpr("aws_vpc.main.id")
+	outputs := []mapper.Output{
+		{
+			Name:        "vpc_id",
+			Value:       mapper.TerraformValue{Expr: &expr},
+			Description: "The ID of the VPC",
+		},
+	}
+
+	out, err := RenderOutputsTF(outputs)
+	fmt.Println(out)
+	if err != nil {
+		t.Fatalf("RenderOutputsTF() error = %v, want nil", err)
+	}
+
+	if !strings.Contains(out, `output "vpc_id"`) {
+		t.Fatalf("expected output block, got:\n%s", out)
+	}
+	if !strings.Contains(out, "value") {
+		t.Fatalf("expected value attribute, got:\n%s", out)
+	}
+	if !strings.Contains(out, "aws_vpc.main.id") {
+		t.Fatalf("expected reference value, got:\n%s", out)
+	}
+	if !strings.Contains(out, "description") {
+		t.Fatalf("expected description attribute, got:\n%s", out)
+	}
+}
+
+func TestRenderOutputsTF_SensitiveOutput(t *testing.T) {
+	strVal := "secret-value"
+	outputs := []mapper.Output{
+		{
+			Name:        "db_password",
+			Value:       mapper.TerraformValue{String: &strVal},
+			Description: "Database password",
+			Sensitive:   true,
+		},
+	}
+
+	out, err := RenderOutputsTF(outputs)
+	fmt.Println(out)
+	if err != nil {
+		t.Fatalf("RenderOutputsTF() error = %v, want nil", err)
+	}
+
+	if !strings.Contains(out, `output "db_password"`) {
+		t.Fatalf("expected output block, got:\n%s", out)
+	}
+	if !strings.Contains(out, "sensitive") {
+		t.Fatalf("expected sensitive attribute, got:\n%s", out)
+	}
+}
+
+func TestRenderOutputsTF_Empty(t *testing.T) {
+	out, err := RenderOutputsTF([]mapper.Output{})
+	if err != nil {
+		t.Fatalf("RenderOutputsTF() error = %v, want nil", err)
+	}
+	if out != "" {
+		t.Fatalf("expected empty string for empty outputs, got:\n%s", out)
+	}
+}
+
 func strPtr(s string) *string { return &s }
 func boolPtr(b bool) *bool    { return &b }

@@ -22,6 +22,29 @@ type Architecture struct {
 
 	// Dependency relationships
 	Dependencies map[string][]string // resourceID -> []dependencyIDs
+
+	// Variables for Terraform input variables
+	Variables []Variable
+
+	// Outputs for Terraform output values
+	Outputs []Output
+}
+
+// Variable represents a Terraform input variable in the architecture
+type Variable struct {
+	Name        string
+	Type        string // e.g. "string", "number", "bool", "list(string)"
+	Description string
+	Default     interface{}
+	Sensitive   bool
+}
+
+// Output represents a Terraform output value in the architecture
+type Output struct {
+	Name        string
+	Value       string // Expression like "aws_vpc.main.id"
+	Description string
+	Sensitive   bool
 }
 
 // NewArchitecture creates a new architecture aggregate
@@ -66,6 +89,27 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 		if regionName, ok := extractRegionFromConfig(regionNode.Config); ok {
 			arch.Region = regionName
 		}
+	}
+
+	// Convert diagram variables to architecture variables
+	for _, v := range diagramGraph.Variables {
+		arch.Variables = append(arch.Variables, Variable{
+			Name:        v.Name,
+			Type:        v.Type,
+			Description: v.Description,
+			Default:     v.Default,
+			Sensitive:   v.Sensitive,
+		})
+	}
+
+	// Convert diagram outputs to architecture outputs
+	for _, o := range diagramGraph.Outputs {
+		arch.Outputs = append(arch.Outputs, Output{
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		})
 	}
 
 	// Map nodes to domain resources (excluding region node and visual-only nodes)

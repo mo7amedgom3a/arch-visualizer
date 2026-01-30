@@ -3,8 +3,27 @@ package graph
 // DiagramGraph represents the normalized diagram structure
 // It contains nodes and edges after filtering and normalization
 type DiagramGraph struct {
-	Nodes map[string]*Node
-	Edges []*Edge
+	Nodes     map[string]*Node
+	Edges     []*Edge
+	Variables []Variable
+	Outputs   []Output
+}
+
+// Variable represents a Terraform input variable from the diagram
+type Variable struct {
+	Name        string      `json:"name"`
+	Type        string      `json:"type"`        // e.g. "string", "number", "bool", "list(string)"
+	Description string      `json:"description"`
+	Default     interface{} `json:"default,omitempty"`
+	Sensitive   bool        `json:"sensitive,omitempty"`
+}
+
+// Output represents a Terraform output value from the diagram
+type Output struct {
+	Name        string `json:"name"`
+	Value       string `json:"value"`       // Expression like "aws_vpc.main.id"
+	Description string `json:"description"`
+	Sensitive   bool   `json:"sensitive,omitempty"`
 }
 
 // GetNode returns a node by ID

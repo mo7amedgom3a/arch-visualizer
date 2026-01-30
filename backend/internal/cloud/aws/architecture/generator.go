@@ -34,6 +34,27 @@ func (g *AWSArchitectureGenerator) Generate(diagramGraph *graph.DiagramGraph) (*
 		}
 	}
 
+	// Convert diagram variables to architecture variables
+	for _, v := range diagramGraph.Variables {
+		arch.Variables = append(arch.Variables, architecture.Variable{
+			Name:        v.Name,
+			Type:        v.Type,
+			Description: v.Description,
+			Default:     v.Default,
+			Sensitive:   v.Sensitive,
+		})
+	}
+
+	// Convert diagram outputs to architecture outputs
+	for _, o := range diagramGraph.Outputs {
+		arch.Outputs = append(arch.Outputs, architecture.Output{
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		})
+	}
+
 	// Build node ID to resource ID mapping (first pass)
 	nodeIDToResourceID := make(map[string]string)
 	for _, node := range diagramGraph.Nodes {
