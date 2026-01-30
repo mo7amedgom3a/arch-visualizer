@@ -18,6 +18,15 @@ resource "aws_subnet" "subnet_4" {
   vpc_id = aws_vpc.vpc_2.id
 }
 
+resource "aws_subnet" "subnet_6" {
+  availability_zone = "us-east-1b"
+  cidr_block        = "10.0.128.0/24"
+  tags = {
+    Name  =  "private subnet"
+  }
+  vpc_id = aws_vpc.vpc_2.id
+}
+
 resource "aws_security_group" "security_group_1" {
   description = "security group for http"
   name        = "http-sg"
@@ -43,15 +52,6 @@ resource "aws_security_group_rule" "security_group_1_rule_1" {
   security_group_id = aws_security_group.security_group_1.id
   to_port           = 80
   type              = "ingress"
-}
-
-resource "aws_subnet" "subnet_6" {
-  availability_zone = "us-east-1b"
-  cidr_block        = "10.0.128.0/24"
-  tags = {
-    Name  =  "private subnet"
-  }
-  vpc_id = aws_vpc.vpc_2.id
 }
 
 resource "aws_route_table" "route_table_8" {

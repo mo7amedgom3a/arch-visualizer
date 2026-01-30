@@ -290,8 +290,29 @@ Empty `resourceType` is preserved (validation will catch it).
 
 Visual-only nodes are kept in graph but filtered during domain mapping.
 
+## Integration with Architecture Generation
+
+The parser outputs a `DiagramGraph` which is then processed by cloud provider-specific architecture generators:
+
+```
+IR JSON
+    ↓ [ParseIRDiagram]
+IRDiagram
+    ↓ [NormalizeToGraph]
+DiagramGraph
+    ↓ [Cloud Provider Architecture Generator]
+Domain Architecture
+```
+
+**Key Points**:
+- Parser is cloud-agnostic - outputs normalized graph
+- Architecture generators (provider-specific) convert graph to domain architecture
+- Each provider implements its own generator in `internal/cloud/{provider}/architecture/`
+
 ## Related
 
 - [Diagram Module README](../README.md)
 - [Graph Module README](../graph/README.md)
 - [Validator README](../validator/README.md)
+- [Domain Architecture](../../domain/architecture/README.md) - Architecture generation documentation
+- [AWS Architecture](../../cloud/aws/architecture/README.md) - AWS architecture generator

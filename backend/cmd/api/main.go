@@ -7,6 +7,7 @@ import (
 	// "log"
 	// "os"
 	// "strings"
+	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario5_terraform_codegen"
 	// "github.com/google/uuid"
 	// "github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram"

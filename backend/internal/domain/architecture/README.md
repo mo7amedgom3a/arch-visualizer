@@ -11,8 +11,10 @@ It is the bridge between the visual diagram (`internal/diagram`) and downstream 
 - `aggregate.go`  
   Defines the main `Architecture` aggregate and mapping from the normalized diagram graph.
 
+
 - `graph.go`  
   Thin wrapper (`Graph`) around `Architecture` that provides convenient graph-style queries.
+  
 
 - `toposort.go`  
   Implements topological sorting over the unified dependency graph to produce a safe provisioning order.

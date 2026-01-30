@@ -68,7 +68,14 @@ Responsibilities:
 ```
 internal/domain/
 ├── architecture/
+│   ├── aggregate.go           # Architecture aggregate 
+│   ├── generator.go           # ArchitectureGenerator interface
+│   ├── resource_type_mapper.go  # ResourceTypeMapper interface
+│   ├── ir_type_mapper.go      # IRTypeMapper interface
+│   └── toposort.go            # Topological sorting
 ├── resource/
+│   ├── categories.go          # Resource categories
+│   └── ...
 ├── constraint/
 ├── project/
 ├── errors/
@@ -83,6 +90,16 @@ Contains:
 - Constraint interfaces
 - Domain-level errors
 - Cloud-agnostic rules logic
+- **Architecture Generator Interface**: Pluggable provider generators
+- **Resource Type Mapper Interface**: Provider-specific type mappings
+- **IR Type Mapper Interface**: IR type → resource name mapping
+
+**About `architecture/`:**
+- Defines `ArchitectureGenerator` interface for provider-specific architecture generation
+- Defines `ResourceTypeMapper` interface for provider-specific resource type mapping
+- Provides registry system for managing provider implementations
+- **No static mappings** — All mappings are provider-specific
+- Each cloud provider implements these interfaces in `internal/cloud/{provider}/architecture/`
 
 **About `rules/`:**
 - The `rules` folder in `internal/domain/` defines interfaces and constructs for all rule types (e.g., constraint validators, rule engines).
@@ -94,6 +111,8 @@ Contains:
 **Key Points:**
 - 🚫 No provider-specific or IaC tool code in domain
 - ✅ All cloud providers implement and use these domain rules
+- ✅ Provider-specific mappings are defined by providers (no static fallbacks)
+- ✅ Interfaces enable pluggable provider implementations
 
 ### 🔸 internal/cloud/ – Cloud Provider Implementations
 
@@ -108,10 +127,19 @@ Each provider follows a similar structure:
 
 ```
 aws/
+├── architecture/          # Architecture generation
+│   ├── generator.go       # AWSArchitectureGenerator
+│   ├── resource_type_mapper.go  # AWSResourceTypeMapper
+│   └── registry.go       # Auto-registration
+├── inventory/             # Resource inventory system
+│   ├── inventory.go       # Core inventory structures
+│   ├── resources.go       # Resource classifications
+│   └── registry.go        # Function registries
 ├── models/
 │   ├── networking/
 │   └── compute/
 ├── mapper/
+│   └── terraform/         # Terraform resource mappers
 ├── adapters/
 │   ├── networking/
 │   └── compute/
@@ -121,10 +149,13 @@ aws/
 ```
 
 Responsibilities:
-- Provider-specific resource models and logic
-- Mapping domain concepts to cloud resources
-- Handling provider differences (e.g., AWS VPC vs GCP VPC)
-- Implementing interfaces and rules defined in the domain layer
+- **Architecture Generation**: Provider-specific generators convert diagram graphs to domain architectures
+- **Resource Type Mapping**: Provider-specific mappers handle IR type → ResourceType conversion
+- **Inventory System**: Classifies resources and provides function registries (Terraform mappers, pricing calculators)
+- **Provider-specific resource models** and logic
+- **Mapping domain concepts** to cloud resources
+- **Handling provider differences** (e.g., AWS VPC vs GCP VPC vs Azure VirtualNetwork)
+- **Implementing interfaces** and rules defined in the domain layer
 
 ### 🔸 internal/iac/ – Infrastructure as Code Engines
 

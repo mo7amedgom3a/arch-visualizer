@@ -13,11 +13,17 @@ API Layer
         ↓
 Diagram Parser
         ↓
-Domain Model
+Diagram Graph
+        ↓
+Cloud Provider Architecture Generator
+        ↓
+Domain Architecture (with provider-specific mappings)
         ↓
 Rules Engine (Validation)
         ↓
-Cloud Provider Mapping
+Topological Sort (Dependency Ordering)
+        ↓
+Cloud Provider Inventory (Terraform Mappers)
         ↓
 IaC Engine (Terraform / Pulumi)
         ↓
@@ -133,10 +139,10 @@ Located in: [internal/diagram/](internal/diagram/)
 
 ### What Happens Here
 
-1. **Parse** canvas JSON from frontend
-2. **Build** an internal graph representation
-3. **Validate** structural correctness
-4. **Prepare** domain-ready architecture
+1. **Parse** canvas JSON from frontend into `IRDiagram`
+2. **Normalize** IR diagram into `DiagramGraph` (normalized graph structure)
+3. **Validate** structural correctness (cycles, references, etc.)
+4. **Output**: `DiagramGraph` ready for architecture generation
 
 ### Validations Performed
 
@@ -148,14 +154,16 @@ Located in: [internal/diagram/](internal/diagram/)
 
 ### Output
 
-A cloud-agnostic domain architecture:
+A normalized diagram graph:
 
 ```go
-Architecture {
-  Resources: []Resource
-  Relationships: []Relationship
+DiagramGraph {
+  Nodes: map[string]*Node
+  Edges: []*Edge
 }
 ```
+
+**Note**: The diagram module does NOT create domain architectures. That's handled by cloud provider-specific architecture generators.
 
 ---
 
@@ -174,16 +182,48 @@ This is the **heart of the system** — the core business model.
 - **Relationships** — Parent/child, dependencies
 - **Dependencies** — Resource interconnections
 - **Architecture aggregates** — Top-level entities
+- **Architecture Generator Interface** — Pluggable provider generators
+- **Resource Type Mapper Interface** — Provider-specific type mappings
+
+### Architecture Generation
+
+The domain layer defines interfaces for cloud provider-specific architecture generation:
+
+- **`ArchitectureGenerator`**: Interface for converting diagram graphs to domain architectures
+- **`ResourceTypeMapper`**: Interface for mapping IR types and resource names to ResourceTypes
+- **Registry System**: Manages provider-specific implementations
+
+Each cloud provider implements these interfaces:
+- AWS: `internal/cloud/aws/architecture/`
+- Azure: `internal/cloud/azure/architecture/` (future)
+- GCP: `internal/cloud/gcp/architecture/` (future)
 
 ### Design Principle
 
 🚫 **No cloud-specific logic** (no AWS, GCP, Azure code)  
 🚫 **No Terraform / Pulumi logic**  
-✅ **Pure business logic** — Represents the user's intent
+✅ **Pure business logic** — Represents the user's intent  
+✅ **Provider interfaces** — Defines contracts for provider implementations
 
 ### The Key Question This Layer Answers
 
 > "What does this architecture mean?" (independently of cloud or tooling)
+
+### Architecture Generation Flow
+
+```
+DiagramGraph
+    ↓
+MapDiagramToArchitecture(provider)
+    ↓
+Get Provider-Specific Generator (from registry)
+    ↓
+Generator.Generate() → Architecture
+    ↓
+Uses Provider-Specific ResourceTypeMapper
+    ↓
+Domain Architecture (with provider-specific resource types)
+```
 
 ---
 
@@ -258,37 +298,67 @@ Each cloud provider has its own isolated module:
 ```
 internal/cloud/
 ├── aws/
+│   ├── architecture/          # Architecture generation
+│   │   ├── generator.go        # AWSArchitectureGenerator
+│   │   ├── resource_type_mapper.go  # AWSResourceTypeMapper
+│   │   └── registry.go        # Auto-registration
+│   ├── inventory/             # Resource inventory system
+│   │   ├── inventory.go       # Core inventory structures
+│   │   ├── resources.go       # Resource classifications
+│   │   └── registry.go        # Function registries
 │   ├── models/
 │   ├── services/
 │   ├── repositories/
-│   └── mapper/
+│   ├── mapper/
+│   └── adapters/
 ├── gcp/
-│   ├── models/
-│   ├── services/
-│   ├── repositories/
-│   └── mapper/
+│   ├── architecture/
+│   ├── inventory/
+│   └── ...
 └── azure/
-    ├── models/
-    ├── services/
-    ├── repositories/
-    └── mapper/
+    ├── architecture/
+    ├── inventory/
+    └── ...
 ```
 
 ### Responsibilities
 
-- Map **domain resources** → **provider-specific resources**
-- Apply **provider-specific defaults** (naming conventions, regions, limits)
-- Handle **provider differences** (e.g., AWS VPC vs. GCP VPC vs. Azure VNet)
-- Resolve **cross-provider mappings**
+- **Architecture Generation**: Provider-specific generators convert diagram graphs to domain architectures
+- **Resource Type Mapping**: Provider-specific mappers handle IR type → ResourceType conversion
+- **Inventory System**: Classifies resources and provides function registries (Terraform mappers, pricing calculators)
+- **Domain → Provider Mapping**: Maps domain resources to provider-specific resources
+- **Provider-Specific Defaults**: Applies naming conventions, regions, limits
+- **Handles Provider Differences**: AWS VPC vs. GCP VPC vs. Azure VNet
+
+### Architecture Generation
+
+Each provider implements:
+- **`ArchitectureGenerator`**: Converts `DiagramGraph` → `Architecture`
+- **`ResourceTypeMapper`**: Maps IR types and resource names to ResourceTypes
+
+### Inventory System
+
+Each provider maintains an inventory that:
+- Classifies resources by category (Networking, Compute, Storage, etc.)
+- Maps IR types to resource names (with aliases)
+- Registers function handlers (Terraform mappers, pricing calculators)
+- Enables dynamic dispatch instead of switch statements
 
 ### Example Mapping
 
 ```
-Domain Resource: "VPC"
-    ↓
-AWS Mapper: aws_vpc
-GCP Mapper: google_compute_network
-Azure Mapper: azurerm_virtual_network
+IR Type: "vpc"
+    ↓ (via AWS inventory)
+Resource Name: "VPC"
+    ↓ (via AWSResourceTypeMapper)
+ResourceType: {
+  ID: "vpc",
+  Name: "VPC",
+  Category: "Networking",
+  ...
+}
+    ↓ (via AWS Terraform mapper)
+Terraform: aws_vpc
 ```
 
 ### The Key Question This Layer Answers
@@ -300,6 +370,8 @@ Azure Mapper: azurerm_virtual_network
 ✅ **Provider implementations are interchangeable**  
 ✅ **New clouds can be added independently**  
 ✅ **No cross-cloud dependencies**  
+✅ **No static fallbacks** — Each provider defines all mappings  
+✅ **Inventory-driven** — Dynamic dispatch replaces switch statements  
 
 ---
 
@@ -375,19 +447,25 @@ This layer **coordinates the entire pipeline** — it's the **single entry point
 ### Pipeline Steps
 
 ```
-1. Parse Diagram
+1. Parse Diagram JSON → IRDiagram
    ↓
-2. Build Domain Architecture
+2. Normalize to DiagramGraph
    ↓
-3. Validate Against Rules
+3. Get Cloud Provider Architecture Generator
    ↓
-4. Resolve Cloud Provider
+4. Generate Domain Architecture (with provider-specific mappings)
    ↓
-5. Select IaC Engine
+5. Validate Against Rules
    ↓
-6. Generate Code
+6. Topological Sort (order resources by dependencies)
    ↓
-7. Return Output
+7. Select IaC Engine (Terraform/Pulumi)
+   ↓
+8. Use Provider Inventory (Terraform mappers)
+   ↓
+9. Generate Code
+   ↓
+10. Return Output
 ```
 
 ### Pipeline Service Interface
@@ -505,6 +583,9 @@ The frontend may:
 - **New clouds can be added** without refactoring existing code
 - **Frontend and backend evolve independently** (contract-based)
 - **Architecture validation is centralized** in one place
+- **Provider-specific mappings** are defined by each cloud provider (no static fallbacks)
+- **Inventory-driven dispatch** replaces switch statements for extensibility
+- **Resource type mapping** is provider-specific (AWS VPC vs Azure VirtualNetwork)
 
 ---
 
@@ -534,28 +615,33 @@ POST /api/architectures/generate
 Validates request, extracts diagram
 
 ↓ [Diagram Parser]
-Parses JSON, builds graph
-Output: Abstract Architecture
+Parses JSON → IRDiagram
+Normalizes → DiagramGraph
+Output: DiagramGraph
 
-↓ [Domain Layer]
-Creates domain entities
-Output: Domain Architecture
+↓ [Cloud Provider Architecture Generator]
+Uses provider-specific generator (e.g., AWSArchitectureGenerator)
+Maps IR types using provider inventory
+Maps resource names using ResourceTypeMapper
+Output: Domain Architecture (with provider-specific resource types)
 
 ↓ [Rules Engine]
 Loads AWS constraints from DB
 Validates: VPC exists, Subnet in VPC, EC2 in Subnet
 Output: ✅ Valid (or ❌ Errors)
 
-↓ [Cloud Layer]
-Maps domain to AWS:
-- VPC → aws_vpc
-- Subnet → aws_subnet
-- EC2 → aws_instance
-Output: AWS-specific resources
+↓ [Topological Sort]
+Orders resources by dependencies
+Ensures correct provisioning order
+Output: Sorted resource list
+
+↓ [Cloud Provider Inventory]
+Uses AWS inventory to get Terraform mappers
+Dynamic dispatch (no switch statements)
+Output: Terraform blocks for each resource
 
 ↓ [IaC Engine - Terraform]
-Generates HCL code
-Orders resources by dependencies
+Generates HCL code from Terraform blocks
 Output: main.tf, variables.tf, outputs.tf
 
 ↓ [Codegen Orchestration]

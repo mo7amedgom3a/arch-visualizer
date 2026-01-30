@@ -50,7 +50,10 @@ The mapper layer serves as a **translation layer** that:
 ```
 mapper/
 ├── README.md                    # This file
-└── networking/                  # Networking resource mappers
+├── terraform/                   # Terraform resource mappers
+│   ├── mapper.go                # AWSMapper (implements ResourceMapper)
+│   └── registry.go              # Mapper registry
+└── networking/                  # Networking resource mappers (domain ↔ AWS models)
     ├── vpc_mapper.go
     ├── subnet_mapper.go
     ├── internet_gateway_mapper.go
@@ -62,6 +65,8 @@ mapper/
 ```
 
 Each resource category has its own subdirectory with mappers for that category's resources.
+
+**Note**: The `terraform/` subdirectory contains Terraform-specific mappers that convert domain resources to Terraform blocks. These mappers are registered with the AWS inventory system for dynamic dispatch.
 
 ## Design Principles
 
@@ -375,9 +380,34 @@ See `mapper/networking/mapper_test.go` for examples.
 4. **Extensibility**: Easy to add new cloud providers with their own mappers
 5. **Type Safety**: Compile-time checks ensure correct conversions
 
+## Integration with Inventory System
+
+The Terraform mappers (`mapper/terraform/`) are registered with the AWS inventory system:
+
+```go
+// In mapper/terraform/mapper.go
+func New() *AWSMapper {
+    mapper := &AWSMapper{}
+    inv := inventory.GetDefaultInventory()
+    
+    // Register Terraform mapper functions
+    inv.SetTerraformMapper("VPC", mapper.mapVPC)
+    inv.SetTerraformMapper("Subnet", mapper.mapSubnet)
+    // ... etc
+}
+```
+
+This enables:
+- **Dynamic Dispatch**: No switch statements - inventory routes to correct mapper
+- **Extensibility**: Add new resources by updating inventory
+- **Loose Coupling**: Terraform generator uses inventory, not direct mapper calls
+
 ## Related Documentation
 
-- [Networking Mappers](../mapper/networking/README.md) - Detailed networking mapper documentation
+- [Networking Mappers](./networking/README.md) - Detailed networking mapper documentation
+- [Terraform Mappers](./terraform/README.md) - Terraform mapper documentation
+- [AWS Inventory](../inventory/README.md) - Inventory system documentation
+- [AWS Architecture](../architecture/README.md) - Architecture generation documentation
 - [Domain Layer](../../../domain/resource/networking/README.md) - Domain model documentation
 - [AWS Models](../models/networking/README.md) - AWS model documentation
 - [Adapter Layer](../adapters/networking/README.md) - How adapters use mappers

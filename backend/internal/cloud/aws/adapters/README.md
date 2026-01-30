@@ -267,6 +267,28 @@ To add adapters for other resource types:
 
 Example: `adapters/compute/` for EC2, Lambda, etc.
 
+## Integration with Architecture Generation
+
+Adapters work alongside the architecture generation system:
+
+```
+DiagramGraph
+    ↓
+Cloud Provider Architecture Generator
+    ↓
+Domain Architecture (with provider-specific resource types)
+    ↓
+Adapters (for service operations)
+    ↓
+AWS Services
+```
+
+**Key Points**:
+- Architecture generators create domain architectures from diagrams
+- Adapters handle service operations (create, update, delete) on domain resources
+- Both use provider-specific mappers for conversions
+- Both leverage the inventory system for dynamic dispatch
+
 ## Future Providers
 
 The adapter pattern makes it easy to add new cloud providers:
@@ -277,3 +299,9 @@ The adapter pattern makes it easy to add new cloud providers:
 4. Add to factory pattern
 
 The domain layer remains completely unchanged!
+
+## Related Documentation
+
+- [AWS Architecture](../architecture/README.md) - Architecture generation system
+- [AWS Inventory](../inventory/README.md) - Resource inventory system
+- [AWS Mappers](../mapper/README.md) - Mapper layer documentation
