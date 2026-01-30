@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
@@ -21,7 +22,69 @@ type AWSPricingService struct {
 func NewAWSPricingService() *AWSPricingService {
 	service := &AWSPricingService{}
 	service.calculator = NewAWSPricingCalculator(service)
+	
+	// Initialize pricing functions in inventory
+	inv := inventory.GetDefaultInventory()
+	classifications := inventory.GetAWSResourceClassifications()
+	
+	for _, classification := range classifications {
+		resourceName := classification.ResourceName
+		
+		// Set pricing calculator
+		inv.SetPricingCalculator(resourceName, func(res *resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
+			ctx := context.Background()
+			return service.EstimateCost(ctx, res, duration)
+		})
+		
+		// Set pricing info getter
+		inv.SetPricingInfoGetter(resourceName, func(region string) (*domainpricing.ResourcePricing, error) {
+			ctx := context.Background()
+			pricingResourceType := mapPricingTypeToResourceNameReverse(resourceName)
+			return service.GetPricing(ctx, pricingResourceType, "aws", region)
+		})
+	}
+	
 	return service
+}
+
+// mapPricingTypeToResourceNameReverse maps domain resource name to pricing service resource type
+func mapPricingTypeToResourceNameReverse(resourceName string) string {
+	mapping := map[string]string{
+		"VPC":              "vpc",
+		"Subnet":           "subnet",
+		"RouteTable":       "route_table",
+		"SecurityGroup":    "security_group",
+		"InternetGateway":  "internet_gateway",
+		"NATGateway":       "nat_gateway",
+		"ElasticIP":        "elastic_ip",
+		"EC2":              "ec2_instance",
+		"Lambda":           "lambda_function",
+		"LoadBalancer":     "load_balancer",
+		"AutoScalingGroup": "auto_scaling_group",
+		"S3":               "s3_bucket",
+		"EBS":              "ebs_volume",
+		"RDS":              "rds_instance",
+		"DynamoDB":         "dynamodb_table",
+	}
+	
+	if mapped, ok := mapping[resourceName]; ok {
+		return mapped
+	}
+	
+	// Default: convert PascalCase to snake_case
+	return toSnakeCase(resourceName)
+}
+
+// toSnakeCase converts PascalCase to snake_case (simple implementation)
+func toSnakeCase(s string) string {
+	result := ""
+	for i, r := range s {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			result += "_"
+		}
+		result += string(r)
+	}
+	return result
 }
 
 // GetPricing retrieves the pricing information for a specific resource type
@@ -30,6 +93,23 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 		return nil, fmt.Errorf("unsupported provider: %s", provider)
 	}
 
+	// Try to use inventory first
+	inv := inventory.GetDefaultInventory()
+	
+	// Map pricing resource type to domain resource name
+	resourceName := mapPricingTypeToResourceName(resourceType)
+	if resourceName != "" {
+		if functions, ok := inv.GetFunctions(resourceName); ok && functions.GetPricingInfo != nil {
+			return functions.GetPricingInfo(region)
+		}
+	}
+	
+	// Fallback to switch-based pricing (for backward compatibility)
+	return s.getPricingFallback(resourceType, region)
+}
+
+// getPricingFallback provides backward compatibility with switch-based pricing
+func (s *AWSPricingService) getPricingFallback(resourceType string, region string) (*domainpricing.ResourcePricing, error) {
 	switch resourceType {
 	case "nat_gateway":
 		return networking.GetNATGatewayPricing(region), nil
@@ -68,6 +148,26 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 	default:
 		return nil, fmt.Errorf("pricing not available for resource type: %s", resourceType)
 	}
+}
+
+// mapPricingTypeToResourceName maps pricing service resource type to domain resource name
+func mapPricingTypeToResourceName(pricingType string) string {
+	mapping := map[string]string{
+		"nat_gateway":       "NATGateway",
+		"elastic_ip":        "ElasticIP",
+		"network_interface": "NetworkInterface",
+		"ec2_instance":      "EC2",
+		"ebs_volume":        "EBS",
+		"s3_bucket":         "S3",
+		"load_balancer":     "LoadBalancer",
+		"auto_scaling_group": "AutoScalingGroup",
+		"lambda_function":   "Lambda",
+	}
+	
+	if mapped, ok := mapping[pricingType]; ok {
+		return mapped
+	}
+	return ""
 }
 
 // EstimateCost estimates the cost for a resource over a given duration

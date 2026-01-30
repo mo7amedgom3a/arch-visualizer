@@ -2,6 +2,7 @@ package scenario5_terraform_codegen
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,8 +33,8 @@ import (
 //  6. Run Terraform engine to produce IaC files
 //  7. Write Terraform files to ./terraform_output/
 func TerraformCodegenRunner(ctx context.Context) error {
-	// 1) Read IR JSON from file
-	jsonPath, err := resolveDiagramJSONPath("json-request-diagram-valid.json")
+	// 1) Read IR JSON from file (using complete diagram for full feature testing)
+	jsonPath, err := resolveDiagramJSONPath("json-request-fiagram-complete.json")
 	if err != nil {
 		return err
 	}
@@ -44,8 +45,14 @@ func TerraformCodegenRunner(ctx context.Context) error {
 		return fmt.Errorf("read IR json %s: %w", jsonPath, err)
 	}
 
+	// Extract diagram from project-wrapped JSON structure if needed
+	diagramData, err := extractDiagramFromProjectJSON(data)
+	if err != nil {
+		return fmt.Errorf("extract diagram from project JSON: %w", err)
+	}
+
 	// 2) Parse & normalize to diagram graph
-	irDiagram, err := parser.ParseIRDiagram(data)
+	irDiagram, err := parser.ParseIRDiagram(diagramData)
 	fmt.Println(strings.Repeat("=", 100))
 	fmt.Println("IR Diagram", irDiagram)
 	if err != nil {
@@ -237,7 +244,7 @@ func formatValidationErrors(result *validator.ValidationResult) string {
 	return b.String()
 }
 
-// resolveDiagramJSONPath resolves the json-request-diagram-valid.json path
+// resolveDiagramJSONPath resolves the JSON file path
 // relative to the backend module root, regardless of the current working dir.
 func resolveDiagramJSONPath(filename string) (string, error) {
 	// Use runtime.Caller to get this file's directory, then walk up to the backend root.
@@ -253,4 +260,39 @@ func resolveDiagramJSONPath(filename string) (string, error) {
 	jsonPath := filepath.Join(root, filename)
 
 	return jsonPath, nil
+}
+
+// extractDiagramFromProjectJSON extracts the diagram structure from project-wrapped JSON.
+// Handles both formats:
+//   - Direct format: {"nodes": [...], "edges": [...]}
+//   - Project-wrapped: {"cloud-canvas-project-...": {"nodes": [...], "edges": [...]}}
+func extractDiagramFromProjectJSON(data []byte) ([]byte, error) {
+	var rawData map[string]interface{}
+	if err := json.Unmarshal(data, &rawData); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+	}
+
+	// Check if this is a direct diagram format (has "nodes" at root)
+	if _, hasNodes := rawData["nodes"]; hasNodes {
+		// Already in the correct format, return as-is
+		return data, nil
+	}
+
+	// Otherwise, look for project-wrapped structure
+	// Find the first key that contains a nested object with "nodes"
+	for _, value := range rawData {
+		if projectData, ok := value.(map[string]interface{}); ok {
+			if _, hasNodes := projectData["nodes"]; hasNodes {
+				// Found the diagram structure, extract it
+				diagramBytes, err := json.Marshal(projectData)
+				if err != nil {
+					return nil, fmt.Errorf("failed to marshal extracted diagram: %w", err)
+				}
+				return diagramBytes, nil
+			}
+		}
+	}
+
+	// If we get here, couldn't find the diagram structure
+	return nil, fmt.Errorf("could not find diagram structure in JSON (expected 'nodes' field at root or nested under project key)")
 }

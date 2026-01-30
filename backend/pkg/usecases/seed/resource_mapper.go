@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
 	awsmappercompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/compute"
 	awsmappernetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/networking"
 	awsmapperstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/storage"
@@ -35,7 +36,20 @@ func (rm *ResourceMapper) DatabaseResourceToDomain(dbResource *models.Resource) 
 		return nil, fmt.Errorf("resource type name is empty")
 	}
 
-	// Unmarshal JSON config based on resource type
+	// Try to use inventory first
+	inv := inventory.GetDefaultInventory()
+	if functions, ok := inv.GetFunctions(resourceTypeName); ok && functions.DomainMapper != nil {
+		return functions.DomainMapper(dbResource.Config)
+	}
+
+	// Fallback to switch-based unmarshaling
+	return rm.databaseResourceToDomainFallback(dbResource)
+}
+
+// databaseResourceToDomainFallback provides backward compatibility with switch-based unmarshaling
+func (rm *ResourceMapper) databaseResourceToDomainFallback(dbResource *models.Resource) (interface{}, error) {
+	resourceTypeName := dbResource.ResourceType.Name
+	
 	switch resourceTypeName {
 	case "VPC":
 		var vpc domainnetworking.VPC
@@ -140,6 +154,13 @@ func (rm *ResourceMapper) DomainToAWSModel(domainResource interface{}) (interfac
 		return nil, fmt.Errorf("domain resource is nil")
 	}
 
+	// Try to use inventory first - need to determine resource type from the domain resource
+	// For now, fallback to switch-based type assertion
+	return rm.domainToAWSModelFallback(domainResource)
+}
+
+// domainToAWSModelFallback provides backward compatibility with switch-based type assertion
+func (rm *ResourceMapper) domainToAWSModelFallback(domainResource interface{}) (interface{}, error) {
 	switch resource := domainResource.(type) {
 	case *domainnetworking.VPC:
 		return awsmappernetworking.FromDomainVPC(resource), nil

@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
@@ -31,6 +32,18 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 		return nil, fmt.Errorf("unsupported provider: %s", res.Provider)
 	}
 
+	// Try to use inventory first
+	inv := inventory.GetDefaultInventory()
+	if functions, ok := inv.GetFunctions(res.Type.Name); ok && functions.PricingCalculator != nil {
+		return functions.PricingCalculator(res, duration)
+	}
+
+	// Fallback to switch-based calculation
+	return c.calculateResourceCostFallback(ctx, res, duration)
+}
+
+// calculateResourceCostFallback provides backward compatibility with switch-based calculation
+func (c *AWSPricingCalculator) calculateResourceCostFallback(ctx context.Context, res *resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
 	// Get pricing information for the resource type
 	pricingInfo, err := c.GetResourcePricing(ctx, res.Type.Name, "aws", res.Region)
 	if err != nil {

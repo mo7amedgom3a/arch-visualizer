@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
 )
 
 // AWSMapper maps domain resources (AWS provider) into Terraform blocks.
@@ -15,17 +16,30 @@ import (
 // This makes inter-resource references possible without needing global lookup.
 type AWSMapper struct{}
 
-func New() *AWSMapper { return &AWSMapper{} }
+func New() *AWSMapper {
+	mapper := &AWSMapper{}
+	// Initialize Terraform mapper functions in inventory
+	inv := inventory.GetDefaultInventory()
+
+	// Register specific mapper functions for each resource type
+	inv.SetTerraformMapper("VPC", mapper.mapVPC)
+	inv.SetTerraformMapper("Subnet", mapper.mapSubnet)
+	inv.SetTerraformMapper("EC2", mapper.mapEC2)
+	inv.SetTerraformMapper("SecurityGroup", mapper.mapSecurityGroup)
+	inv.SetTerraformMapper("RouteTable", mapper.mapRouteTable)
+	inv.SetTerraformMapper("InternetGateway", mapper.mapInternetGateway)
+	inv.SetTerraformMapper("NATGateway", mapper.mapNATGateway)
+	inv.SetTerraformMapper("ElasticIP", mapper.mapElasticIP)
+	inv.SetTerraformMapper("S3", mapper.mapS3)
+
+	return mapper
+}
 
 func (m *AWSMapper) Provider() string { return "aws" }
 
 func (m *AWSMapper) SupportsResource(resourceType string) bool {
-	switch resourceType {
-	case "VPC", "Subnet", "EC2", "SecurityGroup", "RouteTable", "InternetGateway", "NATGateway", "ElasticIP", "S3":
-		return true
-	default:
-		return false
-	}
+	inv := inventory.GetDefaultInventory()
+	return inv.SupportsResource(resourceType)
 }
 
 func (m *AWSMapper) MapResource(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
@@ -36,6 +50,20 @@ func (m *AWSMapper) MapResource(res *resource.Resource) ([]tfmapper.TerraformBlo
 		return nil, fmt.Errorf("resource id is empty")
 	}
 
+	// Use inventory for dynamic dispatch
+	inv := inventory.GetDefaultInventory()
+	functions, ok := inv.GetFunctions(res.Type.Name)
+	if !ok || functions.TerraformMapper == nil {
+		// Fallback to switch-based mapping for backward compatibility
+		return m.mapResourceFallback(res)
+	}
+
+	// Use inventory function registry
+	return functions.TerraformMapper(res)
+}
+
+// mapResourceFallback provides backward compatibility with switch-based mapping
+func (m *AWSMapper) mapResourceFallback(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
 	switch res.Type.Name {
 	case "VPC":
 		return m.mapVPC(res)
@@ -104,10 +132,10 @@ func (m *AWSMapper) mapSubnet(res *resource.Resource) ([]tfmapper.TerraformBlock
 	}
 
 	attrs := map[string]tfmapper.TerraformValue{
-		"vpc_id":             tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
-		"cidr_block":         tfString(cidr),
-		"availability_zone":  tfString(az),
-		"tags":               tfTags(res.Name),
+		"vpc_id":            tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
+		"cidr_block":        tfString(cidr),
+		"availability_zone": tfString(az),
+		"tags":              tfTags(res.Name),
 	}
 
 	if v, ok := getBool(res.Metadata, "map_public_ip_on_launch"); ok {
@@ -153,17 +181,45 @@ func (m *AWSMapper) mapEC2(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 		attrs["user_data"] = tfString(v)
 	}
 
-	// securityGroupIds is optional array of string references; we accept raw IDs
-	// (advanced: map to aws_security_group resources if the user modeled them).
-	if list, ok := getStringSlice(res.Metadata, "securityGroupIds"); ok && len(list) > 0 {
-		sgVals := make([]tfmapper.TerraformValue, 0, len(list))
-		for _, id := range list {
+	// Handle security groups - can be array of strings or array of objects with "id" field
+	var sgIDs []string
+	if list, ok := getArray(res.Metadata, "securityGroups"); ok {
+		for _, item := range list {
+			if sgObj, ok := item.(map[string]interface{}); ok {
+				if id, ok := getString(sgObj, "id"); ok && id != "" {
+					sgIDs = append(sgIDs, id)
+				}
+			} else if sgStr, ok := item.(string); ok && sgStr != "" {
+				sgIDs = append(sgIDs, sgStr)
+			}
+		}
+	}
+	// Fallback to securityGroupIds for backward compatibility
+	if len(sgIDs) == 0 {
+		if list, ok := getStringSlice(res.Metadata, "securityGroupIds"); ok {
+			sgIDs = list
+		}
+	}
+
+	// Convert security group IDs to Terraform references
+	// We need to find the security group resource by ID and reference it
+	if len(sgIDs) > 0 {
+		sgVals := make([]tfmapper.TerraformValue, 0, len(sgIDs))
+		for _, id := range sgIDs {
 			if id == "" {
 				continue
 			}
-			sgVals = append(sgVals, tfString(id))
+			// Reference the security group resource by its ID
+			// The ID should match the resource ID in the architecture
+			sgVals = append(sgVals, tfExpr(tfmapper.Reference{
+				ResourceType: "aws_security_group",
+				ResourceName: tfName(id),
+				Attribute:    "id",
+			}.Expr()))
 		}
-		attrs["vpc_security_group_ids"] = tfList(sgVals)
+		if len(sgVals) > 0 {
+			attrs["vpc_security_group_ids"] = tfList(sgVals)
+		}
 	}
 
 	return []tfmapper.TerraformBlock{
@@ -193,13 +249,70 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 		"tags":        tfTags(res.Name),
 	}
 
-	return []tfmapper.TerraformBlock{
+	blocks := []tfmapper.TerraformBlock{
 		{
 			Kind:       "resource",
 			Labels:     []string{"aws_security_group", tfName(res.ID)},
 			Attributes: attrs,
 		},
-	}, nil
+	}
+
+	// Parse and add ingress/egress rules
+	if rules, ok := getArray(res.Metadata, "rules"); ok {
+		for i, ruleRaw := range rules {
+			rule, ok := ruleRaw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			ruleType, _ := getString(rule, "type")
+			protocol, _ := getString(rule, "protocol")
+			portRange, _ := getString(rule, "portRange")
+			cidr, _ := getString(rule, "cidr")
+
+			if ruleType == "" || protocol == "" {
+				continue
+			}
+
+			// Parse port range (e.g., "22" or "80-443")
+			fromPort, toPort := parsePortRange(portRange)
+
+			ruleAttrs := map[string]tfmapper.TerraformValue{
+				"security_group_id": tfExpr(tfmapper.Reference{ResourceType: "aws_security_group", ResourceName: tfName(res.ID), Attribute: "id"}.Expr()),
+				"protocol":          tfString(protocol),
+			}
+
+			if fromPort != nil {
+				ruleAttrs["from_port"] = tfNumber(float64(*fromPort))
+			}
+			if toPort != nil {
+				ruleAttrs["to_port"] = tfNumber(float64(*toPort))
+			}
+
+			if cidr != "" {
+				ruleAttrs["cidr_blocks"] = tfList([]tfmapper.TerraformValue{tfString(cidr)})
+			}
+
+			var ruleKind string
+			if ruleType == "ingress" {
+				ruleKind = "aws_security_group_rule"
+				ruleAttrs["type"] = tfString("ingress")
+			} else if ruleType == "egress" {
+				ruleKind = "aws_security_group_rule"
+				ruleAttrs["type"] = tfString("egress")
+			} else {
+				continue
+			}
+
+			blocks = append(blocks, tfmapper.TerraformBlock{
+				Kind:       "resource",
+				Labels:     []string{ruleKind, fmt.Sprintf("%s_rule_%d", tfName(res.ID), i)},
+				Attributes: ruleAttrs,
+			})
+		}
+	}
+
+	return blocks, nil
 }
 
 func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
@@ -207,17 +320,135 @@ func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformB
 		return nil, fmt.Errorf("route-table requires parent vpc (parentID missing)")
 	}
 
-	attrs := map[string]tfmapper.TerraformValue{
-		"vpc_id": tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
-		"tags":   tfTags(res.Name),
+	// Skip main route table - it's automatically created by AWS for each VPC
+	// Only generate custom route tables
+	if isMain, ok := getBool(res.Metadata, "isMain"); ok && isMain {
+		return []tfmapper.TerraformBlock{}, nil
 	}
-	return []tfmapper.TerraformBlock{
+
+	blocks := []tfmapper.TerraformBlock{
 		{
-			Kind:       "resource",
-			Labels:     []string{"aws_route_table", tfName(res.ID)},
-			Attributes: attrs,
+			Kind:   "resource",
+			Labels: []string{"aws_route_table", tfName(res.ID)},
+			Attributes: map[string]tfmapper.TerraformValue{
+				"vpc_id": tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
+				"tags":   tfTags(res.Name),
+			},
 		},
-	}, nil
+	}
+
+	// Parse and add routes
+	if routes, ok := getArray(res.Metadata, "routes"); ok {
+		for i, routeRaw := range routes {
+			route, ok := routeRaw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			destObj, _ := route["destination"].(map[string]interface{})
+			targetObj, _ := route["target"].(map[string]interface{})
+
+			if destObj == nil || targetObj == nil {
+				continue
+			}
+
+			destCIDR, _ := getString(destObj, "cidr")
+			isLocal, _ := getBool(destObj, "isLocal")
+			targetType, _ := getString(targetObj, "type")
+			targetResourceID, _ := getString(targetObj, "resourceId")
+
+			if destCIDR == "" {
+				continue
+			}
+
+			// Skip local routes (they're automatically created by AWS)
+			if isLocal {
+				continue
+			}
+
+			routeAttrs := map[string]tfmapper.TerraformValue{
+				"route_table_id":         tfExpr(tfmapper.Reference{ResourceType: "aws_route_table", ResourceName: tfName(res.ID), Attribute: "id"}.Expr()),
+				"destination_cidr_block": tfString(destCIDR),
+			}
+
+			// Map target type to Terraform resource
+			switch targetType {
+			case "InternetGateway":
+				if targetResourceID != "" {
+					routeAttrs["gateway_id"] = tfExpr(tfmapper.Reference{
+						ResourceType: "aws_internet_gateway",
+						ResourceName: tfName(targetResourceID),
+						Attribute:    "id",
+					}.Expr())
+				}
+			case "NATGateway":
+				if targetResourceID != "" {
+					routeAttrs["nat_gateway_id"] = tfExpr(tfmapper.Reference{
+						ResourceType: "aws_nat_gateway",
+						ResourceName: tfName(targetResourceID),
+						Attribute:    "id",
+					}.Expr())
+				}
+			case "Local":
+				// Local routes are handled automatically, skip
+				continue
+			default:
+				// Unknown target type, skip
+				continue
+			}
+
+			blocks = append(blocks, tfmapper.TerraformBlock{
+				Kind:       "resource",
+				Labels:     []string{"aws_route", fmt.Sprintf("%s_route_%d", tfName(res.ID), i)},
+				Attributes: routeAttrs,
+			})
+		}
+	}
+
+	// Parse and add route table associations
+	if associations, ok := getArray(res.Metadata, "associations"); ok {
+		for i, assocRaw := range associations {
+			assoc, ok := assocRaw.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			assocType, _ := getString(assoc, "associationType")
+			associatedResourceID, _ := getString(assoc, "associatedResourceId")
+
+			if associatedResourceID == "" {
+				continue
+			}
+
+			assocAttrs := map[string]tfmapper.TerraformValue{
+				"route_table_id": tfExpr(tfmapper.Reference{ResourceType: "aws_route_table", ResourceName: tfName(res.ID), Attribute: "id"}.Expr()),
+			}
+
+			// Map association type to Terraform resource
+			switch assocType {
+			case "Subnet":
+				assocAttrs["subnet_id"] = tfExpr(tfmapper.Reference{
+					ResourceType: "aws_subnet",
+					ResourceName: tfName(associatedResourceID),
+					Attribute:    "id",
+				}.Expr())
+			case "Gateway":
+				// Gateway associations are typically handled via routes, skip for now
+				continue
+			default:
+				// Unknown association type, skip
+				continue
+			}
+
+			blocks = append(blocks, tfmapper.TerraformBlock{
+				Kind:       "resource",
+				Labels:     []string{"aws_route_table_association", fmt.Sprintf("%s_assoc_%d", tfName(res.ID), i)},
+				Attributes: assocAttrs,
+			})
+		}
+	}
+
+	return blocks, nil
 }
 
 func (m *AWSMapper) mapInternetGateway(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
@@ -431,3 +662,57 @@ func getStringSlice(m map[string]interface{}, key string) ([]string, bool) {
 	}
 }
 
+func getArray(m map[string]interface{}, key string) ([]interface{}, bool) {
+	if m == nil {
+		return nil, false
+	}
+	v, ok := m[key]
+	if !ok || v == nil {
+		return nil, false
+	}
+	switch t := v.(type) {
+	case []interface{}:
+		return t, true
+	default:
+		return nil, false
+	}
+}
+
+func tfNumber(n float64) tfmapper.TerraformValue {
+	return tfmapper.TerraformValue{Number: &n}
+}
+
+// parsePortRange parses a port range string like "22" or "80-443" into from/to ports
+func parsePortRange(portRange string) (fromPort *int, toPort *int) {
+	if portRange == "" {
+		return nil, nil
+	}
+
+	// Handle single port
+	if !strings.Contains(portRange, "-") {
+		if port, err := parseInt(portRange); err == nil {
+			fromPort = &port
+			toPort = &port
+			return
+		}
+		return nil, nil
+	}
+
+	// Handle port range
+	parts := strings.Split(portRange, "-")
+	if len(parts) == 2 {
+		if from, err := parseInt(parts[0]); err == nil {
+			fromPort = &from
+		}
+		if to, err := parseInt(parts[1]); err == nil {
+			toPort = &to
+		}
+	}
+	return
+}
+
+func parseInt(s string) (int, error) {
+	var result int
+	_, err := fmt.Sscanf(strings.TrimSpace(s), "%d", &result)
+	return result, err
+}

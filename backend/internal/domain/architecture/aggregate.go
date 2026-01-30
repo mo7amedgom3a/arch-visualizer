@@ -92,8 +92,8 @@ func MapDiagramToArchitecture(diagramGraph *graph.DiagramGraph, provider resourc
 		// Get resource ID from map (already set in first pass)
 		resourceID := nodeIDToResourceID[node.ID]
 
-		// Map IR resource type to domain resource type
-		domainResourceType, err := mapIRResourceTypeToDomain(node.ResourceType)
+		// Map IR resource type to domain resource type (using dynamic inventory mapping)
+		domainResourceType, err := mapIRResourceTypeToDomain(node.ResourceType, provider)
 		if err != nil {
 			return nil, fmt.Errorf("failed to map resource type for node %s: %w", node.ID, err)
 		}
@@ -183,13 +183,165 @@ func MapDiagramToArchitecture(diagramGraph *graph.DiagramGraph, provider resourc
 }
 
 // mapIRResourceTypeToDomain maps IR resource type names to domain ResourceType
-func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
-	// Map IR resource type (kebab-case) to domain resource type (PascalCase)
+// This function first tries to use provider-specific inventory mappers (dynamic),
+// then falls back to static mapping for backward compatibility
+func mapIRResourceTypeToDomain(irType string, provider resource.CloudProvider) (*resource.ResourceType, error) {
+	// Step 1: Try to use provider-specific inventory mapper (dynamic)
+	if mapper, ok := GetIRTypeMapper(provider); ok {
+		if resourceName, found := mapper.GetResourceNameByIRType(irType); found {
+			// Map resource name to ResourceType using domain-level mapping
+			if rt, err := mapResourceNameToResourceType(resourceName); err == nil {
+				return rt, nil
+			}
+		}
+	}
+
+	// Step 2: Fall back to static mapping for backward compatibility
+	return mapIRResourceTypeToDomainStatic(irType)
+}
+
+// mapResourceNameToResourceType maps a domain resource name (PascalCase) to ResourceType
+// This is a domain-level mapping that defines the structure of each resource type
+func mapResourceNameToResourceType(resourceName string) (*resource.ResourceType, error) {
+	resourceTypeMap := map[string]resource.ResourceType{
+		"VPC": {
+			ID:         "vpc",
+			Name:       "VPC",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Network",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"Subnet": {
+			ID:         "subnet",
+			Name:       "Subnet",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Network",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"EC2": {
+			ID:         "ec2",
+			Name:       "EC2",
+			Category:   string(resource.CategoryCompute),
+			Kind:       "VirtualMachine",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"RouteTable": {
+			ID:         "route-table",
+			Name:       "RouteTable",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Network",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"SecurityGroup": {
+			ID:         "security-group",
+			Name:       "SecurityGroup",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Network",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"NATGateway": {
+			ID:         "nat-gateway",
+			Name:       "NATGateway",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Gateway",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"InternetGateway": {
+			ID:         "internet-gateway",
+			Name:       "InternetGateway",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Gateway",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"ElasticIP": {
+			ID:         "elastic-ip",
+			Name:       "ElasticIP",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Network",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"Lambda": {
+			ID:         "lambda",
+			Name:       "Lambda",
+			Category:   string(resource.CategoryCompute),
+			Kind:       "Function",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"S3": {
+			ID:         "s3",
+			Name:       "S3",
+			Category:   string(resource.CategoryStorage),
+			Kind:       "Storage",
+			IsRegional: false,
+			IsGlobal:   true,
+		},
+		"EBS": {
+			ID:         "ebs",
+			Name:       "EBS",
+			Category:   string(resource.CategoryStorage),
+			Kind:       "Storage",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"RDS": {
+			ID:         "rds",
+			Name:       "RDS",
+			Category:   string(resource.CategoryDatabase),
+			Kind:       "Database",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"DynamoDB": {
+			ID:         "dynamodb",
+			Name:       "DynamoDB",
+			Category:   string(resource.CategoryDatabase),
+			Kind:       "Database",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"LoadBalancer": {
+			ID:         "load-balancer",
+			Name:       "LoadBalancer",
+			Category:   string(resource.CategoryCompute),
+			Kind:       "LoadBalancer",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"AutoScalingGroup": {
+			ID:         "auto-scaling-group",
+			Name:       "AutoScalingGroup",
+			Category:   string(resource.CategoryCompute),
+			Kind:       "VirtualMachine",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+	}
+
+	rt, exists := resourceTypeMap[resourceName]
+	if !exists {
+		return nil, fmt.Errorf("unknown resource name: %s", resourceName)
+	}
+
+	return &rt, nil
+}
+
+// mapIRResourceTypeToDomainStatic provides static fallback mapping for backward compatibility
+// This is used when provider-specific inventory mappers are not available
+func mapIRResourceTypeToDomainStatic(irType string) (*resource.ResourceType, error) {
 	typeMapping := map[string]resource.ResourceType{
 		"vpc": {
 			ID:         "vpc",
 			Name:       "VPC",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Network",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -197,7 +349,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"subnet": {
 			ID:         "subnet",
 			Name:       "Subnet",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Network",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -205,7 +357,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"ec2": {
 			ID:         "ec2",
 			Name:       "EC2",
-			Category:   "Compute",
+			Category:   string(resource.CategoryCompute),
 			Kind:       "VirtualMachine",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -213,7 +365,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"route-table": {
 			ID:         "route-table",
 			Name:       "RouteTable",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Network",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -221,7 +373,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"security-group": {
 			ID:         "security-group",
 			Name:       "SecurityGroup",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Network",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -229,7 +381,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"nat-gateway": {
 			ID:         "nat-gateway",
 			Name:       "NATGateway",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Gateway",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -237,7 +389,15 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"internet-gateway": {
 			ID:         "internet-gateway",
 			Name:       "InternetGateway",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Gateway",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"igw": {
+			ID:         "internet-gateway",
+			Name:       "InternetGateway",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Gateway",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -245,7 +405,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"elastic-ip": {
 			ID:         "elastic-ip",
 			Name:       "ElasticIP",
-			Category:   "Networking",
+			Category:   string(resource.CategoryNetworking),
 			Kind:       "Network",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -253,7 +413,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"lambda": {
 			ID:         "lambda",
 			Name:       "Lambda",
-			Category:   "Compute",
+			Category:   string(resource.CategoryCompute),
 			Kind:       "Function",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -261,7 +421,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"s3": {
 			ID:         "s3",
 			Name:       "S3",
-			Category:   "Storage",
+			Category:   string(resource.CategoryStorage),
 			Kind:       "Storage",
 			IsRegional: false,
 			IsGlobal:   true,
@@ -269,7 +429,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"ebs": {
 			ID:         "ebs",
 			Name:       "EBS",
-			Category:   "Storage",
+			Category:   string(resource.CategoryStorage),
 			Kind:       "Storage",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -277,7 +437,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"rds": {
 			ID:         "rds",
 			Name:       "RDS",
-			Category:   "Database",
+			Category:   string(resource.CategoryDatabase),
 			Kind:       "Database",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -285,7 +445,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"dynamodb": {
 			ID:         "dynamodb",
 			Name:       "DynamoDB",
-			Category:   "Database",
+			Category:   string(resource.CategoryDatabase),
 			Kind:       "Database",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -293,7 +453,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"load-balancer": {
 			ID:         "load-balancer",
 			Name:       "LoadBalancer",
-			Category:   "Compute",
+			Category:   string(resource.CategoryCompute),
 			Kind:       "LoadBalancer",
 			IsRegional: true,
 			IsGlobal:   false,
@@ -301,7 +461,7 @@ func mapIRResourceTypeToDomain(irType string) (*resource.ResourceType, error) {
 		"auto-scaling-group": {
 			ID:         "auto-scaling-group",
 			Name:       "AutoScalingGroup",
-			Category:   "Compute",
+			Category:   string(resource.CategoryCompute),
 			Kind:       "VirtualMachine",
 			IsRegional: true,
 			IsGlobal:   false,

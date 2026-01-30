@@ -47,6 +47,19 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 		blocks = append(blocks, pb)
 	}
 
+	// Build a lookup map for security groups: metadata "id" -> resource ID
+	// This helps resolve security group references in EC2 instances
+	sgIDToResourceID := make(map[string]string)
+	for _, res := range arch.Resources {
+		if res.Type.Name == "SecurityGroup" {
+			if sgID, ok := res.Metadata["id"].(string); ok && sgID != "" {
+				sgIDToResourceID[sgID] = res.ID
+			}
+			// Also map resource ID to itself for direct references
+			sgIDToResourceID[res.ID] = res.ID
+		}
+	}
+
 	for _, res := range sortedResources {
 		if res == nil {
 			continue
@@ -54,6 +67,12 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 		if !mapper.SupportsResource(res.Type.Name) {
 			return nil, fmt.Errorf("terraform mapper for %q does not support resource type %q (resource id %q)", provider, res.Type.Name, res.ID)
 		}
+
+		// Resolve security group IDs in EC2 resources before mapping
+		if res.Type.Name == "EC2" {
+			resolveSecurityGroupIDs(res, sgIDToResourceID)
+		}
+
 		bs, err := mapper.MapResource(res)
 		if err != nil {
 			return nil, fmt.Errorf("map resource %q (%s): %w", res.ID, res.Type.Name, err)
@@ -91,5 +110,26 @@ func providerBlock(provider, region string) (tfmapper.TerraformBlock, bool) {
 	}, true
 }
 
-var _ iac.Engine = (*Engine)(nil)
+// resolveSecurityGroupIDs resolves security group IDs in EC2 metadata
+// by mapping metadata "id" values to actual resource IDs
+func resolveSecurityGroupIDs(res *resource.Resource, sgIDToResourceID map[string]string) {
+	if res.Metadata == nil {
+		return
+	}
 
+	// Handle securityGroups array
+	if securityGroups, ok := res.Metadata["securityGroups"].([]interface{}); ok {
+		for _, sgRaw := range securityGroups {
+			if sgObj, ok := sgRaw.(map[string]interface{}); ok {
+				if sgID, ok := sgObj["id"].(string); ok && sgID != "" {
+					// Try to resolve the security group ID
+					if resolvedID, found := sgIDToResourceID[sgID]; found {
+						sgObj["id"] = resolvedID
+					}
+				}
+			}
+		}
+	}
+}
+
+var _ iac.Engine = (*Engine)(nil)
