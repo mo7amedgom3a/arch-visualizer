@@ -6,6 +6,8 @@ This document explains how the frontend and backend collaborate to transform a v
 
 ## 🧭 High-Level Workflow Overview
 
+![Workflow Diagram](workflow.png)
+
 ```
 Frontend (Canvas)
         ↓

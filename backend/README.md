@@ -4,6 +4,20 @@ This backend is built using a **modular monolith architecture** in Go, designed 
 
 The system allows solution architects to visually compose cloud architectures and automatically generate **Infrastructure as Code (IaC)** using tools like **Terraform** and **Pulumi**. It supports multiple cloud providers such as **AWS**, **GCP**, and **Azure**.
 
+---
+
+## 🖼 Entity-Relationship Diagrams
+
+### System ERD
+
+![System Entity-Relationship Diagram](./ERD-Diagram.png)
+
+### Marketplace ERD
+
+![Marketplace Entity-Relationship Diagram](./market_place_ERD.png)
+
+---
+
 ## 🧠 Architectural Principles
 
 - **Domain-first design** (cloud-agnostic core)
