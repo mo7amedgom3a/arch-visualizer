@@ -68,6 +68,16 @@ resource "aws_route_table_association" "route_table_8_assoc_0" {
   subnet_id      = aws_subnet.subnet_4.id
 }
 
+resource "aws_subnet" "subnet_4" {
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  tags = {
+    Name  =  "public"
+  }
+  vpc_id = aws_vpc.vpc_2.id
+}
+
 resource "aws_internet_gateway" "igw_9" {
   tags = {
     Name  =  "project-igw"
@@ -91,16 +101,6 @@ resource "aws_route" "route_table_10_route_1" {
 resource "aws_route_table_association" "route_table_10_assoc_0" {
   route_table_id = aws_route_table.route_table_10.id
   subnet_id      = aws_subnet.subnet_6.id
-}
-
-resource "aws_subnet" "subnet_4" {
-  availability_zone       = "us-east-1a"
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  tags = {
-    Name  =  "public"
-  }
-  vpc_id = aws_vpc.vpc_2.id
 }
 
 resource "aws_instance" "ec2_7" {

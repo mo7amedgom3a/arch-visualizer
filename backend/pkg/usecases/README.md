@@ -122,6 +122,78 @@ Extends Scenario 5 by adding database persistence:
 go run ./cmd/api/main.go -scenario=6
 ```
 
+### Scenario 7: Terraform with Service Layer
+**File**: `scenario7_service_layer/terraform_with_service_layer.go`
+
+Demonstrates the complete pipeline using the **service layer** (`internal/platform/server/`):
+- Uses `PipelineOrchestrator` for complete workflow orchestration
+- Leverages service layer for all operations (diagram, architecture, codegen, project)
+- Demonstrates dependency injection pattern
+- Shows both orchestrator and individual service usage
+- Generates Terraform code and persists to database
+
+**Key Features**:
+- **Service Layer Orchestration**: Uses `PipelineOrchestrator.ProcessDiagram()` for complete workflow
+- **Individual Services**: Demonstrates using `DiagramService`, `ArchitectureService`, `CodegenService` directly
+- **Clean Architecture**: Separation of concerns through service interfaces
+- **Dependency Injection**: All dependencies injected via service layer
+- **Reusability**: Services can be reused across different use cases
+
+**Workflow**:
+1. Initialize service layer server (wires all dependencies)
+2. Read diagram JSON from file
+3. Use `PipelineOrchestrator.ProcessDiagram()` to:
+   - Parse diagram JSON
+   - Validate diagram structure
+   - Map to domain architecture
+   - Validate architecture rules
+   - Create project
+   - Persist architecture to database
+4. Generate Terraform code using `CodegenService`
+5. Write Terraform files to `./terraform_output/`
+
+**Run**:
+```bash
+go run ./cmd/api/main.go -scenario=7
+```
+
+**Benefits over Scenario 6**:
+- **Cleaner Code**: No manual orchestration, uses service layer
+- **Better Testability**: Services can be easily mocked
+- **Maintainability**: Changes isolated to specific services
+- **Consistency**: Centralized orchestration ensures consistent workflows
+
+### Scenario 8: Architecture Roundtrip
+**File**: `scenario8_architecture_roundtrip/architecture_roundtrip.go`
+
+Demonstrates a complete roundtrip: **Save → Load → Convert to JSON**:
+- Reads diagram JSON from `json-request-fiagram-complete.json`
+- Processes and saves architecture to database using service layer
+- Loads architecture from database using `ProjectService.LoadArchitecture()`
+- Converts architecture back to diagram JSON format
+- Saves response JSON to `json-response-architecture-loaded.json`
+
+**Key Features**:
+- **Complete Persistence Cycle**: Save and load architecture from database
+- **Data Integrity**: Verifies all data (resources, containments, dependencies, variables, outputs) is preserved
+- **JSON Conversion**: Converts domain Architecture back to diagram JSON format matching the input structure
+- **Roundtrip Testing**: Ensures data can be saved and retrieved without loss
+
+**Workflow**:
+1. Read diagram JSON from file
+2. Process diagram through `PipelineOrchestrator.ProcessDiagram()`
+3. Load architecture using `ProjectService.LoadArchitecture()`
+4. Convert architecture to diagram JSON format
+5. Save response JSON to file
+
+**Run**:
+```bash
+go run ./cmd/api/main.go -scenario=8
+```
+
+**Output**:
+- `json-response-architecture-loaded.json` - Architecture loaded from database in the same format as input JSON
+
 ---
 
 ### Scenario 3: Scalable API Architecture (continued)

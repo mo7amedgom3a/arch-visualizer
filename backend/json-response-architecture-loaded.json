@@ -1,0 +1,595 @@
+{
+  "cloud-canvas-project-e1134c93-5017-41ed-b412-7035723952e1": {
+    "edges": [],
+    "nodes": [
+      {
+        "data": {
+          "config": {
+            "0": {
+              "id": "us-east-1",
+              "name": "US East (N. Virginia)"
+            },
+            "1": {
+              "id": "us-east-2",
+              "name": "US East (Ohio)"
+            },
+            "2": {
+              "id": "us-west-1",
+              "name": "US West (N. California)"
+            },
+            "3": {
+              "id": "us-west-2",
+              "name": "US West (Oregon)"
+            },
+            "4": {
+              "id": "eu-west-1",
+              "name": "EU (Ireland)"
+            },
+            "5": {
+              "id": "eu-west-2",
+              "name": "EU (London)"
+            },
+            "6": {
+              "id": "eu-central-1",
+              "name": "EU (Frankfurt)"
+            },
+            "7": {
+              "id": "ap-southeast-1",
+              "name": "Asia Pacific (Singapore)"
+            },
+            "8": {
+              "id": "ap-southeast-2",
+              "name": "Asia Pacific (Sydney)"
+            },
+            "9": {
+              "id": "ap-northeast-1",
+              "name": "Asia Pacific (Tokyo)"
+            },
+            "name": "us-east-1"
+          },
+          "isVisualOnly": false,
+          "label": "Region",
+          "resourceType": "region",
+          "status": "valid"
+        },
+        "dragging": false,
+        "focusable": true,
+        "id": "var.aws_region",
+        "measured": {
+          "height": 400,
+          "width": 600
+        },
+        "position": {
+          "x": 440,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 400,
+          "width": 600
+        },
+        "type": "containerNode"
+      },
+      {
+        "data": {
+          "config": {
+            "availabilityZoneId": "us-east-1b",
+            "cidr": "10.0.2.0/24",
+            "isPublic": false,
+            "name": "private subnet"
+          },
+          "isVisualOnly": false,
+          "label": "private subnet",
+          "resourceType": "Subnet",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "d1b58409-9880-4bfc-802b-415e71cdea01",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 260,
+          "y": 60
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "description": "security group for http",
+            "id": "sg-1",
+            "name": "http-sg",
+            "rules": [
+              {
+                "cidr": "0.0.0.0/0",
+                "portRange": "22",
+                "protocol": "tcp",
+                "type": "ingress"
+              },
+              {
+                "cidr": "0.0.0.0/0",
+                "portRange": "80",
+                "protocol": "tcp",
+                "type": "ingress"
+              }
+            ]
+          },
+          "isVisualOnly": false,
+          "label": "http-sg",
+          "resourceType": "SecurityGroup",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "b3ae3026-a6fa-4a19-97d1-a2d17d5a60f5",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 180,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "isMain": true,
+            "name": "Main Route Table",
+            "routes": [
+              {
+                "destination": {
+                  "cidr": "10.0.0.0/16",
+                  "id": "03a86a15-11a9-4aed-9a0d-dd46a615f6df",
+                  "isLocal": true,
+                  "name": "Local",
+                  "tags": []
+                },
+                "target": {
+                  "id": "c05b4a7c-3768-407c-8cca-29ef10a1ceb8",
+                  "name": "Local",
+                  "resourceId": "local",
+                  "tags": [],
+                  "type": "Local"
+                }
+              }
+            ],
+            "vpcId": "vpc-2"
+          },
+          "isVisualOnly": false,
+          "label": "Main Route Table",
+          "resourceType": "RouteTable",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "a8f30670-13e9-4b29-8959-cda5879e5505",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 50,
+          "y": 50
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "associations": [
+              {
+                "associatedResourceId": "subnet-4",
+                "associationType": "Subnet",
+                "id": "d898a3f4-45da-4638-a554-034dfad728a1",
+                "resourceName": "Subnet",
+                "routeTableId": "route-table-8"
+              }
+            ],
+            "name": "public-rtb",
+            "routes": [
+              {
+                "destination": {
+                  "cidr": "10.0.0.0/16",
+                  "id": "7026ccf3-673b-4c66-8ea5-1fec5662f96a",
+                  "isLocal": true,
+                  "name": "Local",
+                  "tags": []
+                },
+                "target": {
+                  "id": "3d2b3d2e-d800-44ba-95c4-11af45c2422a",
+                  "name": "Local",
+                  "resourceId": "local",
+                  "tags": [],
+                  "type": "Local"
+                }
+              },
+              {
+                "destination": {
+                  "cidr": "0.0.0.0/0",
+                  "id": "f374c9d1-6348-45f6-b1e6-f5939ad59ab4",
+                  "isLocal": false,
+                  "name": "0.0.0.0/0",
+                  "tags": []
+                },
+                "target": {
+                  "id": "74ac02d8-01fa-4a1a-bd08-e6bc3c2d1eff",
+                  "name": "Internet Gateway",
+                  "resourceId": "igw-9",
+                  "tags": [],
+                  "type": "InternetGateway"
+                }
+              }
+            ],
+            "vpcId": "vpc-2"
+          },
+          "isVisualOnly": false,
+          "label": "public-rtb",
+          "resourceType": "RouteTable",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "8329c1e1-d4ff-4185-9ea1-b7928e0c62e0",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 80,
+          "y": 240
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "name": "project-igw"
+          },
+          "isVisualOnly": false,
+          "label": "project-igw",
+          "resourceType": "InternetGateway",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "486acc7f-48fd-4162-a3ba-bdc63939f765",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 240,
+          "y": 260
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "associations": [
+              {
+                "associatedResourceId": "subnet-6",
+                "associationType": "Subnet",
+                "id": "737360fb-4606-45df-887e-786416915290",
+                "resourceName": "Subnet",
+                "routeTableId": "route-table-10"
+              }
+            ],
+            "name": "private-rtb",
+            "routes": [
+              {
+                "destination": {
+                  "cidr": "10.0.0.0/16",
+                  "id": "555bafb3-6c3c-4638-8cb6-2910cd7ebec4",
+                  "isLocal": true,
+                  "name": "Local",
+                  "tags": []
+                },
+                "target": {
+                  "id": "05df921c-b29d-4210-8aa6-2b21a4a73682",
+                  "name": "Local",
+                  "resourceId": "local",
+                  "tags": [],
+                  "type": "Local"
+                }
+              },
+              {
+                "destination": {
+                  "cidr": "0.0.0.0/0",
+                  "id": "a3c0e699-9f87-43a9-9613-df80554f4561",
+                  "isLocal": false,
+                  "name": "0.0.0.0/0",
+                  "tags": []
+                },
+                "target": {
+                  "id": "be877e20-6d98-487d-a46f-9cb476d4cef1",
+                  "name": "NAT Gateway",
+                  "resourceId": "nat-gateway-5",
+                  "tags": [],
+                  "type": "NATGateway"
+                }
+              }
+            ],
+            "vpcId": "vpc-2"
+          },
+          "isVisualOnly": false,
+          "label": "private-rtb",
+          "resourceType": "RouteTable",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "d12185f6-b45a-4b8c-a50d-5f7aa939cff6",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 320,
+          "y": 0
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "_varRefs": {
+              "_parentId": "var.aws_region",
+              "cidr": "var.vpc_cidr"
+            },
+            "cidr": "10.0.0.0/16",
+            "dnsOptions": {
+              "enableDnsHostnames": true,
+              "enableDnsSupport": true
+            },
+            "enableDnsHostnames": true,
+            "enableDnsSupport": true,
+            "isDefault": false,
+            "name": "project-vpc",
+            "regionId": "us-east-1",
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-vpc"
+              }
+            ],
+            "tenancy": "default"
+          },
+          "isVisualOnly": false,
+          "label": "project-vpc",
+          "resourceType": "VPC",
+          "status": "valid"
+        },
+        "dragging": false,
+        "focusable": true,
+        "id": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "position": {
+          "x": 20,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "availabilityZoneId": "us-east-1a",
+            "cidr": "10.0.1.0/24",
+            "isPublic": true,
+            "name": "public"
+          },
+          "isVisualOnly": false,
+          "label": "public",
+          "resourceType": "Subnet",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "4a64e82f-f88b-48d5-8ac0-9b2949823a7f",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "position": {
+          "x": 40,
+          "y": 60
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "connectivityType": "public",
+            "name": "my-nat-gateway",
+            "subnetId": "subnet-4"
+          },
+          "isVisualOnly": false,
+          "label": "my-nat-gateway",
+          "resourceType": "NATGateway",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "4bc6b354-e6b9-466c-83b1-44a45a900574",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "4a64e82f-f88b-48d5-8ac0-9b2949823a7f",
+        "position": {
+          "x": 40,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "_varRefs": {
+              "instanceType": "var.instance_type"
+            },
+            "ami": "ami-0123456789",
+            "instanceType": "t3.micro",
+            "name": "web-server",
+            "securityGroups": [
+              {
+                "id": "sg-1",
+                "name": "default",
+                "rules": [
+                  {
+                    "cidr": "0.0.0.0/0",
+                    "portRange": "22",
+                    "protocol": "tcp",
+                    "type": "ingress"
+                  },
+                  {
+                    "cidr": "0.0.0.0/0",
+                    "portRange": "80",
+                    "protocol": "tcp",
+                    "type": "ingress"
+                  }
+                ]
+              }
+            ]
+          },
+          "isVisualOnly": false,
+          "label": "web-server",
+          "resourceType": "EC2",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "8d796dd6-2539-43b1-8fb4-82af047da37d",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "d1b58409-9880-4bfc-802b-415e71cdea01",
+        "position": {
+          "x": 100,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "name": "Docker"
+          },
+          "isVisualOnly": true,
+          "label": "Docker",
+          "resourceType": "docker",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "a3c75c9f-be43-4937-9277-31f1d11b61b5",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "d1b58409-9880-4bfc-802b-415e71cdea01",
+        "position": {
+          "x": 120,
+          "y": 100
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      }
+    ],
+    "outputs": [],
+    "timestamp": 1769828502400,
+    "variables": []
+  }
+}

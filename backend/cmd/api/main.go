@@ -9,10 +9,12 @@ import (
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario5_terraform_codegen"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario6_terraform_with_persistence"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario7_service_layer"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario8_architecture_roundtrip"
 )
 
 func main() {
-	scenario := flag.Int("scenario", 6, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence)")
+	scenario := flag.Int("scenario", 8, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip)")
 	flag.Parse()
 
 	var err error
@@ -21,6 +23,10 @@ func main() {
 		err = scenario5_terraform_codegen.TerraformCodegenRunner(context.Background())
 	case 6:
 		err = scenario6_terraform_with_persistence.TerraformWithPersistenceRunner(context.Background())
+	case 7:
+		err = scenario7_service_layer.TerraformWithServiceLayerRunner(context.Background())
+	case 8:
+		err = scenario8_architecture_roundtrip.ArchitectureRoundtripRunner(context.Background())
 	default:
 		fmt.Printf("Unknown scenario: %d\n", *scenario)
 		os.Exit(1)
