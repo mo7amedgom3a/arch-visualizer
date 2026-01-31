@@ -112,19 +112,15 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 		})
 	}
 
-	// Map nodes to domain resources (excluding region node and visual-only nodes)
+	// Map nodes to domain resources (including visual-only nodes for database persistence)
 	nodeIDToResourceID := make(map[string]string) // IR node ID -> domain resource ID
 
 	// First pass: build complete nodeIDToResourceID map for all nodes
 	// This ensures parent lookups work regardless of processing order
+	// Include ALL nodes (including visual-only) for database persistence
 	for _, node := range diagramGraph.Nodes {
 		// Skip region node - it's handled as project-level config
 		if node.IsRegion() {
-			continue
-		}
-
-		// Skip visual-only nodes - they are tracked but not persisted as real infrastructure
-		if node.IsVisualOnly {
 			continue
 		}
 
@@ -134,14 +130,10 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 	}
 
 	// Second pass: create domain resources (now all parent IDs are available in the map)
+	// Include ALL nodes (including visual-only) for database persistence
 	for _, node := range diagramGraph.Nodes {
 		// Skip region node - it's handled as project-level config
 		if node.IsRegion() {
-			continue
-		}
-
-		// Skip visual-only nodes - they are tracked but not persisted as real infrastructure
-		if node.IsVisualOnly {
 			continue
 		}
 
@@ -149,9 +141,22 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 		resourceID := nodeIDToResourceID[node.ID]
 
 		// Map IR resource type to domain resource type using provider-specific mapper
+		// For visual-only nodes, use a generic "VisualIcon" type if mapping fails
 		domainResourceType, err := mapIRResourceTypeToDomain(node.ResourceType, provider)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map resource type for node %s: %w", node.ID, err)
+			if node.IsVisualOnly {
+				// Create a generic visual icon type for visual-only nodes
+				domainResourceType = &resource.ResourceType{
+					ID:         node.ResourceType,
+					Name:       node.ResourceType,
+					Category:   "Visual",
+					Kind:       "Icon",
+					IsRegional: false,
+					IsGlobal:   false,
+				}
+			} else {
+				return nil, fmt.Errorf("failed to map resource type for node %s: %w", node.ID, err)
+			}
 		}
 
 		// Extract name from config
@@ -207,7 +212,7 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 		arch.Resources = append(arch.Resources, domainResource)
 	}
 
-	// Build containment relationships
+	// Build containment relationships (include visual-only nodes)
 	for _, node := range diagramGraph.Nodes {
 		if node.IsRegion() {
 			continue
@@ -216,13 +221,15 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 		if node.ParentID != nil {
 			parentNode, exists := diagramGraph.GetNode(*node.ParentID)
 			if exists && !parentNode.IsRegion() {
-				parentResourceID := nodeIDToResourceID[*node.ParentID]
-				childResourceID := nodeIDToResourceID[node.ID]
+				parentResourceID, parentOk := nodeIDToResourceID[*node.ParentID]
+				childResourceID, childOk := nodeIDToResourceID[node.ID]
 
-				if _, exists := arch.Containments[parentResourceID]; !exists {
-					arch.Containments[parentResourceID] = make([]string, 0)
+				if parentOk && childOk {
+					if _, exists := arch.Containments[parentResourceID]; !exists {
+						arch.Containments[parentResourceID] = make([]string, 0)
+					}
+					arch.Containments[parentResourceID] = append(arch.Containments[parentResourceID], childResourceID)
 				}
-				arch.Containments[parentResourceID] = append(arch.Containments[parentResourceID], childResourceID)
 			}
 		}
 	}

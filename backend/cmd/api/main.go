@@ -2,22 +2,38 @@ package main
 
 import (
 	"context"
-	// "flag"
-	// "fmt"
-	// "log"
-	// "os"
-	// "strings"
+	"flag"
+	"fmt"
+	"os"
+
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario5_terraform_codegen"
-	// "github.com/google/uuid"
-	// "github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram"
-	// "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
-	// "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	// "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario6_terraform_with_persistence"
 )
 
 func main() {
-	scenario5_terraform_codegen.TerraformCodegenRunner(context.Background())
+	scenario := flag.Int("scenario", 6, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence)")
+	flag.Parse()
+
+	var err error
+	switch *scenario {
+	case 5:
+		err = scenario5_terraform_codegen.TerraformCodegenRunner(context.Background())
+	case 6:
+		err = scenario6_terraform_with_persistence.TerraformWithPersistenceRunner(context.Background())
+	default:
+		fmt.Printf("Unknown scenario: %d\n", *scenario)
+		os.Exit(1)
+	}
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+/*
+	// Old code preserved for reference:
 	// // Parse command line flags
 	// diagramFile := flag.String("diagram", "json-request-diagram-valid.json", "Path to diagram JSON file")
 	// projectName := flag.String("project", "Test Project", "Project name")
@@ -103,4 +119,4 @@ func main() {
 	// log.Printf("  Project ID: %s", projectID.String())
 	// log.Printf("  Project Name: %s", *projectName)
 	// log.Println(strings.Repeat("=", 52))
-}
+*/

@@ -56,26 +56,41 @@ func (g *AWSArchitectureGenerator) Generate(diagramGraph *graph.DiagramGraph) (*
 	}
 
 	// Build node ID to resource ID mapping (first pass)
+	// Include ALL nodes (including visual-only) for database persistence
 	nodeIDToResourceID := make(map[string]string)
 	for _, node := range diagramGraph.Nodes {
-		if node.IsRegion() || node.IsVisualOnly {
+		if node.IsRegion() {
 			continue
 		}
 		nodeIDToResourceID[node.ID] = node.ID
 	}
 
 	// Create domain resources (second pass)
+	// Include ALL nodes (including visual-only) for database persistence
 	for _, node := range diagramGraph.Nodes {
-		if node.IsRegion() || node.IsVisualOnly {
+		if node.IsRegion() {
 			continue
 		}
 
 		resourceID := nodeIDToResourceID[node.ID]
 
 		// Map IR resource type to domain resource type using AWS resource type mapper
+		// For visual-only nodes, use a generic "VisualIcon" type if mapping fails
 		domainResourceType, err := g.mapIRResourceTypeToDomain(node.ResourceType)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map resource type for node %s: %w", node.ID, err)
+			if node.IsVisualOnly {
+				// Create a generic visual icon type for visual-only nodes
+				domainResourceType = &resource.ResourceType{
+					ID:         node.ResourceType,
+					Name:       node.ResourceType,
+					Category:   "Visual",
+					Kind:       "Icon",
+					IsRegional: false,
+					IsGlobal:   false,
+				}
+			} else {
+				return nil, fmt.Errorf("failed to map resource type for node %s: %w", node.ID, err)
+			}
 		}
 
 		// Extract name from config
@@ -127,7 +142,7 @@ func (g *AWSArchitectureGenerator) Generate(diagramGraph *graph.DiagramGraph) (*
 		arch.Resources = append(arch.Resources, domainResource)
 	}
 
-	// Build containment relationships
+	// Build containment relationships (include visual-only nodes)
 	for _, node := range diagramGraph.Nodes {
 		if node.IsRegion() {
 			continue
@@ -136,13 +151,15 @@ func (g *AWSArchitectureGenerator) Generate(diagramGraph *graph.DiagramGraph) (*
 		if node.ParentID != nil {
 			parentNode, exists := diagramGraph.GetNode(*node.ParentID)
 			if exists && !parentNode.IsRegion() {
-				parentResourceID := nodeIDToResourceID[*node.ParentID]
-				childResourceID := nodeIDToResourceID[node.ID]
+				parentResourceID, parentOk := nodeIDToResourceID[*node.ParentID]
+				childResourceID, childOk := nodeIDToResourceID[node.ID]
 
-				if _, exists := arch.Containments[parentResourceID]; !exists {
-					arch.Containments[parentResourceID] = make([]string, 0)
+				if parentOk && childOk {
+					if _, exists := arch.Containments[parentResourceID]; !exists {
+						arch.Containments[parentResourceID] = make([]string, 0)
+					}
+					arch.Containments[parentResourceID] = append(arch.Containments[parentResourceID], childResourceID)
 				}
-				arch.Containments[parentResourceID] = append(arch.Containments[parentResourceID], childResourceID)
 			}
 		}
 	}

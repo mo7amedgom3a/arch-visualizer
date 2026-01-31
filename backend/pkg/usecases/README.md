@@ -84,6 +84,47 @@ go run backend/pkg/usecases/scenario2_high_availability/high_availability.go
 **File**: `scenario3_scalable_api/scalable_api.go`
 
 A scalable API backend with auto-scaling and IAM integration:
+
+### Scenario 5: Terraform Code Generation
+**File**: `scenario5_terraform_codegen/terraform_codegen.go`
+
+End-to-end pipeline from diagram IR JSON to generated Terraform files:
+- Parse IR JSON into diagram graph
+- Validate diagram (structure, schemas, relationships)
+- Map to domain Architecture aggregate
+- Validate domain rules/constraints (AWS networking defaults)
+- Build domain graph + topologically sort resources
+- Run Terraform engine to produce IaC files
+- Write Terraform files to `./terraform_output/`
+
+**Run**:
+```bash
+go run ./cmd/api/main.go -scenario=5
+```
+
+### Scenario 6: Terraform with Database Persistence
+**File**: `scenario6_terraform_with_persistence/terraform_with_persistence.go`
+
+Extends Scenario 5 by adding database persistence:
+- All steps from Scenario 5
+- Persist project, resources, containments, and dependencies to database
+- Uses transactions for atomicity
+- Creates demo user and IaC target if not exists
+
+**Database Entities Persisted**:
+- Project (with cloud provider, region, IaC tool)
+- Resources (with configurations and positions)
+- Resource Containments (parent-child relationships)
+- Resource Dependencies (dependency relationships)
+
+**Run**:
+```bash
+go run ./cmd/api/main.go -scenario=6
+```
+
+---
+
+### Scenario 3: Scalable API Architecture (continued)
 - VPC and networking infrastructure (similar to Scenario 2)
 - IAM Role for EC2 instances
 - IAM Instance Profile

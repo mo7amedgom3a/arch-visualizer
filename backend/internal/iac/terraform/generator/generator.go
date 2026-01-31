@@ -111,6 +111,12 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 		if res == nil {
 			continue
 		}
+
+		// Skip visual-only resources - they are for diagram display only, not Terraform generation
+		if isVisualOnly, ok := res.Metadata["isVisualOnly"].(bool); ok && isVisualOnly {
+			continue
+		}
+
 		if !mapper.SupportsResource(res.Type.Name) {
 			return nil, fmt.Errorf("terraform mapper for %q does not support resource type %q (resource id %q)", provider, res.Type.Name, res.ID)
 		}
