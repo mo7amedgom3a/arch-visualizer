@@ -163,6 +163,41 @@ CREATE TABLE pricing_components (
     currency TEXT NOT NULL CHECK (currency IN ('USD', 'EUR', 'GBP'))
 );
 
+# Pricing rates table - stores pricing rates per resource type for scalable pricing
+CREATE TABLE pricing_rates (
+    id SERIAL PRIMARY KEY,
+    provider VARCHAR(20) NOT NULL,
+    resource_type VARCHAR(100) NOT NULL,
+    component_name VARCHAR(100) NOT NULL,
+    pricing_model VARCHAR(50) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    rate NUMERIC(14, 6) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'USD',
+    region VARCHAR(50),
+    effective_from TIMESTAMP NOT NULL DEFAULT NOW(),
+    effective_to TIMESTAMP,
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create unique constraint using partial index for NULL region handling
+CREATE UNIQUE INDEX unique_pricing_rate 
+ON pricing_rates(provider, resource_type, component_name, COALESCE(region, ''), effective_from);
+
+# Hidden dependencies - defines implicit resource dependencies (e.g., NAT Gateway -> Elastic IP)
+CREATE TABLE hidden_dependencies (
+    id SERIAL PRIMARY KEY,
+    provider VARCHAR(20) NOT NULL,
+    parent_resource_type VARCHAR(100) NOT NULL,
+    child_resource_type VARCHAR(100) NOT NULL,
+    quantity_expression VARCHAR(255) DEFAULT '1',
+    condition_expression VARCHAR(255),
+    is_attached BOOLEAN DEFAULT true,
+    description TEXT,
+    UNIQUE(provider, parent_resource_type, child_resource_type)
+);
+
 -- Marketplace: Categories table
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -318,6 +353,17 @@ CREATE INDEX idx_template_compliance_template ON template_compliance(template_id
 CREATE INDEX idx_template_use_cases_template ON template_use_cases(template_id);
 CREATE INDEX idx_template_features_template ON template_features(template_id);
 CREATE INDEX idx_template_components_template ON template_components(template_id);
+
+-- Pricing tables indexes
+CREATE INDEX idx_pricing_rates_provider ON pricing_rates(provider);
+CREATE INDEX idx_pricing_rates_resource_type ON pricing_rates(resource_type);
+CREATE INDEX idx_pricing_rates_region ON pricing_rates(region);
+CREATE INDEX idx_pricing_rates_effective_from ON pricing_rates(effective_from);
+CREATE INDEX idx_pricing_rates_effective_to ON pricing_rates(effective_to);
+
+CREATE INDEX idx_hidden_dependencies_provider ON hidden_dependencies(provider);
+CREATE INDEX idx_hidden_dependencies_parent ON hidden_dependencies(parent_resource_type);
+CREATE INDEX idx_hidden_dependencies_child ON hidden_dependencies(child_resource_type);
 
 -- Marketplace: triggers to update derived fields
 CREATE OR REPLACE FUNCTION update_template_rating()

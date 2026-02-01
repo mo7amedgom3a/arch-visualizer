@@ -17,6 +17,7 @@ type Server struct {
 	ArchitectureService serverinterfaces.ArchitectureService
 	CodegenService      serverinterfaces.CodegenService
 	ProjectService      serverinterfaces.ProjectService
+	PricingService      serverinterfaces.PricingService
 
 	// Orchestrator
 	PipelineOrchestrator serverinterfaces.PipelineOrchestrator
@@ -30,6 +31,9 @@ type Server struct {
 	dependencyTypeRepo *repository.DependencyTypeRepository
 	userRepo           *repository.UserRepository
 	iacTargetRepo      *repository.IACTargetRepository
+	pricingRepo        *repository.PricingRepository
+	pricingRateRepo    *repository.PricingRateRepository
+	hiddenDepRepo      *repository.HiddenDependencyRepository
 }
 
 // NewServer creates a new server with all dependencies wired
@@ -75,6 +79,21 @@ func NewServer() (*Server, error) {
 		return nil, fmt.Errorf("failed to create iac target repository: %w", err)
 	}
 
+	pricingRepo, err := repository.NewPricingRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pricing repository: %w", err)
+	}
+
+	pricingRateRepo, err := repository.NewPricingRateRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pricing rate repository: %w", err)
+	}
+
+	hiddenDepRepo, err := repository.NewHiddenDependencyRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create hidden dependency repository: %w", err)
+	}
+
 	// Create repository adapters
 	projectRepoAdapter := &services.ProjectRepositoryAdapter{Repo: projectRepo}
 	resourceRepoAdapter := &services.ResourceRepositoryAdapter{Repo: resourceRepo}
@@ -84,6 +103,7 @@ func NewServer() (*Server, error) {
 	dependencyTypeRepoAdapter := &services.DependencyTypeRepositoryAdapter{Repo: dependencyTypeRepo}
 	userRepoAdapter := &services.UserRepositoryAdapter{Repo: userRepo}
 	iacTargetRepoAdapter := &services.IACTargetRepositoryAdapter{Repo: iacTargetRepo}
+	pricingRepoAdapter := &services.PricingRepositoryAdapter{Repo: pricingRepo}
 
 	// Initialize services
 	diagramService := services.NewDiagramService()
@@ -94,7 +114,15 @@ func NewServer() (*Server, error) {
 	architectureService := services.NewArchitectureService(ruleService)
 	codegenService := services.NewCodegenService()
 
-	projectService := services.NewProjectService(
+	// Create pricing service with DB-driven rates and hidden dependencies
+	pricingService := services.NewPricingServiceWithRepos(
+		pricingRepoAdapter,
+		pricingRateRepo,
+		hiddenDepRepo,
+	)
+
+	// Create project service with pricing support
+	projectService := services.NewProjectServiceWithPricing(
 		projectRepoAdapter,
 		resourceRepoAdapter,
 		resourceTypeRepoAdapter,
@@ -103,6 +131,7 @@ func NewServer() (*Server, error) {
 		dependencyTypeRepoAdapter,
 		userRepoAdapter,
 		iacTargetRepoAdapter,
+		pricingService,
 	)
 
 	// Create pipeline orchestrator
@@ -114,10 +143,11 @@ func NewServer() (*Server, error) {
 	)
 
 	return &Server{
-		DiagramService:      diagramService,
-		ArchitectureService: architectureService,
-		CodegenService:      codegenService,
-		ProjectService:      projectService,
+		DiagramService:       diagramService,
+		ArchitectureService:  architectureService,
+		CodegenService:       codegenService,
+		ProjectService:       projectService,
+		PricingService:       pricingService,
 		PipelineOrchestrator: pipelineOrchestrator,
 		projectRepo:          projectRepo,
 		resourceRepo:         resourceRepo,
@@ -127,5 +157,8 @@ func NewServer() (*Server, error) {
 		dependencyTypeRepo:   dependencyTypeRepo,
 		userRepo:             userRepo,
 		iacTargetRepo:        iacTargetRepo,
+		pricingRepo:          pricingRepo,
+		pricingRateRepo:      pricingRateRepo,
+		hiddenDepRepo:        hiddenDepRepo,
 	}, nil
 }

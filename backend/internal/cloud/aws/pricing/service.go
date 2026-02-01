@@ -11,6 +11,7 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 )
 
 // AWSPricingService implements the PricingService interface for AWS
@@ -22,29 +23,29 @@ type AWSPricingService struct {
 func NewAWSPricingService() *AWSPricingService {
 	service := &AWSPricingService{}
 	service.calculator = NewAWSPricingCalculator(service)
-	
-	// Initialize pricing functions in inventory
-	inv := inventory.GetDefaultInventory()
-	classifications := inventory.GetAWSResourceClassifications()
-	
-	for _, classification := range classifications {
-		resourceName := classification.ResourceName
-		
-		// Set pricing calculator
-		inv.SetPricingCalculator(resourceName, func(res *resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
-			ctx := context.Background()
-			return service.EstimateCost(ctx, res, duration)
-		})
-		
-		// Set pricing info getter
-		inv.SetPricingInfoGetter(resourceName, func(region string) (*domainpricing.ResourcePricing, error) {
-			ctx := context.Background()
-			pricingResourceType := mapPricingTypeToResourceNameReverse(resourceName)
-			return service.GetPricing(ctx, pricingResourceType, "aws", region)
-		})
-	}
-	
+
+	// Note: We intentionally do NOT set up inventory pricing functions here
+	// to avoid circular dependencies. The calculator's fallback mechanism
+	// (calculateResourceCostFallback) handles pricing calculations directly.
+	// If inventory-based pricing is needed, it should be set up separately
+	// with proper guards against recursion.
+
 	return service
+}
+
+// NewAWSPricingServiceWithRepos creates a new AWS pricing service with repositories for DB-driven pricing
+func NewAWSPricingServiceWithRepos(
+	pricingRateRepo *repository.PricingRateRepository,
+	hiddenDepRepo *repository.HiddenDependencyRepository,
+) *AWSPricingService {
+	service := &AWSPricingService{}
+	service.calculator = NewAWSPricingCalculatorWithRepos(service, pricingRateRepo, hiddenDepRepo)
+	return service
+}
+
+// GetCalculator returns the pricing calculator
+func (s *AWSPricingService) GetCalculator() *AWSPricingCalculator {
+	return s.calculator
 }
 
 // mapPricingTypeToResourceNameReverse maps domain resource name to pricing service resource type
@@ -66,11 +67,11 @@ func mapPricingTypeToResourceNameReverse(resourceName string) string {
 		"RDS":              "rds_instance",
 		"DynamoDB":         "dynamodb_table",
 	}
-	
+
 	if mapped, ok := mapping[resourceName]; ok {
 		return mapped
 	}
-	
+
 	// Default: convert PascalCase to snake_case
 	return toSnakeCase(resourceName)
 }
@@ -95,7 +96,7 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 
 	// Try to use inventory first
 	inv := inventory.GetDefaultInventory()
-	
+
 	// Map pricing resource type to domain resource name
 	resourceName := mapPricingTypeToResourceName(resourceType)
 	if resourceName != "" {
@@ -103,7 +104,7 @@ func (s *AWSPricingService) GetPricing(ctx context.Context, resourceType string,
 			return functions.GetPricingInfo(region)
 		}
 	}
-	
+
 	// Fallback to switch-based pricing (for backward compatibility)
 	return s.getPricingFallback(resourceType, region)
 }
@@ -153,17 +154,17 @@ func (s *AWSPricingService) getPricingFallback(resourceType string, region strin
 // mapPricingTypeToResourceName maps pricing service resource type to domain resource name
 func mapPricingTypeToResourceName(pricingType string) string {
 	mapping := map[string]string{
-		"nat_gateway":       "NATGateway",
-		"elastic_ip":        "ElasticIP",
-		"network_interface": "NetworkInterface",
-		"ec2_instance":      "EC2",
-		"ebs_volume":        "EBS",
-		"s3_bucket":         "S3",
-		"load_balancer":     "LoadBalancer",
+		"nat_gateway":        "NATGateway",
+		"elastic_ip":         "ElasticIP",
+		"network_interface":  "NetworkInterface",
+		"ec2_instance":       "EC2",
+		"ebs_volume":         "EBS",
+		"s3_bucket":          "S3",
+		"load_balancer":      "LoadBalancer",
 		"auto_scaling_group": "AutoScalingGroup",
-		"lambda_function":   "Lambda",
+		"lambda_function":    "Lambda",
 	}
-	
+
 	if mapped, ok := mapping[pricingType]; ok {
 		return mapped
 	}

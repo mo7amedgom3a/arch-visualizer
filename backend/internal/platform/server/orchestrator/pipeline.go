@@ -91,15 +91,32 @@ func (o *PipelineOrchestratorImpl) ProcessDiagram(ctx context.Context, req *serv
 		return nil, fmt.Errorf("failed to create project: %w", err)
 	}
 
-	// Step 6: Persist architecture
-	if err := o.projectService.PersistArchitecture(ctx, project.ID, arch, diagramGraph); err != nil {
-		return nil, fmt.Errorf("failed to persist architecture: %w", err)
+	// Step 6: Persist architecture with pricing (if duration specified)
+	var pricingEstimate *serverinterfaces.ArchitectureCostEstimate
+	if req.PricingDuration > 0 {
+		// Use PersistArchitectureWithPricing for pricing calculation
+		result, err := o.projectService.PersistArchitectureWithPricing(ctx, project.ID, arch, diagramGraph, req.PricingDuration)
+		if err != nil {
+			return nil, fmt.Errorf("failed to persist architecture with pricing: %w", err)
+		}
+		pricingEstimate = result.PricingEstimate
+	} else {
+		// Use regular PersistArchitecture without pricing
+		if err := o.projectService.PersistArchitecture(ctx, project.ID, arch, diagramGraph); err != nil {
+			return nil, fmt.Errorf("failed to persist architecture: %w", err)
+		}
+	}
+
+	message := fmt.Sprintf("Diagram processed successfully. Project created with ID: %s", project.ID.String())
+	if pricingEstimate != nil {
+		message = fmt.Sprintf("%s. Estimated monthly cost: $%.2f %s", message, pricingEstimate.TotalCost, pricingEstimate.Currency)
 	}
 
 	return &serverinterfaces.ProcessDiagramResult{
-		ProjectID: project.ID,
-		Success:   true,
-		Message:   fmt.Sprintf("Diagram processed successfully. Project created with ID: %s", project.ID.String()),
+		ProjectID:       project.ID,
+		Success:         true,
+		Message:         message,
+		PricingEstimate: pricingEstimate,
 	}, nil
 }
 

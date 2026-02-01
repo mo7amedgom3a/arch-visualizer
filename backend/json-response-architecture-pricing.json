@@ -1,0 +1,51 @@
+{
+  "duration": "720h0m0s",
+  "generated_at": "2026-02-01T02:29:36+02:00",
+  "message": "Diagram processed successfully. Project created with ID: 72ace2f1-40d3-4a34-9ffb-13260f720ac2. Estimated monthly cost: $39.89 USD",
+  "pricing": {
+    "currency": "USD",
+    "period": "monthly",
+    "provider": "aws",
+    "region": "us-east-1",
+    "resource_breakdown": [
+      {
+        "components": [
+          {
+            "component_name": "NAT Gateway Hourly",
+            "currency": "USD",
+            "model": "per_hour",
+            "quantity": 720,
+            "subtotal": 32.4,
+            "unit_rate": 0.045
+          }
+        ],
+        "currency": "USD",
+        "resource_id": "nat-gateway-5",
+        "resource_name": "my-nat-gateway",
+        "resource_type": "NATGateway",
+        "total_cost": 32.4
+      },
+      {
+        "components": [
+          {
+            "component_name": "EC2 Instance Hourly",
+            "currency": "USD",
+            "model": "per_hour",
+            "quantity": 720,
+            "subtotal": 7.4879999999999995,
+            "unit_rate": 0.0104
+          }
+        ],
+        "currency": "USD",
+        "resource_id": "ec2-7",
+        "resource_name": "web-server",
+        "resource_type": "EC2",
+        "total_cost": 7.4879999999999995
+      }
+    ],
+    "total_cost": 39.888,
+    "yearly_estimate": 478.65599999999995
+  },
+  "project_id": "72ace2f1-40d3-4a34-9ffb-13260f720ac2",
+  "success": true
+}

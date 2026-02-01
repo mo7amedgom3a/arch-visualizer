@@ -53,12 +53,14 @@ type CostComponent struct {
 
 // CostEstimate represents a calculated cost estimate for a resource or architecture
 type CostEstimate struct {
-	// TotalCost is the total estimated cost
+	// TotalCost is the total estimated cost (including hidden dependencies)
 	TotalCost float64 `json:"total_cost"`
 	// Currency is the currency used
 	Currency Currency `json:"currency"`
-	// Breakdown is a detailed breakdown of cost components
+	// Breakdown is a detailed breakdown of cost components (base resource only)
 	Breakdown []CostComponent `json:"breakdown"`
+	// HiddenDependencyCosts contains costs from implicit/hidden dependencies
+	HiddenDependencyCosts []HiddenDependencyCost `json:"hidden_dependency_costs,omitempty"`
 	// Period is the time period for the estimate (hourly, monthly, yearly)
 	Period Period `json:"period"`
 	// Duration is the duration used for the calculation
@@ -71,4 +73,48 @@ type CostEstimate struct {
 	Provider CloudProvider `json:"provider"`
 	// Region is the region (if applicable)
 	Region *string `json:"region,omitempty"`
+}
+
+// HiddenDependencyCost represents the cost of a hidden/implicit dependency
+type HiddenDependencyCost struct {
+	// DependencyResourceType is the type of the hidden dependency resource
+	DependencyResourceType string `json:"dependency_resource_type"`
+	// DependencyResourceName is the name/identifier of the hidden dependency
+	DependencyResourceName string `json:"dependency_resource_name,omitempty"`
+	// TotalCost is the total cost for this hidden dependency
+	TotalCost float64 `json:"total_cost"`
+	// Breakdown is the cost breakdown for this hidden dependency
+	Breakdown []CostComponent `json:"breakdown"`
+	// Currency is the currency used
+	Currency Currency `json:"currency"`
+	// IsAttached indicates if the dependency is attached (may affect pricing)
+	IsAttached bool `json:"is_attached,omitempty"`
+	// Description explains why this dependency exists
+	Description string `json:"description,omitempty"`
+}
+
+// PricingRate represents a pricing rate from the database
+type PricingRate struct {
+	// Provider is the cloud provider
+	Provider CloudProvider `json:"provider"`
+	// ResourceType is the type of resource
+	ResourceType string `json:"resource_type"`
+	// ComponentName is the name of the pricing component
+	ComponentName string `json:"component_name"`
+	// PricingModel is the pricing model type
+	PricingModel PricingModel `json:"pricing_model"`
+	// Unit is the unit of measurement
+	Unit string `json:"unit"`
+	// Rate is the price per unit
+	Rate float64 `json:"rate"`
+	// Currency is the currency code
+	Currency Currency `json:"currency"`
+	// Region is optional, for regional pricing variations
+	Region *string `json:"region,omitempty"`
+	// EffectiveFrom is when this rate becomes effective
+	EffectiveFrom time.Time `json:"effective_from"`
+	// EffectiveTo is when this rate expires (nil if currently active)
+	EffectiveTo *time.Time `json:"effective_to,omitempty"`
+	// Metadata contains additional provider-specific information
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }

@@ -8,21 +8,43 @@ import (
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/hidden_deps"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 )
 
 // AWSPricingCalculator implements the PricingCalculator interface for AWS
 type AWSPricingCalculator struct {
-	service *AWSPricingService
+	service              *AWSPricingService
+	pricingRateRepo      *repository.PricingRateRepository
+	hiddenDepResolver    domainpricing.HiddenDependencyResolver
+	useDBRates           bool // Flag to enable/disable DB rates (for backward compatibility)
 }
 
 // NewAWSPricingCalculator creates a new AWS pricing calculator
 func NewAWSPricingCalculator(service *AWSPricingService) *AWSPricingCalculator {
 	return &AWSPricingCalculator{
-		service: service,
+		service:    service,
+		useDBRates: false, // Default to false for backward compatibility
+	}
+}
+
+// NewAWSPricingCalculatorWithRepos creates a new AWS pricing calculator with repositories
+func NewAWSPricingCalculatorWithRepos(
+	service *AWSPricingService,
+	pricingRateRepo *repository.PricingRateRepository,
+	hiddenDepRepo *repository.HiddenDependencyRepository,
+) *AWSPricingCalculator {
+	hiddenDepResolver := hiddendeps.NewAWSHiddenDependencyResolver(hiddenDepRepo)
+	return &AWSPricingCalculator{
+		service:           service,
+		pricingRateRepo:  pricingRateRepo,
+		hiddenDepResolver: hiddenDepResolver,
+		useDBRates:       true,
 	}
 }
 
@@ -35,11 +57,247 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 	// Try to use inventory first
 	inv := inventory.GetDefaultInventory()
 	if functions, ok := inv.GetFunctions(res.Type.Name); ok && functions.PricingCalculator != nil {
-		return functions.PricingCalculator(res, duration)
+		estimate, err := functions.PricingCalculator(res, duration)
+		if err == nil && c.useDBRates {
+			// Enhance with hidden dependencies if using DB rates
+			return c.enhanceWithHiddenDependencies(ctx, res, estimate, duration)
+		}
+		return estimate, err
+	}
+
+	// Use DB rates if available, otherwise fallback
+	if c.useDBRates && c.pricingRateRepo != nil {
+		return c.calculateWithDBRates(ctx, res, duration)
 	}
 
 	// Fallback to switch-based calculation
 	return c.calculateResourceCostFallback(ctx, res, duration)
+}
+
+// calculateWithDBRates calculates cost using database rates and hidden dependencies
+func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
+	// Map resource type to pricing resource type
+	pricingResourceType := c.mapToPricingResourceType(res.Type.Name)
+	
+	var dbRates []*models.PricingRate
+	var err error
+	
+	// Special handling for EC2 instances - lookup by instance type
+	if pricingResourceType == "ec2_instance" {
+		// Extract instance type from metadata
+		instanceType := "t3.micro" // Default
+		if res.Metadata != nil {
+			if it, ok := res.Metadata["instance_type"].(string); ok && it != "" {
+				instanceType = it
+			}
+		}
+		
+		// Extract operating system from metadata (default to linux)
+		operatingSystem := "linux"
+		if res.Metadata != nil {
+			if os, ok := res.Metadata["operating_system"].(string); ok && os != "" {
+				operatingSystem = os
+			}
+		}
+		
+		// Lookup rates by instance type
+		region := ""
+		if res.Region != "" {
+			region = res.Region
+		}
+		
+		dbRates, err = c.pricingRateRepo.FindByInstanceType(ctx, "aws", instanceType, region, operatingSystem)
+		if err != nil || len(dbRates) == 0 {
+			// Fallback to hardcoded rates if DB rates not found
+			return c.calculateResourceCostFallback(ctx, res, duration)
+		}
+	} else {
+		// For other resource types, use standard lookup
+		var region *string
+		if res.Region != "" {
+			region = &res.Region
+		}
+		
+		dbRates, err = c.pricingRateRepo.FindActiveRates(ctx, "aws", pricingResourceType, region)
+		if err != nil || len(dbRates) == 0 {
+			// Fallback to hardcoded rates if DB rates not found
+			return c.calculateResourceCostFallback(ctx, res, duration)
+		}
+	}
+
+	// Calculate base resource cost from DB rates
+	var totalCost float64
+	var breakdown []domainpricing.CostComponent
+	
+	for _, rate := range dbRates {
+		componentCost := c.calculateComponentCost(rate, res, duration)
+		totalCost += componentCost.Subtotal
+		breakdown = append(breakdown, componentCost)
+	}
+
+	// Resolve and calculate hidden dependencies
+	var hiddenDepCosts []domainpricing.HiddenDependencyCost
+	if c.hiddenDepResolver != nil {
+		hiddenDeps, err := c.hiddenDepResolver.ResolveHiddenDependencies(ctx, res, nil)
+		if err == nil {
+			for _, hiddenDep := range hiddenDeps {
+				// Calculate cost for hidden dependency
+				hiddenEstimate, err := c.CalculateResourceCost(ctx, hiddenDep.Resource, duration)
+				if err == nil && hiddenEstimate.TotalCost > 0 {
+					hiddenDepCosts = append(hiddenDepCosts, domainpricing.HiddenDependencyCost{
+						DependencyResourceType: hiddenDep.Dependency.ChildResourceType,
+						DependencyResourceName: hiddenDep.Resource.Name,
+						TotalCost:              hiddenEstimate.TotalCost,
+						Breakdown:              hiddenEstimate.Breakdown,
+						Currency:               hiddenEstimate.Currency,
+						IsAttached:             hiddenDep.Dependency.IsAttached,
+						Description:             hiddenDep.Dependency.Description,
+					})
+					totalCost += hiddenEstimate.TotalCost
+				}
+			}
+		}
+	}
+
+	// Determine period
+	var period domainpricing.Period
+	if duration.Hours() <= 24 {
+		period = domainpricing.Hourly
+	} else if duration.Hours() <= 720 {
+		period = domainpricing.Monthly
+	} else {
+		period = domainpricing.Yearly
+	}
+
+	return &domainpricing.CostEstimate{
+		TotalCost:             totalCost,
+		Currency:               domainpricing.USD,
+		Breakdown:              breakdown,
+		HiddenDependencyCosts: hiddenDepCosts,
+		Period:                 period,
+		Duration:               duration,
+		CalculatedAt:           time.Now(),
+		ResourceType:           &res.Type.Name,
+		Provider:               domainpricing.AWS,
+		Region:                 &res.Region,
+	}, nil
+}
+
+// enhanceWithHiddenDependencies enhances an existing estimate with hidden dependency costs
+func (c *AWSPricingCalculator) enhanceWithHiddenDependencies(ctx context.Context, res *resource.Resource, estimate *domainpricing.CostEstimate, duration time.Duration) (*domainpricing.CostEstimate, error) {
+	if c.hiddenDepResolver == nil {
+		return estimate, nil
+	}
+
+	hiddenDeps, err := c.hiddenDepResolver.ResolveHiddenDependencies(ctx, res, nil)
+	if err != nil {
+		return estimate, nil // Return original estimate if resolution fails
+	}
+
+	var hiddenDepCosts []domainpricing.HiddenDependencyCost
+	totalCost := estimate.TotalCost
+
+	for _, hiddenDep := range hiddenDeps {
+		hiddenEstimate, err := c.CalculateResourceCost(ctx, hiddenDep.Resource, duration)
+		if err == nil && hiddenEstimate.TotalCost > 0 {
+			hiddenDepCosts = append(hiddenDepCosts, domainpricing.HiddenDependencyCost{
+				DependencyResourceType: hiddenDep.Dependency.ChildResourceType,
+				DependencyResourceName: hiddenDep.Resource.Name,
+				TotalCost:              hiddenEstimate.TotalCost,
+				Breakdown:              hiddenEstimate.Breakdown,
+				Currency:               hiddenEstimate.Currency,
+				IsAttached:             hiddenDep.Dependency.IsAttached,
+				Description:             hiddenDep.Dependency.Description,
+			})
+			totalCost += hiddenEstimate.TotalCost
+		}
+	}
+
+	estimate.TotalCost = totalCost
+	estimate.HiddenDependencyCosts = hiddenDepCosts
+	return estimate, nil
+}
+
+// calculateComponentCost calculates cost for a single pricing rate component
+func (c *AWSPricingCalculator) calculateComponentCost(rate *models.PricingRate, res *resource.Resource, duration time.Duration) domainpricing.CostComponent {
+	var quantity float64
+	var subtotal float64
+
+	switch rate.PricingModel {
+	case "per_hour":
+		quantity = duration.Hours()
+		subtotal = rate.Rate * quantity
+	case "per_gb":
+		// Extract quantity from metadata or use default
+		if res.Metadata != nil {
+			if size, ok := res.Metadata["size_gb"].(float64); ok {
+				hoursPerMonth := 720.0
+				months := duration.Hours() / hoursPerMonth
+				quantity = size * months
+				subtotal = rate.Rate * quantity
+			} else if size, ok := res.Metadata["size_gb"].(int); ok {
+				hoursPerMonth := 720.0
+				months := duration.Hours() / hoursPerMonth
+				quantity = float64(size) * months
+				subtotal = rate.Rate * quantity
+			}
+		}
+		if quantity == 0 {
+			quantity = 1.0
+			subtotal = rate.Rate
+		}
+	case "per_request":
+		// Extract from metadata
+		if res.Metadata != nil {
+			if req, ok := res.Metadata["request_count"].(float64); ok {
+				quantity = req
+				subtotal = rate.Rate * quantity
+			} else if req, ok := res.Metadata["request_count"].(int); ok {
+				quantity = float64(req)
+				subtotal = rate.Rate * quantity
+			}
+		}
+		if quantity == 0 {
+			quantity = 1.0
+			subtotal = rate.Rate
+		}
+	default:
+		quantity = 1.0
+		subtotal = rate.Rate
+	}
+
+	return domainpricing.CostComponent{
+		ComponentName: rate.ComponentName,
+		Model:         domainpricing.PricingModel(rate.PricingModel),
+		Quantity:      quantity,
+		UnitRate:      rate.Rate,
+		Subtotal:      subtotal,
+		Currency:      domainpricing.Currency(rate.Currency),
+	}
+}
+
+// mapToPricingResourceType maps domain resource type to pricing resource type
+func (c *AWSPricingCalculator) mapToPricingResourceType(domainType string) string {
+	mapping := map[string]string{
+		"EC2":              "ec2_instance",
+		"NATGateway":       "nat_gateway",
+		"ElasticIP":        "elastic_ip",
+		"LoadBalancer":     "load_balancer",
+		"AutoScalingGroup": "auto_scaling_group",
+		"Lambda":           "lambda_function",
+		"S3":               "s3_bucket",
+		"EBS":              "ebs_volume",
+		"RDS":              "rds_instance",
+		"DynamoDB":         "dynamodb_table",
+		"NetworkInterface": "network_interface",
+	}
+
+	if mapped, ok := mapping[domainType]; ok {
+		return mapped
+	}
+
+	// Try lowercase
+	return domainType
 }
 
 // calculateResourceCostFallback provides backward compatibility with switch-based calculation
@@ -516,6 +774,7 @@ func (c *AWSPricingCalculator) calculateResourceCostFallback(ctx context.Context
 func (c *AWSPricingCalculator) CalculateArchitectureCost(ctx context.Context, resources []*resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
 	var totalCost float64
 	var allBreakdown []domainpricing.CostComponent
+	var allHiddenDepCosts []domainpricing.HiddenDependencyCost
 
 	for _, res := range resources {
 		estimate, err := c.CalculateResourceCost(ctx, res, duration)
@@ -525,6 +784,7 @@ func (c *AWSPricingCalculator) CalculateArchitectureCost(ctx context.Context, re
 		}
 		totalCost += estimate.TotalCost
 		allBreakdown = append(allBreakdown, estimate.Breakdown...)
+		allHiddenDepCosts = append(allHiddenDepCosts, estimate.HiddenDependencyCosts...)
 	}
 
 	// Determine period based on duration
@@ -538,13 +798,14 @@ func (c *AWSPricingCalculator) CalculateArchitectureCost(ctx context.Context, re
 	}
 
 	return &domainpricing.CostEstimate{
-		TotalCost:    totalCost,
-		Currency:     domainpricing.USD,
-		Breakdown:    allBreakdown,
-		Period:       period,
-		Duration:     duration,
-		CalculatedAt: time.Now(),
-		Provider:     domainpricing.AWS,
+		TotalCost:             totalCost,
+		Currency:               domainpricing.USD,
+		Breakdown:              allBreakdown,
+		HiddenDependencyCosts: allHiddenDepCosts,
+		Period:                 period,
+		Duration:               duration,
+		CalculatedAt:           time.Now(),
+		Provider:               domainpricing.AWS,
 	}, nil
 }
 

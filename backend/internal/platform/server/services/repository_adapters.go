@@ -175,3 +175,32 @@ func (a *ResourceDependencyRepositoryAdapter) FindByFromResource(ctx context.Con
 func (a *ResourceDependencyRepositoryAdapter) FindByToResource(ctx context.Context, toID uuid.UUID) ([]*models.ResourceDependency, error) {
 	return a.Repo.FindByToResource(ctx, toID)
 }
+
+// PricingRepositoryAdapter adapts repository.PricingRepository to serverinterfaces.PricingRepository
+type PricingRepositoryAdapter struct {
+	Repo *repository.PricingRepository
+}
+
+func (a *PricingRepositoryAdapter) CreateProjectPricing(ctx context.Context, pricing *models.ProjectPricing) error {
+	return a.Repo.CreateProjectPricing(ctx, pricing)
+}
+
+func (a *PricingRepositoryAdapter) FindProjectPricingByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error) {
+	return a.Repo.FindProjectPricingByProjectID(ctx, projectID)
+}
+
+func (a *PricingRepositoryAdapter) CreateResourcePricing(ctx context.Context, pricing *models.ResourcePricing) error {
+	return a.Repo.CreateResourcePricing(ctx, pricing)
+}
+
+func (a *PricingRepositoryAdapter) FindResourcePricingByResourceID(ctx context.Context, resourceID uuid.UUID) ([]*models.ResourcePricing, error) {
+	return a.Repo.FindResourcePricingByResourceID(ctx, resourceID)
+}
+
+func (a *PricingRepositoryAdapter) FindResourcePricingByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ResourcePricing, error) {
+	return a.Repo.FindResourcePricingByProjectID(ctx, projectID)
+}
+
+func (a *PricingRepositoryAdapter) CreatePricingComponent(ctx context.Context, component *models.PricingComponent) error {
+	return a.Repo.CreatePricingComponent(ctx, component)
+}

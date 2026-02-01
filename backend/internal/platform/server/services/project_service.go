@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
@@ -23,6 +26,7 @@ type ProjectServiceImpl struct {
 	dependencyTypeRepo serverinterfaces.DependencyTypeRepository
 	userRepo           serverinterfaces.UserRepository
 	iacTargetRepo      serverinterfaces.IACTargetRepository
+	pricingService     serverinterfaces.PricingService
 }
 
 // NewProjectService creates a new project service
@@ -45,7 +49,38 @@ func NewProjectService(
 		dependencyTypeRepo: dependencyTypeRepo,
 		userRepo:           userRepo,
 		iacTargetRepo:      iacTargetRepo,
+		pricingService:     nil, // Will be set via SetPricingService
 	}
+}
+
+// NewProjectServiceWithPricing creates a new project service with pricing support
+func NewProjectServiceWithPricing(
+	projectRepo serverinterfaces.ProjectRepository,
+	resourceRepo serverinterfaces.ResourceRepository,
+	resourceTypeRepo serverinterfaces.ResourceTypeRepository,
+	containmentRepo serverinterfaces.ResourceContainmentRepository,
+	dependencyRepo serverinterfaces.ResourceDependencyRepository,
+	dependencyTypeRepo serverinterfaces.DependencyTypeRepository,
+	userRepo serverinterfaces.UserRepository,
+	iacTargetRepo serverinterfaces.IACTargetRepository,
+	pricingService serverinterfaces.PricingService,
+) serverinterfaces.ProjectService {
+	return &ProjectServiceImpl{
+		projectRepo:        projectRepo,
+		resourceRepo:       resourceRepo,
+		resourceTypeRepo:   resourceTypeRepo,
+		containmentRepo:    containmentRepo,
+		dependencyRepo:     dependencyRepo,
+		dependencyTypeRepo: dependencyTypeRepo,
+		userRepo:           userRepo,
+		iacTargetRepo:      iacTargetRepo,
+		pricingService:     pricingService,
+	}
+}
+
+// SetPricingService sets the pricing service (for backward compatibility)
+func (s *ProjectServiceImpl) SetPricingService(pricingService serverinterfaces.PricingService) {
+	s.pricingService = pricingService
 }
 
 // Create creates a new project
@@ -219,6 +254,247 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 	}
 
 	return nil
+}
+
+// PersistArchitectureWithPricing persists an architecture with pricing calculation
+func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error) {
+	if arch == nil {
+		return nil, fmt.Errorf("architecture is nil")
+	}
+
+	// Start transaction
+	tx, txCtx := s.projectRepo.BeginTransaction(ctx)
+	defer func() {
+		if r := recover(); r != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			panic(r)
+		}
+	}()
+
+	// Build ID mapping: domain resource ID -> database resource UUID
+	domainIDToDBID := make(map[string]uuid.UUID)
+	resourceTypeCache := make(map[string]uint) // cache resource type IDs
+
+	// Create resources
+	for _, res := range arch.Resources {
+		// Get or cache resource type ID
+		resourceTypeID, ok := resourceTypeCache[res.Type.Name]
+		if !ok {
+			resourceType, err := s.resourceTypeRepo.FindByNameAndProvider(txCtx, res.Type.Name, string(arch.Provider))
+			if err != nil {
+				s.projectRepo.RollbackTransaction(tx)
+				return nil, fmt.Errorf("resource type %s not found for provider %s: %w", res.Type.Name, arch.Provider, err)
+			}
+			resourceTypeID = resourceType.ID
+			resourceTypeCache[res.Type.Name] = resourceTypeID
+		}
+
+		// Get position from metadata
+		posX, posY := 0, 0
+		if pos, ok := res.Metadata["position"].(map[string]interface{}); ok {
+			if x, ok := pos["x"].(float64); ok {
+				posX = int(x)
+			} else if x, ok := pos["x"].(int); ok {
+				posX = x
+			}
+			if y, ok := pos["y"].(float64); ok {
+				posY = int(y)
+			} else if y, ok := pos["y"].(int); ok {
+				posY = y
+			}
+		}
+
+		// Get isVisualOnly from metadata
+		isVisualOnly := false
+		if v, ok := res.Metadata["isVisualOnly"].(bool); ok {
+			isVisualOnly = v
+		}
+
+		// Convert metadata to JSON
+		configJSON, err := json.Marshal(res.Metadata)
+		if err != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			return nil, fmt.Errorf("marshal resource config: %w", err)
+		}
+
+		// Create resource
+		dbResource := &models.Resource{
+			ID:             uuid.New(),
+			ProjectID:      projectID,
+			ResourceTypeID: resourceTypeID,
+			Name:           res.Name,
+			PosX:           posX,
+			PosY:           posY,
+			IsVisualOnly:   isVisualOnly,
+			Config:         datatypes.JSON(configJSON),
+		}
+		if err := s.resourceRepo.Create(txCtx, dbResource); err != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			return nil, fmt.Errorf("create resource %s: %w", res.Name, err)
+		}
+
+		domainIDToDBID[res.ID] = dbResource.ID
+	}
+
+	// Create containment relationships
+	for parentID, childIDs := range arch.Containments {
+		parentDBID, ok := domainIDToDBID[parentID]
+		if !ok {
+			continue
+		}
+		for _, childID := range childIDs {
+			childDBID, ok := domainIDToDBID[childID]
+			if !ok {
+				continue
+			}
+			containment := &models.ResourceContainment{
+				ParentResourceID: parentDBID,
+				ChildResourceID:  childDBID,
+			}
+			if err := s.containmentRepo.Create(txCtx, containment); err != nil {
+				s.projectRepo.RollbackTransaction(tx)
+				return nil, fmt.Errorf("create containment: %w", err)
+			}
+		}
+	}
+
+	// Create dependency relationships
+	dependencyType, err := s.dependencyTypeRepo.FindByName(txCtx, "depends_on")
+	if err != nil {
+		s.projectRepo.RollbackTransaction(tx)
+		return nil, fmt.Errorf("dependency type 'depends_on' not found: %w", err)
+	}
+
+	for fromID, toIDs := range arch.Dependencies {
+		fromDBID, ok := domainIDToDBID[fromID]
+		if !ok {
+			continue
+		}
+		for _, toID := range toIDs {
+			toDBID, ok := domainIDToDBID[toID]
+			if !ok {
+				continue
+			}
+			dependency := &models.ResourceDependency{
+				FromResourceID:   fromDBID,
+				ToResourceID:     toDBID,
+				DependencyTypeID: dependencyType.ID,
+			}
+			if err := s.dependencyRepo.Create(txCtx, dependency); err != nil {
+				s.projectRepo.RollbackTransaction(tx)
+				return nil, fmt.Errorf("create dependency: %w", err)
+			}
+		}
+	}
+
+	// Commit transaction before pricing calculation
+	if err := s.projectRepo.CommitTransaction(tx); err != nil {
+		return nil, fmt.Errorf("commit transaction: %w", err)
+	}
+
+	result := &serverinterfaces.ArchitecturePersistResult{
+		ResourceIDMapping: domainIDToDBID,
+	}
+
+	// Calculate and persist pricing if pricing service is available
+	if s.pricingService != nil && pricingDuration > 0 {
+		fmt.Println("\n💵 Calculating pricing for resources...")
+		fmt.Println(strings.Repeat("-", 100))
+
+		// Calculate architecture cost
+		archEstimate, err := s.pricingService.CalculateArchitectureCost(ctx, arch, pricingDuration)
+		if err != nil {
+			// Log error but don't fail the operation
+			// Pricing calculation failure shouldn't block architecture persistence
+			fmt.Printf("  ⚠️  Failed to calculate architecture cost: %v\n", err)
+		} else {
+			result.PricingEstimate = archEstimate
+
+			// Log resource costs summary
+			fmt.Printf("  ✓ Calculated pricing for %d resources\n", len(archEstimate.ResourceEstimates))
+			for domainID, resEstimate := range archEstimate.ResourceEstimates {
+				// Find the domain resource to get its details
+				var domainRes *resource.Resource
+				for _, res := range arch.Resources {
+					if res.ID == domainID {
+						domainRes = res
+						break
+					}
+				}
+
+				resourceName := resEstimate.ResourceName
+				if domainRes != nil {
+					resourceName = domainRes.Name
+				}
+
+				// Calculate base and hidden costs for display
+				baseCost := 0.0
+				hiddenCost := 0.0
+				for _, comp := range resEstimate.Breakdown {
+					if strings.Contains(comp.ComponentName, "(") && strings.Contains(comp.ComponentName, ")") {
+						hiddenCost += comp.Subtotal
+					} else {
+						baseCost += comp.Subtotal
+					}
+				}
+
+				fmt.Printf("    • %s (%s): $%.2f", resourceName, resEstimate.ResourceType, resEstimate.TotalCost)
+				if hiddenCost > 0 {
+					fmt.Printf(" [Base: $%.2f + Hidden: $%.2f]", baseCost, hiddenCost)
+				}
+				fmt.Println()
+			}
+			fmt.Println(strings.Repeat("-", 100))
+			fmt.Printf("  💰 Total Architecture Cost: $%.2f %s\n", archEstimate.TotalCost, archEstimate.Currency)
+			fmt.Println()
+
+			// Persist individual resource pricing
+			for domainID, dbID := range domainIDToDBID {
+				if resEstimate, ok := archEstimate.ResourceEstimates[domainID]; ok {
+					// Find the domain resource to get its details
+					var domainRes *resource.Resource
+					for _, res := range arch.Resources {
+						if res.ID == domainID {
+							domainRes = res
+							break
+						}
+					}
+
+					if domainRes != nil {
+						// Calculate individual resource cost
+						costEstimate, err := s.pricingService.CalculateResourceCost(ctx, domainRes, pricingDuration)
+						if err == nil {
+							// Persist resource pricing
+							_ = s.pricingService.PersistResourcePricing(ctx, projectID, dbID, costEstimate, string(arch.Provider), arch.Region)
+						}
+					}
+					_ = resEstimate // suppress unused warning
+				}
+			}
+
+			// Persist project-level pricing
+			projectEstimate := &domainpricing.CostEstimate{
+				TotalCost:    archEstimate.TotalCost,
+				Currency:     domainpricing.Currency(archEstimate.Currency),
+				Period:       domainpricing.Period(archEstimate.Period),
+				Duration:     archEstimate.Duration,
+				CalculatedAt: time.Now(),
+				Provider:     domainpricing.CloudProvider(archEstimate.Provider),
+				Region:       &archEstimate.Region,
+			}
+			_ = s.pricingService.PersistProjectPricing(ctx, projectID, projectEstimate, archEstimate.Provider, archEstimate.Region)
+		}
+	}
+
+	return result, nil
+}
+
+// GetProjectPricing retrieves pricing for a project
+func (s *ProjectServiceImpl) GetProjectPricing(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error) {
+	if s.pricingService == nil {
+		return nil, fmt.Errorf("pricing service not configured")
+	}
+	return s.pricingService.GetProjectPricing(ctx, projectID)
 }
 
 // LoadArchitecture loads an architecture from the database for a project

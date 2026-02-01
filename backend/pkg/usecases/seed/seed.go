@@ -40,6 +40,11 @@ func SeedDatabase() error {
 		return fmt.Errorf("failed to seed marketplace data: %w", err)
 	}
 
+	// Seed pricing data (rates and hidden dependencies)
+	if err := SeedPricingData(ctx); err != nil {
+		return fmt.Errorf("failed to seed pricing data: %w", err)
+	}
+
 	// Seed projects and resources based on scenarios
 	if err := seedScenarios(ctx, users); err != nil {
 		return fmt.Errorf("failed to seed scenarios: %w", err)

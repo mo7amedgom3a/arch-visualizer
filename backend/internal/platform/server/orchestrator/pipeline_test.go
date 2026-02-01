@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
@@ -96,10 +97,12 @@ func (m *mockCodegenService) SupportedEngines() []string {
 }
 
 type mockProjectService struct {
-	createFunc           func(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error)
-	getByIDFunc          func(ctx context.Context, id uuid.UUID) (*models.Project, error)
-	persistArchFunc     func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error
-	loadArchFunc         func(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error)
+	createFunc                   func(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error)
+	getByIDFunc                  func(ctx context.Context, id uuid.UUID) (*models.Project, error)
+	persistArchFunc              func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error
+	persistArchWithPricingFunc   func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error)
+	loadArchFunc                 func(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error)
+	getProjectPricingFunc        func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error)
 }
 
 func (m *mockProjectService) Create(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error) {
@@ -130,6 +133,16 @@ func (m *mockProjectService) PersistArchitecture(ctx context.Context, projectID 
 	return nil
 }
 
+func (m *mockProjectService) PersistArchitectureWithPricing(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error) {
+	if m.persistArchWithPricingFunc != nil {
+		return m.persistArchWithPricingFunc(ctx, projectID, arch, diagramGraph, pricingDuration)
+	}
+	return &serverinterfaces.ArchitecturePersistResult{
+		ResourceIDMapping: make(map[string]uuid.UUID),
+		PricingEstimate:   nil,
+	}, nil
+}
+
 func (m *mockProjectService) LoadArchitecture(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error) {
 	if m.loadArchFunc != nil {
 		return m.loadArchFunc(ctx, projectID)
@@ -139,6 +152,13 @@ func (m *mockProjectService) LoadArchitecture(ctx context.Context, projectID uui
 		Containments: make(map[string][]string),
 		Dependencies: make(map[string][]string),
 	}, nil
+}
+
+func (m *mockProjectService) GetProjectPricing(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error) {
+	if m.getProjectPricingFunc != nil {
+		return m.getProjectPricingFunc(ctx, projectID)
+	}
+	return []*models.ProjectPricing{}, nil
 }
 
 func TestPipelineOrchestrator_ProcessDiagram(t *testing.T) {

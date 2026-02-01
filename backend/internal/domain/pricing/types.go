@@ -53,3 +53,17 @@ const (
 	// GCP Google Cloud Platform
 	GCP CloudProvider = "gcp"
 )
+
+// OperatingSystem represents the operating system for pricing
+type OperatingSystem string
+
+const (
+	// Linux operating system
+	Linux OperatingSystem = "linux"
+	// Windows operating system
+	Windows OperatingSystem = "mswin"
+	// RHEL Red Hat Enterprise Linux
+	RHEL OperatingSystem = "rhel"
+	// SUSE Linux
+	SUSE OperatingSystem = "suse"
+)

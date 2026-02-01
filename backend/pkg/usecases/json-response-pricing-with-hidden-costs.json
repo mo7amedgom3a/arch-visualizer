@@ -1,0 +1,100 @@
+{
+  "duration": "720h0m0s",
+  "generated_at": "2026-02-01T03:05:22.095630832+02:00",
+  "message": "Diagram processed successfully. Project created with ID: ea7ba4a5-1fed-45ce-b735-3d693f61c724. Estimated monthly cost: $53.26 USD",
+  "pricing": {
+    "total_cost": 53.261,
+    "currency": "USD",
+    "period": "monthly",
+    "duration": 2592000000000000,
+    "resource_estimates": {
+      "ec2-1": {
+        "resource_id": "ec2-1",
+        "resource_name": "web-server-1",
+        "resource_type": "EC2",
+        "total_cost": 8.128,
+        "currency": "USD",
+        "breakdown": [
+          {
+            "component_name": "EC2 Instance Hourly",
+            "model": "per_hour",
+            "quantity": 720,
+            "unit_rate": 0.0104,
+            "subtotal": 7.4879999999999995,
+            "currency": "USD"
+          },
+          {
+            "component_name": "EBS Volume Storage (ebs_volume)",
+            "model": "per_gb",
+            "quantity": 8,
+            "unit_rate": 0.08,
+            "subtotal": 0.64,
+            "currency": "USD"
+          }
+        ]
+      },
+      "ec2-2": {
+        "resource_id": "ec2-2",
+        "resource_name": "web-server-2",
+        "resource_type": "EC2",
+        "total_cost": 9.088,
+        "currency": "USD",
+        "breakdown": [
+          {
+            "component_name": "EC2 Instance Hourly",
+            "model": "per_hour",
+            "quantity": 720,
+            "unit_rate": 0.0104,
+            "subtotal": 7.4879999999999995,
+            "currency": "USD"
+          },
+          {
+            "component_name": "EBS Volume Storage (ebs_volume)",
+            "model": "per_gb",
+            "quantity": 20,
+            "unit_rate": 0.08,
+            "subtotal": 1.6,
+            "currency": "USD"
+          }
+        ]
+      },
+      "nat-gateway-1": {
+        "resource_id": "nat-gateway-1",
+        "resource_name": "demo-nat-gateway",
+        "resource_type": "NATGateway",
+        "total_cost": 36.045,
+        "currency": "USD",
+        "breakdown": [
+          {
+            "component_name": "NAT Gateway Data Processing",
+            "model": "per_gb",
+            "quantity": 1,
+            "unit_rate": 0.045,
+            "subtotal": 0.045,
+            "currency": "USD"
+          },
+          {
+            "component_name": "NAT Gateway Hourly",
+            "model": "per_hour",
+            "quantity": 720,
+            "unit_rate": 0.045,
+            "subtotal": 32.4,
+            "currency": "USD"
+          },
+          {
+            "component_name": "Elastic IP Hourly (Unattached) (elastic_ip)",
+            "model": "per_hour",
+            "quantity": 720,
+            "unit_rate": 0.005,
+            "subtotal": 3.6,
+            "currency": "USD"
+          }
+        ]
+      }
+    },
+    "provider": "aws",
+    "region": "us-east-1"
+  },
+  "project_id": "ea7ba4a5-1fed-45ce-b735-3d693f61c724",
+  "success": true
+}

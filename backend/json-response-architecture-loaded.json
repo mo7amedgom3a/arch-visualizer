@@ -1,5 +1,5 @@
 {
-  "cloud-canvas-project-e1134c93-5017-41ed-b412-7035723952e1": {
+  "cloud-canvas-project-bf2f8133-5efe-4e20-ac30-a68ad38d9363": {
     "edges": [],
     "nodes": [
       {
@@ -74,27 +74,58 @@
       {
         "data": {
           "config": {
-            "availabilityZoneId": "us-east-1b",
-            "cidr": "10.0.2.0/24",
-            "isPublic": false,
-            "name": "private subnet"
+            "name": "project-igw"
           },
           "isVisualOnly": false,
-          "label": "private subnet",
+          "label": "project-igw",
+          "resourceType": "InternetGateway",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "d7326b6f-6750-46b9-aee3-eb841c5a4d78",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
+        "position": {
+          "x": 240,
+          "y": 260
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "availabilityZoneId": "us-east-1a",
+            "cidr": "10.0.1.0/24",
+            "isPublic": true,
+            "name": "public"
+          },
+          "isVisualOnly": false,
+          "label": "public",
           "resourceType": "Subnet",
           "status": "valid"
         },
         "dragging": false,
         "extent": "parent",
         "focusable": true,
-        "id": "d1b58409-9880-4bfc-802b-415e71cdea01",
+        "id": "3a0f37c7-333f-4db7-876b-56f5391fe1f0",
         "measured": {
           "height": 80,
           "width": 80
         },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
         "position": {
-          "x": 260,
+          "x": 40,
           "y": 60
         },
         "selectable": true,
@@ -108,40 +139,42 @@
       {
         "data": {
           "config": {
-            "description": "security group for http",
-            "id": "sg-1",
-            "name": "http-sg",
-            "rules": [
+            "_varRefs": {
+              "_parentId": "var.aws_region",
+              "cidr": "var.vpc_cidr"
+            },
+            "cidr": "10.0.0.0/16",
+            "dnsOptions": {
+              "enableDnsHostnames": true,
+              "enableDnsSupport": true
+            },
+            "enableDnsHostnames": true,
+            "enableDnsSupport": true,
+            "isDefault": false,
+            "name": "project-vpc",
+            "regionId": "us-east-1",
+            "tags": [
               {
-                "cidr": "0.0.0.0/0",
-                "portRange": "22",
-                "protocol": "tcp",
-                "type": "ingress"
-              },
-              {
-                "cidr": "0.0.0.0/0",
-                "portRange": "80",
-                "protocol": "tcp",
-                "type": "ingress"
+                "key": "Name",
+                "value": "project-vpc"
               }
-            ]
+            ],
+            "tenancy": "default"
           },
           "isVisualOnly": false,
-          "label": "http-sg",
-          "resourceType": "SecurityGroup",
+          "label": "project-vpc",
+          "resourceType": "VPC",
           "status": "valid"
         },
         "dragging": false,
-        "extent": "parent",
         "focusable": true,
-        "id": "b3ae3026-a6fa-4a19-97d1-a2d17d5a60f5",
+        "id": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
         "measured": {
           "height": 80,
           "width": 80
         },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
         "position": {
-          "x": 180,
+          "x": 20,
           "y": 40
         },
         "selectable": true,
@@ -185,15 +218,185 @@
         "dragging": false,
         "extent": "parent",
         "focusable": true,
-        "id": "a8f30670-13e9-4b29-8959-cda5879e5505",
+        "id": "1da2cac8-14bd-4c83-a331-301b13ce1490",
         "measured": {
           "height": 80,
           "width": 80
         },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
         "position": {
           "x": 50,
           "y": 50
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "connectivityType": "public",
+            "name": "my-nat-gateway",
+            "subnetId": "subnet-4"
+          },
+          "isVisualOnly": false,
+          "label": "my-nat-gateway",
+          "resourceType": "NATGateway",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "7933461a-ab98-4b92-9e31-ad78d34a860e",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "3a0f37c7-333f-4db7-876b-56f5391fe1f0",
+        "position": {
+          "x": 40,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "availabilityZoneId": "us-east-1b",
+            "cidr": "10.0.2.0/24",
+            "isPublic": false,
+            "name": "private subnet"
+          },
+          "isVisualOnly": false,
+          "label": "private subnet",
+          "resourceType": "Subnet",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "8546eaa2-b807-4609-8a45-41a91548c237",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
+        "position": {
+          "x": 260,
+          "y": 60
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "_varRefs": {
+              "instanceType": "var.instance_type"
+            },
+            "ami": "ami-0123456789",
+            "instanceType": "t3.micro",
+            "name": "web-server",
+            "securityGroups": [
+              {
+                "id": "sg-1",
+                "name": "default",
+                "rules": [
+                  {
+                    "cidr": "0.0.0.0/0",
+                    "portRange": "22",
+                    "protocol": "tcp",
+                    "type": "ingress"
+                  },
+                  {
+                    "cidr": "0.0.0.0/0",
+                    "portRange": "80",
+                    "protocol": "tcp",
+                    "type": "ingress"
+                  }
+                ]
+              }
+            ]
+          },
+          "isVisualOnly": false,
+          "label": "web-server",
+          "resourceType": "EC2",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "64e38987-dc5b-4bfe-a258-61e415434110",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "8546eaa2-b807-4609-8a45-41a91548c237",
+        "position": {
+          "x": 100,
+          "y": 40
+        },
+        "selectable": true,
+        "selected": false,
+        "style": {
+          "height": 80,
+          "width": 80
+        },
+        "type": "resourceNode"
+      },
+      {
+        "data": {
+          "config": {
+            "description": "security group for http",
+            "id": "sg-1",
+            "name": "http-sg",
+            "rules": [
+              {
+                "cidr": "0.0.0.0/0",
+                "portRange": "22",
+                "protocol": "tcp",
+                "type": "ingress"
+              },
+              {
+                "cidr": "0.0.0.0/0",
+                "portRange": "80",
+                "protocol": "tcp",
+                "type": "ingress"
+              }
+            ]
+          },
+          "isVisualOnly": false,
+          "label": "http-sg",
+          "resourceType": "SecurityGroup",
+          "status": "valid"
+        },
+        "dragging": false,
+        "extent": "parent",
+        "focusable": true,
+        "id": "c0a50aff-54d8-425b-8977-3927cc1f61e9",
+        "measured": {
+          "height": 80,
+          "width": 80
+        },
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
+        "position": {
+          "x": 180,
+          "y": 40
         },
         "selectable": true,
         "selected": false,
@@ -260,46 +463,15 @@
         "dragging": false,
         "extent": "parent",
         "focusable": true,
-        "id": "8329c1e1-d4ff-4185-9ea1-b7928e0c62e0",
+        "id": "4c797516-d52c-4bc0-a946-8b8b2a0957d2",
         "measured": {
           "height": 80,
           "width": 80
         },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
         "position": {
           "x": 80,
           "y": 240
-        },
-        "selectable": true,
-        "selected": false,
-        "style": {
-          "height": 80,
-          "width": 80
-        },
-        "type": "resourceNode"
-      },
-      {
-        "data": {
-          "config": {
-            "name": "project-igw"
-          },
-          "isVisualOnly": false,
-          "label": "project-igw",
-          "resourceType": "InternetGateway",
-          "status": "valid"
-        },
-        "dragging": false,
-        "extent": "parent",
-        "focusable": true,
-        "id": "486acc7f-48fd-4162-a3ba-bdc63939f765",
-        "measured": {
-          "height": 80,
-          "width": 80
-        },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
-        "position": {
-          "x": 240,
-          "y": 260
         },
         "selectable": true,
         "selected": false,
@@ -366,187 +538,15 @@
         "dragging": false,
         "extent": "parent",
         "focusable": true,
-        "id": "d12185f6-b45a-4b8c-a50d-5f7aa939cff6",
+        "id": "c9a2c3f8-7f4d-4af0-80cf-94afdded2808",
         "measured": {
           "height": 80,
           "width": 80
         },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
+        "parentId": "a6d26f34-704a-4471-8b5f-7f8d499cc3df",
         "position": {
           "x": 320,
           "y": 0
-        },
-        "selectable": true,
-        "selected": false,
-        "style": {
-          "height": 80,
-          "width": 80
-        },
-        "type": "resourceNode"
-      },
-      {
-        "data": {
-          "config": {
-            "_varRefs": {
-              "_parentId": "var.aws_region",
-              "cidr": "var.vpc_cidr"
-            },
-            "cidr": "10.0.0.0/16",
-            "dnsOptions": {
-              "enableDnsHostnames": true,
-              "enableDnsSupport": true
-            },
-            "enableDnsHostnames": true,
-            "enableDnsSupport": true,
-            "isDefault": false,
-            "name": "project-vpc",
-            "regionId": "us-east-1",
-            "tags": [
-              {
-                "key": "Name",
-                "value": "project-vpc"
-              }
-            ],
-            "tenancy": "default"
-          },
-          "isVisualOnly": false,
-          "label": "project-vpc",
-          "resourceType": "VPC",
-          "status": "valid"
-        },
-        "dragging": false,
-        "focusable": true,
-        "id": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
-        "measured": {
-          "height": 80,
-          "width": 80
-        },
-        "position": {
-          "x": 20,
-          "y": 40
-        },
-        "selectable": true,
-        "selected": false,
-        "style": {
-          "height": 80,
-          "width": 80
-        },
-        "type": "resourceNode"
-      },
-      {
-        "data": {
-          "config": {
-            "availabilityZoneId": "us-east-1a",
-            "cidr": "10.0.1.0/24",
-            "isPublic": true,
-            "name": "public"
-          },
-          "isVisualOnly": false,
-          "label": "public",
-          "resourceType": "Subnet",
-          "status": "valid"
-        },
-        "dragging": false,
-        "extent": "parent",
-        "focusable": true,
-        "id": "4a64e82f-f88b-48d5-8ac0-9b2949823a7f",
-        "measured": {
-          "height": 80,
-          "width": 80
-        },
-        "parentId": "02e338b5-157c-40b4-85a6-9279e1e4e0ca",
-        "position": {
-          "x": 40,
-          "y": 60
-        },
-        "selectable": true,
-        "selected": false,
-        "style": {
-          "height": 80,
-          "width": 80
-        },
-        "type": "resourceNode"
-      },
-      {
-        "data": {
-          "config": {
-            "connectivityType": "public",
-            "name": "my-nat-gateway",
-            "subnetId": "subnet-4"
-          },
-          "isVisualOnly": false,
-          "label": "my-nat-gateway",
-          "resourceType": "NATGateway",
-          "status": "valid"
-        },
-        "dragging": false,
-        "extent": "parent",
-        "focusable": true,
-        "id": "4bc6b354-e6b9-466c-83b1-44a45a900574",
-        "measured": {
-          "height": 80,
-          "width": 80
-        },
-        "parentId": "4a64e82f-f88b-48d5-8ac0-9b2949823a7f",
-        "position": {
-          "x": 40,
-          "y": 40
-        },
-        "selectable": true,
-        "selected": false,
-        "style": {
-          "height": 80,
-          "width": 80
-        },
-        "type": "resourceNode"
-      },
-      {
-        "data": {
-          "config": {
-            "_varRefs": {
-              "instanceType": "var.instance_type"
-            },
-            "ami": "ami-0123456789",
-            "instanceType": "t3.micro",
-            "name": "web-server",
-            "securityGroups": [
-              {
-                "id": "sg-1",
-                "name": "default",
-                "rules": [
-                  {
-                    "cidr": "0.0.0.0/0",
-                    "portRange": "22",
-                    "protocol": "tcp",
-                    "type": "ingress"
-                  },
-                  {
-                    "cidr": "0.0.0.0/0",
-                    "portRange": "80",
-                    "protocol": "tcp",
-                    "type": "ingress"
-                  }
-                ]
-              }
-            ]
-          },
-          "isVisualOnly": false,
-          "label": "web-server",
-          "resourceType": "EC2",
-          "status": "valid"
-        },
-        "dragging": false,
-        "extent": "parent",
-        "focusable": true,
-        "id": "8d796dd6-2539-43b1-8fb4-82af047da37d",
-        "measured": {
-          "height": 80,
-          "width": 80
-        },
-        "parentId": "d1b58409-9880-4bfc-802b-415e71cdea01",
-        "position": {
-          "x": 100,
-          "y": 40
         },
         "selectable": true,
         "selected": false,
@@ -569,12 +569,12 @@
         "dragging": false,
         "extent": "parent",
         "focusable": true,
-        "id": "a3c75c9f-be43-4937-9277-31f1d11b61b5",
+        "id": "0eadef35-a23b-4755-aceb-bb0060b3383a",
         "measured": {
           "height": 80,
           "width": 80
         },
-        "parentId": "d1b58409-9880-4bfc-802b-415e71cdea01",
+        "parentId": "8546eaa2-b807-4609-8a45-41a91548c237",
         "position": {
           "x": 120,
           "y": 100
@@ -589,7 +589,7 @@
       }
     ],
     "outputs": [],
-    "timestamp": 1769828502400,
+    "timestamp": 1769905326039,
     "variables": []
   }
 }

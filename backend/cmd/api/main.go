@@ -11,10 +11,12 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario6_terraform_with_persistence"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario7_service_layer"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario8_architecture_roundtrip"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario9_architecture_pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario10_pricing_with_hidden_costs"
 )
 
 func main() {
-	scenario := flag.Int("scenario", 8, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip)")
+	scenario := flag.Int("scenario", 10, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip, 9=Architecture Pricing, 10=Pricing with Hidden Costs)")
 	flag.Parse()
 
 	var err error
@@ -27,6 +29,10 @@ func main() {
 		err = scenario7_service_layer.TerraformWithServiceLayerRunner(context.Background())
 	case 8:
 		err = scenario8_architecture_roundtrip.ArchitectureRoundtripRunner(context.Background())
+	case 9:
+		err = scenario9_architecture_pricing.ArchitecturePricingRunner(context.Background())
+	case 10:
+		err = scenario10_pricing_with_hidden_costs.PricingWithHiddenCostsRunner(context.Background())
 	default:
 		fmt.Printf("Unknown scenario: %d\n", *scenario)
 		os.Exit(1)
