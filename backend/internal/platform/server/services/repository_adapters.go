@@ -229,3 +229,37 @@ func (a *PricingRepositoryAdapter) FindResourcePricingByProjectID(ctx context.Co
 func (a *PricingRepositoryAdapter) CreatePricingComponent(ctx context.Context, component *models.PricingComponent) error {
 	return a.Repo.CreatePricingComponent(ctx, component)
 }
+
+// ProjectVariableRepositoryAdapter adapts repository.ProjectVariableRepository to serverinterfaces.ProjectVariableRepository
+type ProjectVariableRepositoryAdapter struct {
+	Repo *repository.ProjectVariableRepository
+}
+
+func (a *ProjectVariableRepositoryAdapter) Create(ctx context.Context, variable *models.ProjectVariable) error {
+	return a.Repo.Create(ctx, variable)
+}
+
+func (a *ProjectVariableRepositoryAdapter) FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVariable, error) {
+	return a.Repo.FindByProjectID(ctx, projectID)
+}
+
+func (a *ProjectVariableRepositoryAdapter) DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error {
+	return a.Repo.DeleteByProjectID(ctx, projectID)
+}
+
+// ProjectOutputRepositoryAdapter adapts repository.ProjectOutputRepository to serverinterfaces.ProjectOutputRepository
+type ProjectOutputRepositoryAdapter struct {
+	Repo *repository.ProjectOutputRepository
+}
+
+func (a *ProjectOutputRepositoryAdapter) Create(ctx context.Context, output *models.ProjectOutput) error {
+	return a.Repo.Create(ctx, output)
+}
+
+func (a *ProjectOutputRepositoryAdapter) FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectOutput, error) {
+	return a.Repo.FindByProjectID(ctx, projectID)
+}
+
+func (a *ProjectOutputRepositoryAdapter) DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error {
+	return a.Repo.DeleteByProjectID(ctx, projectID)
+}

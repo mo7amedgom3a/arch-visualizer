@@ -251,6 +251,22 @@ func (m *mockProjectService) ValidateArchitecture(ctx context.Context, projectID
 	return &dto.ValidationResponse{Valid: true}, nil
 }
 
+func (m *mockProjectService) GenerateCode(ctx context.Context, projectID uuid.UUID, req *dto.GenerateCodeRequest) (*dto.GenerationResponse, error) {
+	return &dto.GenerationResponse{}, nil
+}
+
+func (m *mockProjectService) GetGenerations(ctx context.Context, projectID uuid.UUID) ([]*dto.GenerationResponse, error) {
+	return []*dto.GenerationResponse{}, nil
+}
+
+func (m *mockProjectService) GetGeneration(ctx context.Context, generationID uuid.UUID) (*dto.GenerationResponse, error) {
+	return &dto.GenerationResponse{}, nil
+}
+
+func (m *mockProjectService) DownloadGeneration(ctx context.Context, generationID uuid.UUID) (string, error) {
+	return "", nil
+}
+
 func TestPipelineOrchestrator_ProcessDiagram(t *testing.T) {
 	ctx := context.Background()
 

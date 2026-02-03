@@ -26,6 +26,7 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		userCtrl := controllers.NewUserController(srv.UserService)
 		diagramCtrl := controllers.NewDiagramController(srv.PipelineOrchestrator, srv.DiagramService, srv.ArchitectureService)
 		iamCtrl := controllers.NewIAMController(srv.IAMService)
+		generationCtrl := controllers.NewGenerationController(srv.PipelineOrchestrator)
 
 		// Users Routes
 		users := v1.Group("/users")
@@ -53,6 +54,10 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 			projects.PATCH("/:id/architecture/nodes/:nodeId", projectCtrl.UpdateArchitectureNode)
 			projects.DELETE("/:id/architecture/nodes/:nodeId", projectCtrl.DeleteArchitectureNode)
 			projects.POST("/:id/architecture/validate", projectCtrl.ValidateArchitecture)
+
+			// Code Generation endpoints
+			projects.POST("/:id/generate", generationCtrl.GenerateCode)
+			projects.GET("/:id/download", generationCtrl.DownloadCode)
 		}
 
 		// IAM Routes

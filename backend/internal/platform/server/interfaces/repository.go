@@ -81,3 +81,17 @@ type ResourceDependencyRepository interface {
 	FindByFromResource(ctx context.Context, fromID uuid.UUID) ([]*models.ResourceDependency, error)
 	FindByToResource(ctx context.Context, toID uuid.UUID) ([]*models.ResourceDependency, error)
 }
+
+// ProjectVariableRepository defines project variable repository operations
+type ProjectVariableRepository interface {
+	Create(ctx context.Context, variable *models.ProjectVariable) error
+	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVariable, error)
+	DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error
+}
+
+// ProjectOutputRepository defines project output repository operations
+type ProjectOutputRepository interface {
+	Create(ctx context.Context, output *models.ProjectOutput) error
+	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectOutput, error)
+	DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error
+}

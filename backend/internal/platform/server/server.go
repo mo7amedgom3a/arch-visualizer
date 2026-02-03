@@ -35,6 +35,8 @@ type Server struct {
 	dependencyTypeRepo *repository.DependencyTypeRepository
 	userRepo           *repository.UserRepository
 	iacTargetRepo      *repository.IACTargetRepository
+	variableRepo       *repository.ProjectVariableRepository
+	outputRepo         *repository.ProjectOutputRepository
 	pricingRepo        *repository.PricingRepository
 	pricingRateRepo    *repository.PricingRateRepository
 	hiddenDepRepo      *repository.HiddenDependencyRepository
@@ -97,6 +99,14 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create hidden dependency repository: %w", err)
 	}
+	variableRepo, err := repository.NewProjectVariableRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create variable repository: %w", err)
+	}
+	outputRepo, err := repository.NewProjectOutputRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create output repository: %w", err)
+	}
 
 	// Create repository adapters
 	projectRepoAdapter := &services.ProjectRepositoryAdapter{Repo: projectRepo}
@@ -115,6 +125,8 @@ func NewServer() (*Server, error) {
 	dependencyTypeRepoAdapter := &services.DependencyTypeRepositoryAdapter{Repo: dependencyTypeRepo}
 	userRepoAdapter := &services.UserRepositoryAdapter{Repo: userRepo}
 	iacTargetRepoAdapter := &services.IACTargetRepositoryAdapter{Repo: iacTargetRepo}
+	variableRepoAdapter := &services.ProjectVariableRepositoryAdapter{Repo: variableRepo}
+	outputRepoAdapter := &services.ProjectOutputRepositoryAdapter{Repo: outputRepo}
 	pricingRepoAdapter := &services.PricingRepositoryAdapter{Repo: pricingRepo}
 
 	// Initialize services
@@ -144,6 +156,8 @@ func NewServer() (*Server, error) {
 		dependencyTypeRepoAdapter,
 		userRepoAdapter,
 		iacTargetRepoAdapter,
+		variableRepoAdapter,
+		outputRepoAdapter,
 		pricingService,
 	)
 
@@ -177,6 +191,8 @@ func NewServer() (*Server, error) {
 		dependencyTypeRepo:   dependencyTypeRepo,
 		userRepo:             userRepo,
 		iacTargetRepo:        iacTargetRepo,
+		variableRepo:         variableRepo,
+		outputRepo:           outputRepo,
 		pricingRepo:          pricingRepo,
 		pricingRateRepo:      pricingRateRepo,
 		hiddenDepRepo:        hiddenDepRepo,

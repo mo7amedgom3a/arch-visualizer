@@ -27,6 +27,8 @@ type ProjectServiceImpl struct {
 	dependencyTypeRepo serverinterfaces.DependencyTypeRepository
 	userRepo           serverinterfaces.UserRepository
 	iacTargetRepo      serverinterfaces.IACTargetRepository
+	variableRepo       serverinterfaces.ProjectVariableRepository
+	outputRepo         serverinterfaces.ProjectOutputRepository
 	pricingService     serverinterfaces.PricingService
 }
 
@@ -41,6 +43,8 @@ func NewProjectService(
 	dependencyTypeRepo serverinterfaces.DependencyTypeRepository,
 	userRepo serverinterfaces.UserRepository,
 	iacTargetRepo serverinterfaces.IACTargetRepository,
+	variableRepo serverinterfaces.ProjectVariableRepository,
+	outputRepo serverinterfaces.ProjectOutputRepository,
 ) serverinterfaces.ProjectService {
 	return &ProjectServiceImpl{
 		projectRepo:        projectRepo,
@@ -52,6 +56,8 @@ func NewProjectService(
 		dependencyTypeRepo: dependencyTypeRepo,
 		userRepo:           userRepo,
 		iacTargetRepo:      iacTargetRepo,
+		variableRepo:       variableRepo,
+		outputRepo:         outputRepo,
 		pricingService:     nil, // Will be set via SetPricingService
 	}
 }
@@ -67,6 +73,8 @@ func NewProjectServiceWithPricing(
 	dependencyTypeRepo serverinterfaces.DependencyTypeRepository,
 	userRepo serverinterfaces.UserRepository,
 	iacTargetRepo serverinterfaces.IACTargetRepository,
+	variableRepo serverinterfaces.ProjectVariableRepository,
+	outputRepo serverinterfaces.ProjectOutputRepository,
 	pricingService serverinterfaces.PricingService,
 ) serverinterfaces.ProjectService {
 	return &ProjectServiceImpl{
@@ -79,6 +87,8 @@ func NewProjectServiceWithPricing(
 		dependencyTypeRepo: dependencyTypeRepo,
 		userRepo:           userRepo,
 		iacTargetRepo:      iacTargetRepo,
+		variableRepo:       variableRepo,
+		outputRepo:         outputRepo,
 		pricingService:     pricingService,
 	}
 }
@@ -271,6 +281,52 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 				s.projectRepo.RollbackTransaction(tx)
 				return fmt.Errorf("create dependency: %w", err)
 			}
+		}
+	}
+
+	// Persist Variables
+	if err := s.variableRepo.DeleteByProjectID(txCtx, projectID); err != nil {
+		s.projectRepo.RollbackTransaction(tx)
+		return fmt.Errorf("delete variables: %w", err)
+	}
+	for _, v := range arch.Variables {
+		defaultValueJSON, err := json.Marshal(v.Default)
+		if err != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			return fmt.Errorf("marshal default value: %w", err)
+		}
+		newVar := &models.ProjectVariable{
+			ID:           uuid.New(),
+			ProjectID:    projectID,
+			Name:         v.Name,
+			Type:         v.Type,
+			Description:  v.Description,
+			DefaultValue: datatypes.JSON(defaultValueJSON),
+			Sensitive:    v.Sensitive,
+		}
+		if err := s.variableRepo.Create(txCtx, newVar); err != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			return fmt.Errorf("create variable: %w", err)
+		}
+	}
+
+	// Persist Outputs
+	if err := s.outputRepo.DeleteByProjectID(txCtx, projectID); err != nil {
+		s.projectRepo.RollbackTransaction(tx)
+		return fmt.Errorf("delete outputs: %w", err)
+	}
+	for _, o := range arch.Outputs {
+		newOutput := &models.ProjectOutput{
+			ID:          uuid.New(),
+			ProjectID:   projectID,
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		}
+		if err := s.outputRepo.Create(txCtx, newOutput); err != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			return fmt.Errorf("create output: %w", err)
 		}
 	}
 
@@ -661,15 +717,48 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 		}
 	}
 
-	// Step 6: Build architecture aggregate
+	// Step 6: Load variables
+	dbVariables, err := s.variableRepo.FindByProjectID(ctx, projectID)
+	domainVariables := make([]architecture.Variable, 0)
+	if err == nil {
+		for _, dbV := range dbVariables {
+			var defaultValue interface{}
+			if dbV.DefaultValue != nil {
+				json.Unmarshal(dbV.DefaultValue, &defaultValue)
+			}
+			domainVariables = append(domainVariables, architecture.Variable{
+				Name:        dbV.Name,
+				Type:        dbV.Type,
+				Description: dbV.Description,
+				Default:     defaultValue,
+				Sensitive:   dbV.Sensitive,
+			})
+		}
+	}
+
+	// Step 7: Load outputs
+	dbOutputs, err := s.outputRepo.FindByProjectID(ctx, projectID)
+	domainOutputs := make([]architecture.Output, 0)
+	if err == nil {
+		for _, dbO := range dbOutputs {
+			domainOutputs = append(domainOutputs, architecture.Output{
+				Name:        dbO.Name,
+				Value:       dbO.Value,
+				Description: dbO.Description,
+				Sensitive:   dbO.Sensitive,
+			})
+		}
+	}
+
+	// Step 8: Build architecture aggregate
 	arch := &architecture.Architecture{
 		Resources:    domainResources,
 		Region:       project.Region,
 		Provider:     provider,
 		Containments: containments,
 		Dependencies: dependencies,
-		Variables:    []architecture.Variable{}, // Variables not stored in DB yet
-		Outputs:      []architecture.Output{},   // Outputs not stored in DB yet
+		Variables:    domainVariables,
+		Outputs:      domainOutputs,
 	}
 
 	return arch, nil

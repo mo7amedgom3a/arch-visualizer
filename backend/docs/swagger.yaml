@@ -67,6 +67,67 @@ definitions:
       value:
         description: Current value or default
     type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerateCodeRequest:
+    properties:
+      options:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationOptions'
+      tool:
+        description: terraform, pulumi, cdk
+        type: string
+    required:
+    - tool
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GeneratedFileResponse:
+    properties:
+      content:
+        description: Included in immediate generation response, excluded in history
+        type: string
+      language:
+        type: string
+      name:
+        type: string
+      size:
+        type: integer
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationOptions:
+    properties:
+      format:
+        description: hcl, json, yaml
+        type: string
+      includeOutputs:
+        type: boolean
+      includeVariables:
+        type: boolean
+      modularity:
+        description: low, medium, high
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationResponse:
+    properties:
+      createdAt:
+        type: string
+      downloadUrl:
+        type: string
+      errorMessage:
+        type: string
+      expiresAt:
+        type: string
+      files:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GeneratedFileResponse'
+        type: array
+      generationId:
+        type: string
+      id:
+        description: alias for generationId
+        type: string
+      projectId:
+        type: string
+      status:
+        type: string
+      tool:
+        type: string
+    type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition:
     properties:
       x:
@@ -921,6 +982,42 @@ paths:
       summary: Validate architecture
       tags:
       - projects
+  /projects/{id}/download:
+    get:
+      description: Generates and downloads the ZIP file of the code
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: IaC Tool (terraform, pulumi, etc)
+        in: query
+        name: tool
+        required: true
+        type: string
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Download generated code
+      tags:
+      - Code Generation
   /projects/{id}/duplicate:
     post:
       consumes:
@@ -961,6 +1058,45 @@ paths:
       summary: Duplicate a project
       tags:
       - projects
+  /projects/{id}/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generates IaC files for the specified project and tool
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Generation options
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerateCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate Infrastructure-as-Code
+      tags:
+      - Code Generation
   /projects/{id}/restore:
     post:
       consumes:

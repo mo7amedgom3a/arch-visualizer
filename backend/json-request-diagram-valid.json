@@ -117,6 +117,35 @@
     }
   ],
   "edges": [],
-  "variables": [],
+  "variables": [
+    {
+      "id": "var-1",
+      "name": "environment",
+      "type": "string",
+      "defaultValue": "production",
+      "description": "Deployment environment"
+    },
+    {
+      "id": "var-2",
+      "name": "instance_type",
+      "type": "string",
+      "defaultValue": "t3.micro",
+      "description": "EC2 instance size"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "out-1",
+      "name": "vpc_id",
+      "value": "${vpc-2.id}",
+      "description": "The ID of the VPC"
+    },
+    {
+      "id": "out-2",
+      "name": "ec2_public_ip",
+      "value": "${ec2-5.public_ip}",
+      "description": "Public IP of the web server"
+    }
+  ],
   "timestamp": 1769555019056
 }

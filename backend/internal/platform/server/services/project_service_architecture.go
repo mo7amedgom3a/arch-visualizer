@@ -93,10 +93,21 @@ func (s *ProjectServiceImpl) GetArchitecture(ctx context.Context, projectID uuid
 		})
 	}
 
+	outputs := make([]dto.ArchitectureOutput, 0)
+	for _, o := range arch.Outputs {
+		outputs = append(outputs, dto.ArchitectureOutput{
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		})
+	}
+
 	return &dto.ArchitectureResponse{
 		Nodes:     nodes,
 		Edges:     edges,
 		Variables: variables,
+		Outputs:   outputs,
 	}, nil
 }
 
@@ -155,6 +166,26 @@ func (s *ProjectServiceImpl) SaveArchitecture(ctx context.Context, projectID uui
 			diagramGraph.Edges = append(diagramGraph.Edges, newEdge)
 		}
 		// Containment already handled by ParentID in nodes
+	}
+
+	// 1.1 Map Variables and Outputs from DTO
+	for _, v := range req.Variables {
+		diagramGraph.Variables = append(diagramGraph.Variables, graph.Variable{
+			Name:        v.Name,
+			Type:        v.Type,
+			Default:     v.Value,
+			Description: v.Description,
+			Sensitive:   v.Sensitive,
+		})
+	}
+
+	for _, o := range req.Outputs {
+		diagramGraph.Outputs = append(diagramGraph.Outputs, graph.Output{
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		})
 	}
 
 	// 2. Fetch project to know provider

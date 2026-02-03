@@ -215,6 +215,37 @@ CREATE TABLE pricing_rates (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Project Variables
+CREATE TABLE project_variables (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+    project_id UUID NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    description TEXT,
+    default_value JSONB,
+    sensitive BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (project_id, name)
+);
+
+CREATE INDEX idx_project_variables_project_id ON project_variables (project_id);
+
+-- Project Outputs
+CREATE TABLE project_outputs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+    project_id UUID NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    value TEXT NOT NULL,
+    sensitive BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (project_id, name)
+);
+
+CREATE INDEX idx_project_outputs_project_id ON project_outputs (project_id);
+
 -- Create unique constraint using partial index for NULL region handling
 CREATE UNIQUE INDEX unique_pricing_rate ON pricing_rates (
     provider,

@@ -7,6 +7,7 @@ type ArchitectureResponse struct {
 	Nodes     []ArchitectureNode     `json:"nodes"`
 	Edges     []ArchitectureEdge     `json:"edges"`
 	Variables []ArchitectureVariable `json:"variables"`
+	Outputs   []ArchitectureOutput   `json:"outputs"`
 }
 
 // ArchitectureNode represents a node in the diagram/architecture
@@ -50,11 +51,20 @@ type ArchitectureVariable struct {
 	Sensitive   bool        `json:"sensitive,omitempty"`
 }
 
+// ArchitectureOutput represents an output value
+type ArchitectureOutput struct {
+	Name        string `json:"name"`
+	Value       string `json:"value"` // Expression
+	Description string `json:"description,omitempty"`
+	Sensitive   bool   `json:"sensitive,omitempty"`
+}
+
 // UpdateArchitectureRequest represents the payload for saving architecture
 type UpdateArchitectureRequest struct {
 	Nodes     []ArchitectureNode     `json:"nodes"`
 	Edges     []ArchitectureEdge     `json:"edges"`
 	Variables []ArchitectureVariable `json:"variables"`
+	Outputs   []ArchitectureOutput   `json:"outputs"`
 }
 
 // UpdateNodeRequest represents the payload for patching a node

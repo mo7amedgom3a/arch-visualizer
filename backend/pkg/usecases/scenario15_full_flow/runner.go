@@ -194,6 +194,16 @@ func run() error {
 		return err
 	}
 
+	variableRepo, err := repository.NewProjectVariableRepository()
+	if err != nil {
+		return err
+	}
+
+	outputRepo, err := repository.NewProjectOutputRepository()
+	if err != nil {
+		return err
+	}
+
 	// 4. Initialize Services
 	diagramService := services.NewDiagramService()
 	// Pass nil for ruleService as we don't need strict rule validation for this simulation
@@ -209,6 +219,8 @@ func run() error {
 		dependencyTypeRepo, // Wrapped
 		userRepo,
 		iacTargetRepo,
+		variableRepo,
+		outputRepo,
 	)
 
 	// 5. Initialize Orchestrator
