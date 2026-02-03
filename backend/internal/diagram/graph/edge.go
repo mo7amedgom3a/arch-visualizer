@@ -3,9 +3,10 @@ package graph
 // Edge represents a normalized edge/relationship in the diagram graph
 type Edge struct {
 	ID     string
-	Source string // Source node ID
-	Target string // Target node ID
-	Type   string // "containment", "dependency", "reference"
+	Source string                 // Source node ID
+	Target string                 // Target node ID
+	Type   string                 // "containment", "dependency", "reference"
+	Config map[string]interface{} // Metadata like style, labels, etc.
 }
 
 // IsContainment returns true if the edge represents containment

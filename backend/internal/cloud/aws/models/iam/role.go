@@ -18,15 +18,16 @@ type InlinePolicy struct {
 
 // Role represents an AWS IAM role configuration
 type Role struct {
-	Name                 string         `json:"name"`
-	Description          *string        `json:"description,omitempty"`
-	Path                 *string        `json:"path,omitempty"` // Default is "/"
-	AssumeRolePolicy     string         `json:"assume_role_policy"` // JSON string (trust policy)
-	ManagedPolicyARNs    []string       `json:"managed_policy_arns,omitempty"`
-	InlinePolicies       []InlinePolicy  `json:"inline_policies,omitempty"`
-	PermissionsBoundary  *string        `json:"permissions_boundary,omitempty"` // ARN of permissions boundary
-	ForceDetachPolicies  *bool          `json:"force_detach_policies,omitempty"`
-	Tags                 []configs.Tag  `json:"tags,omitempty"`
+	Name                string         `json:"name"`
+	Description         *string        `json:"description,omitempty"`
+	Path                *string        `json:"path,omitempty"`     // Default is "/"
+	AssumeRolePolicy    string         `json:"assume_role_policy"` // JSON string (trust policy)
+	ManagedPolicyARNs   []string       `json:"managed_policy_arns,omitempty"`
+	InlinePolicies      []InlinePolicy `json:"inline_policies,omitempty"`
+	PermissionsBoundary *string        `json:"permissions_boundary,omitempty"` // ARN of permissions boundary
+	ForceDetachPolicies *bool          `json:"force_detach_policies,omitempty"`
+	Tags                []configs.Tag  `json:"tags,omitempty"`
+	IsVirtual           bool           `json:"is_virtual,omitempty"` // If true, this resource exists only for simulation/terraform generation
 }
 
 // Validate performs AWS-specific validation

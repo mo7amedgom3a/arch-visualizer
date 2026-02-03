@@ -1,7 +1,9 @@
 package architecture
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
@@ -168,6 +170,121 @@ func (g *AWSArchitectureGenerator) Generate(diagramGraph *graph.DiagramGraph) (*
 	for _, res := range arch.Resources {
 		if len(res.DependsOn) > 0 {
 			arch.Dependencies[res.ID] = res.DependsOn
+		}
+	}
+
+	// Process policies
+	for _, policy := range diagramGraph.Policies {
+		// 1. Create IAM Policy Resource
+		policyDocBytes, err := json.Marshal(policy.PolicyDocument)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal policy document for edge %s: %w", policy.EdgeID, err)
+		}
+		policyDocJSON := string(policyDocBytes)
+
+		// Sanitize ID
+		safeEdgeID := strings.ReplaceAll(policy.EdgeID, "edge-", "")
+		policyName := fmt.Sprintf("policy-%s", safeEdgeID)
+		policyResourceID := fmt.Sprintf("policy-%s", safeEdgeID)
+
+		policyMetadata := map[string]interface{}{
+			"name":        policyName,
+			"policy":      policyDocJSON,
+			"description": fmt.Sprintf("Policy for edge %s", policy.EdgeID),
+		}
+
+		policyResource := &resource.Resource{
+			ID:   policyResourceID,
+			Name: policyName,
+			Type: resource.ResourceType{
+				ID:       "IAMPolicy", // Must match ResourceName in inventory
+				Name:     "IAMPolicy",
+				Category: "IAM",
+				Kind:     "IAM",
+			},
+			Provider: resource.AWS,
+			Region:   arch.Region,
+			Metadata: policyMetadata,
+		}
+		arch.Resources = append(arch.Resources, policyResource)
+
+		// 2. Create Attachment Resource
+		if policy.Role != "" {
+			attachmentName := fmt.Sprintf("attach-%s", safeEdgeID)
+			attachmentResourceID := fmt.Sprintf("attach-%s", safeEdgeID)
+
+			attachmentMetadata := map[string]interface{}{
+				"name":       attachmentName,
+				"role":       policy.Role,
+				"policy_arn": fmt.Sprintf("aws_iam_policy.%s.arn", policyName),
+			}
+
+			attachmentResource := &resource.Resource{
+				ID:   attachmentResourceID,
+				Name: attachmentName,
+				Type: resource.ResourceType{
+					ID:       "IAMRolePolicyAttachment", // Must match ResourceName in inventory
+					Name:     "IAMRolePolicyAttachment",
+					Category: "IAM",
+					Kind:     "IAM",
+				},
+				Provider:  resource.AWS,
+				Region:    arch.Region,
+				DependsOn: []string{policyResourceID},
+				Metadata:  attachmentMetadata,
+			}
+			arch.Resources = append(arch.Resources, attachmentResource)
+
+			// Update dependency map
+			if arch.Dependencies == nil {
+				arch.Dependencies = make(map[string][]string)
+			}
+			arch.Dependencies[attachmentResourceID] = []string{policyResourceID}
+		}
+	}
+
+	// 5. Create Explicit Edge Resources
+	// Store edges as generic resources to preserve metadata (style, markers, etc.)
+	for _, edge := range diagramGraph.Edges {
+		// Only persist dependency edges as resources for now
+		if edge.IsDependency() {
+			edgeResourceID := edge.ID
+			if edgeResourceID == "" {
+				edgeResourceID = fmt.Sprintf("edge-%s-%s", edge.Source, edge.Target)
+			}
+
+			edgeName := edgeResourceID
+			if label, ok := edge.Config["label"].(string); ok && label != "" {
+				edgeName = label
+			}
+
+			edgeMetadata := make(map[string]interface{})
+			for k, v := range edge.Config {
+				edgeMetadata[k] = v
+			}
+			// Set mandatory internal fields
+			edgeMetadata["source"] = edge.Source
+			edgeMetadata["target"] = edge.Target
+			edgeMetadata["isVisualOnly"] = true // Edges are visual/structural, not cloud infrastructure
+
+			edgeResource := &resource.Resource{
+				ID:   edgeResourceID,
+				Name: edgeName,
+				Type: resource.ResourceType{
+					ID:         "GenericEdge",
+					Name:       "GenericEdge",
+					Category:   "Visual",
+					Kind:       "Connection",
+					IsRegional: false,
+					IsGlobal:   false,
+				},
+				Provider: resource.AWS,
+				Region:   arch.Region,
+				Metadata: edgeMetadata,
+				// Dependencies are implicit in graph, but we can list source/target if needed
+				// For now, leave DependsOn empty to avoid circular logic or double-counting
+			}
+			arch.Resources = append(arch.Resources, edgeResource)
 		}
 	}
 

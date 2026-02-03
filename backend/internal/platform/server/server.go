@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/orchestrator"
@@ -20,6 +21,7 @@ type Server struct {
 	PricingService      serverinterfaces.PricingService
 	UserService         serverinterfaces.UserService
 	StaticDataService   serverinterfaces.StaticDataService
+	IAMService          iam.AWSIAMService
 
 	// Orchestrator
 	PipelineOrchestrator serverinterfaces.PipelineOrchestrator
@@ -146,6 +148,7 @@ func NewServer() (*Server, error) {
 
 	userService := services.NewUserService(userRepoAdapter)
 	staticDataService := services.NewStaticDataService(resourceTypeRepoAdapter)
+	iamService := iam.NewIAMService()
 
 	return &Server{
 		DiagramService:       diagramService,
@@ -155,6 +158,7 @@ func NewServer() (*Server, error) {
 		PricingService:       pricingService,
 		UserService:          userService,
 		StaticDataService:    staticDataService,
+		IAMService:           iamService,
 		PipelineOrchestrator: pipelineOrchestrator,
 		projectRepo:          projectRepo,
 		resourceRepo:         resourceRepo,

@@ -1,0 +1,197 @@
+{
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "position": {
+        "x": 300,
+        "y": 100
+      },
+      "dragHandle": ".container-node",
+      "data": {
+        "label": "Region",
+        "resourceType": "region",
+        "config": {
+          "0": {
+            "id": "us-east-1",
+            "name": "US East (N. Virginia)"
+          },
+          "1": {
+            "id": "us-east-2",
+            "name": "US East (Ohio)"
+          },
+          "2": {
+            "id": "us-west-1",
+            "name": "US West (N. California)"
+          },
+          "3": {
+            "id": "us-west-2",
+            "name": "US West (Oregon)"
+          },
+          "4": {
+            "id": "eu-west-1",
+            "name": "EU (Ireland)"
+          },
+          "5": {
+            "id": "eu-west-2",
+            "name": "EU (London)"
+          },
+          "6": {
+            "id": "eu-central-1",
+            "name": "EU (Frankfurt)"
+          },
+          "7": {
+            "id": "ap-southeast-1",
+            "name": "Asia Pacific (Singapore)"
+          },
+          "8": {
+            "id": "ap-southeast-2",
+            "name": "Asia Pacific (Sydney)"
+          },
+          "9": {
+            "id": "ap-northeast-1",
+            "name": "Asia Pacific (Tokyo)"
+          },
+          "name": "us-east-1"
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "selectable": true,
+      "focusable": true,
+      "style": {
+        "width": 600,
+        "height": 400
+      },
+      "measured": {
+        "width": 600,
+        "height": 400
+      },
+      "selected": false
+    },
+    {
+      "id": "lambda-1",
+      "type": "resourceNode",
+      "position": {
+        "x": 100,
+        "y": 160
+      },
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "Lambda",
+        "resourceType": "lambda",
+        "config": {
+          "runtime": "nodejs18.x",
+          "handler": "index.handler",
+          "role": "arn:aws:iam::123456789012:role/service-role/role",
+          "memory": 128,
+          "name": "my-function",
+          "securityGroups": []
+        },
+        "status": "valid",
+        "isVisualOnly": false
+      },
+      "selectable": true,
+      "focusable": true,
+      "style": {
+        "width": 80,
+        "height": 80
+      },
+      "measured": {
+        "width": 80,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "s3-3",
+      "type": "resourceNode",
+      "position": {
+        "x": 340,
+        "y": 160
+      },
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "S3",
+        "resourceType": "s3",
+        "config": {
+          "name": "my-bucket",
+          "bucketName": "my-bucket",
+          "versioning": false
+        },
+        "status": "unconfigured",
+        "isVisualOnly": false
+      },
+      "selectable": true,
+      "focusable": true,
+      "style": {
+        "width": 80,
+        "height": 80
+      },
+      "measured": {
+        "width": 80,
+        "height": 80
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "lambda-1",
+      "sourceHandle": "right",
+      "target": "s3-3",
+      "targetHandle": "left",
+      "id": "edge-lambda-1-s3-3",
+      "type": "default",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "hsl(var(--muted-foreground))"
+      },
+      "style": {
+        "stroke": "hsl(var(--muted-foreground))",
+        "strokeWidth": 2
+      },
+      "data": {
+        "policyTemplate": "s3-read-only",
+        "customActions": [],
+        "role": "dddd"
+      },
+      "selected": true
+    }
+  ],
+  "variables": [],
+  "policies": [
+    {
+      "edgeId": "edge-lambda-1-s3-3",
+      "sourceId": "lambda-1",
+      "targetId": "s3-3",
+      "sourceType": "lambda",
+      "targetType": "s3",
+      "role": "dddd",
+      "policyTemplateId": "s3-read-only",
+      "policyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "s3:GetObject",
+              "s3:GetObjectVersion",
+              "s3:ListBucket",
+              "s3:ListBucketVersions"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    }
+  ],
+  "timestamp": 1770115725795
+}

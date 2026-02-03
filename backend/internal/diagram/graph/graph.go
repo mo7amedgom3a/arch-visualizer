@@ -7,12 +7,13 @@ type DiagramGraph struct {
 	Edges     []*Edge
 	Variables []Variable
 	Outputs   []Output
+	Policies  []Policy
 }
 
 // Variable represents a Terraform input variable from the diagram
 type Variable struct {
 	Name        string      `json:"name"`
-	Type        string      `json:"type"`        // e.g. "string", "number", "bool", "list(string)"
+	Type        string      `json:"type"` // e.g. "string", "number", "bool", "list(string)"
 	Description string      `json:"description"`
 	Default     interface{} `json:"default,omitempty"`
 	Sensitive   bool        `json:"sensitive,omitempty"`
@@ -21,9 +22,21 @@ type Variable struct {
 // Output represents a Terraform output value from the diagram
 type Output struct {
 	Name        string `json:"name"`
-	Value       string `json:"value"`       // Expression like "aws_vpc.main.id"
+	Value       string `json:"value"` // Expression like "aws_vpc.main.id"
 	Description string `json:"description"`
 	Sensitive   bool   `json:"sensitive,omitempty"`
+}
+
+// Policy represents a policy definition from the diagram
+type Policy struct {
+	EdgeID           string                 `json:"edgeId"`
+	SourceID         string                 `json:"sourceId"`
+	TargetID         string                 `json:"targetId"`
+	SourceType       string                 `json:"sourceType"`
+	TargetType       string                 `json:"targetType"`
+	Role             string                 `json:"role"`
+	PolicyTemplateID string                 `json:"policyTemplateId"`
+	PolicyDocument   map[string]interface{} `json:"policyDocument"`
 }
 
 // GetNode returns a node by ID

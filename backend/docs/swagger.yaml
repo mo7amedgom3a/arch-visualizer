@@ -1,5 +1,32 @@
 basePath: /api/v1
 definitions:
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest:
+    properties:
+      assume_role_policy:
+        type: string
+      description:
+        type: string
+      is_virtual:
+        type: boolean
+      name:
+        type: string
+      path:
+        type: string
+    required:
+    - assume_role_policy
+    - name
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMUserRequest:
+    properties:
+      is_virtual:
+        type: boolean
+      name:
+        type: string
+      path:
+        type: string
+    required:
+    - name
+    type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateProjectRequest:
     properties:
       cloud_provider:
@@ -93,6 +120,115 @@ definitions:
       name:
         type: string
       updated_at:
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.PolicyOutput:
+    properties:
+      arn:
+        description: AWS-generated identifiers
+        type: string
+      attachment_count:
+        type: integer
+      create_date:
+        description: AWS-specific output fields
+        type: string
+      default_version_id:
+        type: string
+      description:
+        type: string
+      id:
+        description: Same as ARN for policies
+        type: string
+      is_attachable:
+        type: boolean
+      is_aws_managed:
+        description: Policy type information
+        type: boolean
+      name:
+        description: Configuration (from input)
+        type: string
+      path:
+        type: string
+      policy_document:
+        description: JSON string
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag'
+        type: array
+      update_date:
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.RoleOutput:
+    properties:
+      arn:
+        description: AWS-generated identifiers
+        type: string
+      assume_role_policy:
+        description: JSON string
+        type: string
+      create_date:
+        description: AWS-specific output fields
+        type: string
+      description:
+        description: Configuration (from input)
+        type: string
+      id:
+        description: Same as name for roles
+        type: string
+      is_virtual:
+        type: boolean
+      max_session_duration:
+        type: integer
+      name:
+        type: string
+      path:
+        type: string
+      permissions_boundary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag'
+        type: array
+      unique_id:
+        description: Stable unique identifier
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.UserOutput:
+    properties:
+      arn:
+        description: AWS-generated identifiers
+        type: string
+      create_date:
+        description: AWS-specific output fields
+        type: string
+      id:
+        description: Same as name for users
+        type: string
+      is_virtual:
+        type: boolean
+      name:
+        type: string
+      password_last_used:
+        type: string
+      path:
+        description: Configuration (from input)
+        type: string
+      permissions_boundary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag'
+        type: array
+      unique_id:
+        description: Stable unique identifier
         type: string
     type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Category:
@@ -975,6 +1111,95 @@ paths:
       summary: Validate domain rules
       tags:
       - diagrams
+  /iam/policies:
+    get:
+      description: Get a list of AWS managed policies, optionally filtered by service
+      parameters:
+      - description: Filter by service (e.g. s3, lambda)
+        in: query
+        name: service
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.PolicyOutput'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List AWS Managed Policies
+      tags:
+      - iam
+  /iam/roles:
+    post:
+      consumes:
+      - application/json
+      description: Create a new IAM role, potentially virtual
+      parameters:
+      - description: Role creation request
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.RoleOutput'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create IAM Role
+      tags:
+      - iam
+  /iam/users:
+    post:
+      consumes:
+      - application/json
+      description: Create a new IAM user, potentially virtual
+      parameters:
+      - description: User creation request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.UserOutput'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create IAM User
+      tags:
+      - iam
   /projects:
     post:
       consumes:

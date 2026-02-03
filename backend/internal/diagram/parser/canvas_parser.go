@@ -15,7 +15,20 @@ type IRDiagram struct {
 	Edges     []IREdge     `json:"edges"`
 	Variables []IRVariable `json:"variables"`
 	Outputs   []IROutput   `json:"outputs"`
+	Policies  []IRPolicy   `json:"policies"`
 	Timestamp int64        `json:"timestamp"`
+}
+
+// IRPolicy represents a policy definition in the IR JSON
+type IRPolicy struct {
+	EdgeID           string                 `json:"edgeId"`
+	SourceID         string                 `json:"sourceId"`
+	TargetID         string                 `json:"targetId"`
+	SourceType       string                 `json:"sourceType"`
+	TargetType       string                 `json:"targetType"`
+	Role             string                 `json:"role"`
+	PolicyTemplateID string                 `json:"policyTemplateId"`
+	PolicyDocument   map[string]interface{} `json:"policyDocument"`
 }
 
 // IRVariable represents a Terraform input variable in the IR JSON
@@ -61,11 +74,16 @@ type IRNodeData struct {
 }
 
 // IREdge represents an edge/connection in the IR JSON
+// IREdge represents an edge/connection in the IR JSON
 type IREdge struct {
-	ID     string  `json:"id,omitempty"`
-	Source string  `json:"source"`
-	Target string  `json:"target"`
-	Type   *string `json:"type,omitempty"` // "containment", "dependency", "reference"
+	ID        string                 `json:"id,omitempty"`
+	Source    string                 `json:"source"`
+	Target    string                 `json:"target"`
+	Type      *string                `json:"type,omitempty"`      // "containment", "dependency", "reference"
+	Label     string                 `json:"label,omitempty"`     // e.g. "uses"
+	Data      map[string]interface{} `json:"data,omitempty"`      // Custom data
+	Style     map[string]interface{} `json:"style,omitempty"`     // Visual style
+	MarkerEnd map[string]interface{} `json:"markerEnd,omitempty"` // Arrow marker
 }
 
 // ParseIRDiagram parses the IR JSON string into an IRDiagram struct
@@ -100,6 +118,7 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 			Edges:     make([]IREdge, 0),
 			Variables: make([]IRVariable, 0),
 			Outputs:   make([]IROutput, 0),
+			Policies:  make([]IRPolicy, 0),
 		}
 
 		// Try to parse the full structure again to get edges/variables/outputs/timestamp
@@ -121,6 +140,12 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 			if outputsArray, ok := rawData["outputs"].([]interface{}); ok {
 				outputsBytes, _ := json.Marshal(outputsArray)
 				json.Unmarshal(outputsBytes, &diagram.Outputs)
+			}
+
+			// Extract policies
+			if policiesArray, ok := rawData["policies"].([]interface{}); ok {
+				policiesBytes, _ := json.Marshal(policiesArray)
+				json.Unmarshal(policiesBytes, &diagram.Policies)
 			}
 
 			// Extract timestamp
@@ -147,6 +172,7 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 		Edges:     make([]IREdge, 0),
 		Variables: make([]IRVariable, 0),
 		Outputs:   make([]IROutput, 0),
+		Policies:  make([]IRPolicy, 0),
 	}
 
 	// Extract nodes (might be in an array at root or in "nodes" field)
@@ -177,6 +203,12 @@ func ParseIRDiagram(jsonData []byte) (*IRDiagram, error) {
 		json.Unmarshal(outputsBytes, &diagram.Outputs)
 	}
 
+	// Extract policies
+	if policiesArray, ok := rawData["policies"].([]interface{}); ok {
+		policiesBytes, _ := json.Marshal(policiesArray)
+		json.Unmarshal(policiesBytes, &diagram.Policies)
+	}
+
 	// Extract timestamp
 	if ts, ok := rawData["timestamp"].(float64); ok {
 		diagram.Timestamp = int64(ts)
@@ -197,6 +229,7 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 		Edges:     make([]*graph.Edge, 0),
 		Variables: make([]graph.Variable, 0),
 		Outputs:   make([]graph.Output, 0),
+		Policies:  make([]graph.Policy, 0),
 	}
 
 	// Convert IR variables to graph variables
@@ -217,6 +250,20 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 			Value:       o.Value,
 			Description: o.Description,
 			Sensitive:   o.Sensitive,
+		})
+	}
+
+	// Convert IR policies to graph policies
+	for _, p := range ir.Policies {
+		g.Policies = append(g.Policies, graph.Policy{
+			EdgeID:           p.EdgeID,
+			SourceID:         p.SourceID,
+			TargetID:         p.TargetID,
+			SourceType:       p.SourceType,
+			TargetType:       p.TargetType,
+			Role:             p.Role,
+			PolicyTemplateID: p.PolicyTemplateID,
+			PolicyDocument:   p.PolicyDocument,
 		})
 	}
 
@@ -257,12 +304,34 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 		if irEdge.Type != nil {
 			edgeType = *irEdge.Type
 		}
+		// React Flow uses "default" or "smoothstep" commonly. Normalize to "dependency" if it serves that role.
+		if edgeType == "default" || edgeType == "smoothstep" {
+			edgeType = "dependency"
+		}
+
+		// Aggregate configuration/metadata
+		config := make(map[string]interface{})
+		if irEdge.Label != "" {
+			config["label"] = irEdge.Label
+		}
+		if irEdge.Data != nil {
+			for k, v := range irEdge.Data {
+				config[k] = v
+			}
+		}
+		if irEdge.Style != nil {
+			config["style"] = irEdge.Style
+		}
+		if irEdge.MarkerEnd != nil {
+			config["markerEnd"] = irEdge.MarkerEnd
+		}
 
 		edge := &graph.Edge{
 			ID:     irEdge.ID,
 			Source: irEdge.Source,
 			Target: irEdge.Target,
 			Type:   edgeType,
+			Config: config,
 		}
 
 		g.Edges = append(g.Edges, edge)

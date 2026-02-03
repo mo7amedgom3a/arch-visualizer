@@ -25,6 +25,7 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		projectCtrl := controllers.NewProjectController(srv.ProjectService)
 		userCtrl := controllers.NewUserController(srv.UserService)
 		diagramCtrl := controllers.NewDiagramController(srv.PipelineOrchestrator, srv.DiagramService, srv.ArchitectureService)
+		iamCtrl := controllers.NewIAMController(srv.IAMService)
 
 		// Users Routes
 		users := v1.Group("/users")
@@ -41,6 +42,14 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 			projects.GET("/:id", projectCtrl.GetProject)
 			projects.PUT("/:id", projectCtrl.UpdateProject)
 			projects.DELETE("/:id", projectCtrl.DeleteProject)
+		}
+
+		// IAM Routes
+		iam := v1.Group("/iam")
+		{
+			iam.GET("/policies", iamCtrl.ListPolicies)
+			iam.POST("/users", iamCtrl.CreateUser)
+			iam.POST("/roles", iamCtrl.CreateRole)
 		}
 
 		// Diagrams Routes

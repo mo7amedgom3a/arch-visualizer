@@ -104,5 +104,31 @@ func GetAWSResourceClassifications() []ResourceClassification {
 			IRType:       "dynamodb",
 			Aliases:      []string{"dynamodb", "dynamo-db"},
 		},
+
+		// IAM Resources
+		{
+			Category:     resource.CategoryIAM,
+			ResourceName: "IAMPolicy",
+			IRType:       "iam-policy",
+			Aliases:      []string{"iam-policy", "aws_iam_policy"},
+		},
+		{
+			Category:     resource.CategoryIAM,
+			ResourceName: "IAMUser",
+			IRType:       "iam-user",
+			Aliases:      []string{"iam-user", "aws_iam_user", "user"},
+		},
+		{
+			Category:     resource.CategoryIAM,
+			ResourceName: "IAMRole",
+			IRType:       "iam-role",
+			Aliases:      []string{"iam-role", "aws_iam_role", "role"},
+		},
+		{
+			Category:     resource.CategoryIAM,
+			ResourceName: "IAMRolePolicyAttachment",
+			IRType:       "iam-role-policy-attachment",
+			Aliases:      []string{"iam-role-policy-attachment", "aws_iam_role_policy_attachment"},
+		},
 	}
 }

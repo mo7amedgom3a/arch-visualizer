@@ -11,11 +11,19 @@ import (
 )
 
 // IAMService implements AWSIAMService with deterministic virtual operations
-type IAMService struct{}
+type IAMService struct {
+	policyRepo *PolicyRepository
+}
 
 // NewIAMService creates a new IAM service implementation
 func NewIAMService() *IAMService {
-	return &IAMService{}
+	repo := NewPolicyRepository()
+	// Best effort load, if it fails logs will show in simulation/server logs
+	// In a real app we might want to panic or return error, but here we keep it simple
+	_ = repo.LoadPolicies()
+	return &IAMService{
+		policyRepo: repo,
+	}
 }
 
 // Ensure IAMService implements AWSIAMService
@@ -110,23 +118,13 @@ func (s *IAMService) ListPolicies(ctx context.Context, pathPrefix *string) ([]*a
 }
 
 func (s *IAMService) ListAWSManagedPolicies(ctx context.Context, scope *string, pathPrefix *string) ([]*awsoutputs.PolicyOutput, error) {
-	return []*awsoutputs.PolicyOutput{
-		{
-			ARN:              "arn:aws:iam::aws:policy/ReadOnlyAccess",
-			ID:               "arn:aws:iam::aws:policy/ReadOnlyAccess",
-			Name:             "ReadOnlyAccess",
-			Description:      services.StringPtr("Provides read-only access to AWS services and resources"),
-			Path:             "/",
-			PolicyDocument:   `{"Version":"2012-10-17","Statement":[]}`,
-			CreateDate:       services.GetFixedTimestamp(),
-			UpdateDate:       services.GetFixedTimestamp(),
-			DefaultVersionID: services.StringPtr("v1"),
-			AttachmentCount:  0,
-			IsAttachable:     true,
-			Tags:             []configs.Tag{},
-			IsAWSManaged:     true,
-		},
-	}, nil
+	// Use repository to list policies
+	// If scope is provided (e.g. "S3", "Lambda"), use it as filter
+	filter := ""
+	if scope != nil {
+		filter = *scope
+	}
+	return s.policyRepo.ListPolicies(filter), nil
 }
 
 func (s *IAMService) GetAWSManagedPolicy(ctx context.Context, arn string) (*awsoutputs.PolicyOutput, error) {
@@ -176,6 +174,7 @@ func (s *IAMService) CreateRole(ctx context.Context, role *awsiam.Role) (*awsout
 		CreateDate:          services.GetFixedTimestamp(),
 		MaxSessionDuration:  nil,
 		Tags:                role.Tags,
+		IsVirtual:           role.IsVirtual,
 	}, nil
 }
 
@@ -261,6 +260,7 @@ func (s *IAMService) CreateUser(ctx context.Context, user *awsiam.User) (*awsout
 		CreateDate:          services.GetFixedTimestamp(),
 		PasswordLastUsed:    nil,
 		Tags:                user.Tags,
+		IsVirtual:           user.IsVirtual,
 	}, nil
 }
 

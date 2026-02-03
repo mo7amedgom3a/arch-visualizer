@@ -31,6 +31,7 @@ func New() *AWSMapper {
 	inv.SetTerraformMapper("NATGateway", mapper.mapNATGateway)
 	inv.SetTerraformMapper("ElasticIP", mapper.mapElasticIP)
 	inv.SetTerraformMapper("S3", mapper.mapS3)
+	inv.SetTerraformMapper("Lambda", mapper.mapLambda)
 
 	return mapper
 }
@@ -876,4 +877,40 @@ func parseInt(s string) (int, error) {
 	var result int
 	_, err := fmt.Sscanf(strings.TrimSpace(s), "%d", &result)
 	return result, err
+}
+
+func (m *AWSMapper) mapLambda(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+	runtime, ok := getString(res.Metadata, "runtime")
+	if !ok || runtime == "" {
+		return nil, fmt.Errorf("lambda requires runtime")
+	}
+	handler, ok := getString(res.Metadata, "handler")
+	if !ok || handler == "" {
+		return nil, fmt.Errorf("lambda requires handler")
+	}
+	role, ok := getString(res.Metadata, "role")
+	if !ok || role == "" {
+		return nil, fmt.Errorf("lambda requires role")
+	}
+
+	attrs := map[string]tfmapper.TerraformValue{
+		"function_name": tfString(res.Name),
+		"role":          tfString(role),
+		"handler":       tfString(handler),
+		"runtime":       tfString(runtime),
+		"filename":      tfString("function.zip"), // Placeholder
+		"tags":          tfTags(res.Name),
+	}
+
+	if mem, ok := res.Metadata["memory"].(float64); ok {
+		attrs["memory_size"] = tfNumber(mem)
+	}
+
+	return []tfmapper.TerraformBlock{
+		{
+			Kind:       "resource",
+			Labels:     []string{"aws_lambda_function", tfName(res.ID)},
+			Attributes: attrs,
+		},
+	}, nil
 }

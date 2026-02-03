@@ -11,10 +11,11 @@ import (
 // User represents an AWS IAM user configuration
 type User struct {
 	Name                string        `json:"name"`
-	Path                *string       `json:"path,omitempty"` // Default is "/"
+	Path                *string       `json:"path,omitempty"`                 // Default is "/"
 	PermissionsBoundary *string       `json:"permissions_boundary,omitempty"` // ARN of permissions boundary
 	ForceDestroy        *bool         `json:"force_destroy,omitempty"`
 	Tags                []configs.Tag `json:"tags,omitempty"`
+	IsVirtual           bool          `json:"is_virtual,omitempty"` // If true, this resource exists only for simulation/terraform generation
 }
 
 // Validate performs AWS-specific validation

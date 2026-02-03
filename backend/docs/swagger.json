@@ -188,6 +188,140 @@
                 }
             }
         },
+        "/iam/policies": {
+            "get": {
+                "description": "Get a list of AWS managed policies, optionally filtered by service",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "iam"
+                ],
+                "summary": "List AWS Managed Policies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by service (e.g. s3, lambda)",
+                        "name": "service",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.PolicyOutput"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/iam/roles": {
+            "post": {
+                "description": "Create a new IAM role, potentially virtual",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "iam"
+                ],
+                "summary": "Create IAM Role",
+                "parameters": [
+                    {
+                        "description": "Role creation request",
+                        "name": "role",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.RoleOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/iam/users": {
+            "post": {
+                "description": "Create a new IAM user, potentially virtual",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "iam"
+                ],
+                "summary": "Create IAM User",
+                "parameters": [
+                    {
+                        "description": "User creation request",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.UserOutput"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/projects": {
             "post": {
                 "description": "Create a new project for the authenticated user",
@@ -674,6 +808,47 @@
         }
     },
     "definitions": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest": {
+            "type": "object",
+            "required": [
+                "assume_role_policy",
+                "name"
+            ],
+            "properties": {
+                "assume_role_policy": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_virtual": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMUserRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "is_virtual": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateProjectRequest": {
             "type": "object",
             "required": [
@@ -806,6 +981,163 @@
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.PolicyOutput": {
+            "type": "object",
+            "properties": {
+                "arn": {
+                    "description": "AWS-generated identifiers",
+                    "type": "string"
+                },
+                "attachment_count": {
+                    "type": "integer"
+                },
+                "create_date": {
+                    "description": "AWS-specific output fields",
+                    "type": "string"
+                },
+                "default_version_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Same as ARN for policies",
+                    "type": "string"
+                },
+                "is_attachable": {
+                    "type": "boolean"
+                },
+                "is_aws_managed": {
+                    "description": "Policy type information",
+                    "type": "boolean"
+                },
+                "name": {
+                    "description": "Configuration (from input)",
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "policy_document": {
+                    "description": "JSON string",
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag"
+                    }
+                },
+                "update_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.RoleOutput": {
+            "type": "object",
+            "properties": {
+                "arn": {
+                    "description": "AWS-generated identifiers",
+                    "type": "string"
+                },
+                "assume_role_policy": {
+                    "description": "JSON string",
+                    "type": "string"
+                },
+                "create_date": {
+                    "description": "AWS-specific output fields",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Configuration (from input)",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Same as name for roles",
+                    "type": "string"
+                },
+                "is_virtual": {
+                    "type": "boolean"
+                },
+                "max_session_duration": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "permissions_boundary": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag"
+                    }
+                },
+                "unique_id": {
+                    "description": "Stable unique identifier",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.UserOutput": {
+            "type": "object",
+            "properties": {
+                "arn": {
+                    "description": "AWS-generated identifiers",
+                    "type": "string"
+                },
+                "create_date": {
+                    "description": "AWS-specific output fields",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Same as name for users",
+                    "type": "string"
+                },
+                "is_virtual": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password_last_used": {
+                    "type": "string"
+                },
+                "path": {
+                    "description": "Configuration (from input)",
+                    "type": "string"
+                },
+                "permissions_boundary": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag"
+                    }
+                },
+                "unique_id": {
+                    "description": "Stable unique identifier",
                     "type": "string"
                 }
             }
