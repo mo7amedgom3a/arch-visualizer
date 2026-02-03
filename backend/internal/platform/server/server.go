@@ -5,9 +5,9 @@ import (
 
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/orchestrator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
-	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 )
 
 // Server represents the service layer server with all dependencies wired
@@ -18,6 +18,8 @@ type Server struct {
 	CodegenService      serverinterfaces.CodegenService
 	ProjectService      serverinterfaces.ProjectService
 	PricingService      serverinterfaces.PricingService
+	UserService         serverinterfaces.UserService
+	StaticDataService   serverinterfaces.StaticDataService
 
 	// Orchestrator
 	PipelineOrchestrator serverinterfaces.PipelineOrchestrator
@@ -142,12 +144,17 @@ func NewServer() (*Server, error) {
 		projectService,
 	)
 
+	userService := services.NewUserService(userRepoAdapter)
+	staticDataService := services.NewStaticDataService(resourceTypeRepoAdapter)
+
 	return &Server{
 		DiagramService:       diagramService,
 		ArchitectureService:  architectureService,
 		CodegenService:       codegenService,
 		ProjectService:       projectService,
 		PricingService:       pricingService,
+		UserService:          userService,
+		StaticDataService:    staticDataService,
 		PipelineOrchestrator: pipelineOrchestrator,
 		projectRepo:          projectRepo,
 		resourceRepo:         resourceRepo,

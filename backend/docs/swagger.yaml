@@ -1,0 +1,429 @@
+basePath: /api/v1
+definitions:
+  request.CreateProjectRequest:
+    properties:
+      cloud_provider:
+        enum:
+        - aws
+        - azure
+        - gcp
+        type: string
+      iac_tool_id:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      region:
+        type: string
+      user_id:
+        description: Temporary for testing without auth
+        type: string
+    required:
+    - cloud_provider
+    - iac_tool_id
+    - name
+    - region
+    type: object
+  request.CreateUserRequest:
+    properties:
+      auth0_id:
+        type: string
+      avatar_url:
+        type: string
+      email:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+    required:
+    - auth0_id
+    - email
+    - name
+    type: object
+  request.UpdateProjectRequest:
+    properties:
+      cloud_provider:
+        enum:
+        - aws
+        - azure
+        - gcp
+        type: string
+      iac_tool_id:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+      region:
+        type: string
+    type: object
+  response.ProjectResponse:
+    properties:
+      cloud_provider:
+        type: string
+      created_at:
+        type: string
+      iac_tool_id:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      region:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  response.UserResponse:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:9000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Backend API for Arch Visualizer.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Arch Visualizer Backend API
+  version: "1.0"
+paths:
+  /diagrams/process:
+    post:
+      consumes:
+      - application/json
+      description: Process a diagram JSON and create/update a project
+      parameters:
+      - description: Project Name
+        in: query
+        name: project_name
+        type: string
+      - description: IaC Tool ID (1=Terraform)
+        in: query
+        name: iac_tool_id
+        type: integer
+      - description: User ID
+        in: query
+        name: user_id
+        type: string
+      - description: Diagram JSON
+        in: body
+        name: diagram
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Process a collected diagram
+      tags:
+      - diagrams
+  /projects:
+    post:
+      consumes:
+      - application/json
+      description: Create a new project for the authenticated user
+      parameters:
+      - description: Project creation request
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.ProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new project
+      tags:
+      - projects
+  /projects/{id}:
+    delete:
+      description: Delete a project by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a project
+      tags:
+      - projects
+    get:
+      description: Get a project by its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a project
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Update an existing project's details
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project update request
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateProjectRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ProjectResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a project
+      tags:
+      - projects
+  /static/providers:
+    get:
+      description: Get a list of all supported cloud providers (AWS, GCP, etc.)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of providers
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List supported cloud providers
+      tags:
+      - static
+  /static/resource-types:
+    get:
+      description: Get a list of all supported resource types, optionally filtered
+        by provider
+      parameters:
+      - description: Provider name (e.g. aws)
+        in: query
+        name: provider
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List resource types
+      tags:
+      - static
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User creation request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    get:
+      description: Get a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a user
+      tags:
+      - users
+  /users/{id}/projects:
+    get:
+      description: Get a list of all projects for a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List user projects
+      tags:
+      - users
+swagger: "2.0"

@@ -110,6 +110,25 @@ func (s *ProjectServiceImpl) GetByID(ctx context.Context, id uuid.UUID) (*models
 	return s.projectRepo.FindByID(ctx, id)
 }
 
+// ListByUserID retrieves all projects for a user
+func (s *ProjectServiceImpl) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error) {
+	return s.projectRepo.FindByUserID(ctx, userID)
+}
+
+// Update updates an existing project
+func (s *ProjectServiceImpl) Update(ctx context.Context, project *models.Project) error {
+	if project == nil {
+		return fmt.Errorf("project is nil")
+	}
+	// Add validation logic here if needed
+	return s.projectRepo.Update(ctx, project)
+}
+
+// Delete deletes a project by ID
+func (s *ProjectServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	return s.projectRepo.Delete(ctx, id)
+}
+
 // PersistArchitecture persists an architecture to the database as part of a project
 func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error {
 	if arch == nil {

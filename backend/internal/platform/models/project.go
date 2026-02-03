@@ -16,6 +16,7 @@ type Project struct {
 	CloudProvider string         `gorm:"type:text;not null;check:cloud_provider IN ('aws','azure','gcp')" json:"cloud_provider"`
 	Region        string         `gorm:"type:text;not null" json:"region"`
 	CreatedAt     time.Time      `gorm:"default:now()" json:"created_at"`
+	UpdatedAt     time.Time      `gorm:"default:now()" json:"updated_at"`
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relationships

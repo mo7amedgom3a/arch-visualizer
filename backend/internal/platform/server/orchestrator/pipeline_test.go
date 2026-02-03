@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
@@ -37,8 +37,8 @@ func (m *mockDiagramService) Validate(ctx context.Context, graph *graph.DiagramG
 		return m.validateFunc(ctx, graph, opts)
 	}
 	return &validator.ValidationResult{
-		Valid:  true,
-		Errors:  []*validator.ValidationError{},
+		Valid:    true,
+		Errors:   []*validator.ValidationError{},
 		Warnings: []*validator.ValidationError{},
 	}, nil
 }
@@ -97,12 +97,15 @@ func (m *mockCodegenService) SupportedEngines() []string {
 }
 
 type mockProjectService struct {
-	createFunc                   func(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error)
-	getByIDFunc                  func(ctx context.Context, id uuid.UUID) (*models.Project, error)
-	persistArchFunc              func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error
-	persistArchWithPricingFunc   func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error)
-	loadArchFunc                 func(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error)
-	getProjectPricingFunc        func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error)
+	createFunc                 func(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error)
+	getByIDFunc                func(ctx context.Context, id uuid.UUID) (*models.Project, error)
+	persistArchFunc            func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error
+	persistArchWithPricingFunc func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error)
+	loadArchFunc               func(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error)
+	getProjectPricingFunc      func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error)
+	listByUserIDFunc           func(ctx context.Context, userID uuid.UUID) ([]*models.Project, error)
+	updateFunc                 func(ctx context.Context, project *models.Project) error
+	deleteFunc                 func(ctx context.Context, id uuid.UUID) error
 }
 
 func (m *mockProjectService) Create(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error) {
@@ -161,13 +164,34 @@ func (m *mockProjectService) GetProjectPricing(ctx context.Context, projectID uu
 	return []*models.ProjectPricing{}, nil
 }
 
+func (m *mockProjectService) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error) {
+	if m.listByUserIDFunc != nil {
+		return m.listByUserIDFunc(ctx, userID)
+	}
+	return []*models.Project{}, nil
+}
+
+func (m *mockProjectService) Update(ctx context.Context, project *models.Project) error {
+	if m.updateFunc != nil {
+		return m.updateFunc(ctx, project)
+	}
+	return nil
+}
+
+func (m *mockProjectService) Delete(ctx context.Context, id uuid.UUID) error {
+	if m.deleteFunc != nil {
+		return m.deleteFunc(ctx, id)
+	}
+	return nil
+}
+
 func TestPipelineOrchestrator_ProcessDiagram(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name      string
-		req       *serverinterfaces.ProcessDiagramRequest
-		wantError bool
+		name       string
+		req        *serverinterfaces.ProcessDiagramRequest
+		wantError  bool
 		setupMocks func(*mockDiagramService, *mockArchitectureService, *mockProjectService)
 	}{
 		{
@@ -257,7 +281,7 @@ func TestPipelineOrchestrator_ProcessDiagram(t *testing.T) {
 			setupMocks: func(ds *mockDiagramService, as *mockArchitectureService, ps *mockProjectService) {
 				as.validateRulesFunc = func(ctx context.Context, arch *architecture.Architecture, provider resource.CloudProvider) (*serverinterfaces.RuleValidationResult, error) {
 					return &serverinterfaces.RuleValidationResult{
-						Valid: false,
+						Valid:  false,
 						Errors: []string{"Rule validation failed"},
 					}, nil
 				}
@@ -322,9 +346,9 @@ func TestPipelineOrchestrator_GenerateCode(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name      string
-		req       *serverinterfaces.GenerateCodeRequest
-		wantError bool
+		name       string
+		req        *serverinterfaces.GenerateCodeRequest
+		wantError  bool
 		setupMocks func(*mockProjectService, *mockArchitectureService, *mockCodegenService)
 	}{
 		{
@@ -387,9 +411,9 @@ func TestPipelineOrchestrator_GenerateCode(t *testing.T) {
 					return &architecture.Architecture{
 						Resources:    []*resource.Resource{},
 						Containments: make(map[string][]string),
-						Dependencies:  make(map[string][]string),
-						Provider:      resource.AWS,
-						Region:        "us-east-1",
+						Dependencies: make(map[string][]string),
+						Provider:     resource.AWS,
+						Region:       "us-east-1",
 					}, nil
 				}
 				as.validateRulesFunc = func(ctx context.Context, arch *architecture.Architecture, provider resource.CloudProvider) (*serverinterfaces.RuleValidationResult, error) {

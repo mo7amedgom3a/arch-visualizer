@@ -82,8 +82,12 @@ func (o *PipelineOrchestratorImpl) ProcessDiagram(ctx context.Context, req *serv
 		UserID:        req.UserID,
 		Name:          req.ProjectName,
 		IACTargetID:   req.IACToolID,
-		CloudProvider: req.CloudProvider,
+		CloudProvider: string(provider),
 		Region:        req.Region,
+	}
+
+	if createProjectReq.Region == "" {
+		createProjectReq.Region = "us-east-1" // Default
 	}
 
 	project, err := o.projectService.Create(ctx, createProjectReq)

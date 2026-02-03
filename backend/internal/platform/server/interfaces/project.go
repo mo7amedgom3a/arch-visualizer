@@ -17,6 +17,15 @@ type ProjectService interface {
 	// GetByID retrieves a project by ID with related data
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Project, error)
 
+	// ListByUserID retrieves all projects for a user
+	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error)
+
+	// Update updates an existing project
+	Update(ctx context.Context, project *models.Project) error
+
+	// Delete deletes a project by ID
+	Delete(ctx context.Context, id uuid.UUID) error
+
 	// PersistArchitecture persists an architecture to the database as part of a project
 	PersistArchitecture(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error
 

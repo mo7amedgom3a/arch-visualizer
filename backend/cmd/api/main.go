@@ -6,21 +6,42 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/routes"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario10_pricing_with_hidden_costs"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario12_api_controllers"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario5_terraform_codegen"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario6_terraform_with_persistence"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario7_service_layer"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario8_architecture_roundtrip"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario9_architecture_pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario10_pricing_with_hidden_costs"
 )
 
+// @title           Arch Visualizer Backend API
+// @version         1.0
+// @description     Backend API for Arch Visualizer.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name    API Support
+// @contact.url     http://www.swagger.io/support
+// @contact.email   support@swagger.io
+
+// @license.name    Apache 2.0
+// @license.url     http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host            localhost:9000
+// @BasePath        /api/v1
+
 func main() {
-	scenario := flag.Int("scenario", 10, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip, 9=Architecture Pricing, 10=Pricing with Hidden Costs)")
+	scenario := flag.Int("scenario", 0, "Scenario to run (0=API Server, 5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip, 9=Architecture Pricing, 10=Pricing with Hidden Costs, 12=API Controllers Simulation)")
 	flag.Parse()
 
 	var err error
 	switch *scenario {
+	case 0:
+		err = runServer()
 	case 5:
 		err = scenario5_terraform_codegen.TerraformCodegenRunner(context.Background())
 	case 6:
@@ -33,6 +54,8 @@ func main() {
 		err = scenario9_architecture_pricing.ArchitecturePricingRunner(context.Background())
 	case 10:
 		err = scenario10_pricing_with_hidden_costs.PricingWithHiddenCostsRunner(context.Background())
+	case 12:
+		err = scenario12_api_controllers.Run(context.Background())
 	default:
 		fmt.Printf("Unknown scenario: %d\n", *scenario)
 		os.Exit(1)
@@ -42,6 +65,32 @@ func main() {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func runServer() error {
+	// Connect to database
+	if _, err := database.Connect(); err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	fmt.Println("✓ Database connected successfully")
+
+	// Initialize Server
+	srv, err := server.NewServer()
+	if err != nil {
+		return fmt.Errorf("failed to initialize server: %w", err)
+	}
+
+	// Setup Router
+	r := routes.SetupRouter(srv)
+
+	// Run Server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "9000"
+	}
+
+	fmt.Printf("Starting server on port %s...\n", port)
+	return r.Run(":" + port)
 }
 
 /*

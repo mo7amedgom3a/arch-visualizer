@@ -10,6 +10,8 @@ import (
 type User struct {
 	ID         uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	Name       string    `gorm:"type:varchar(255);not null" json:"name"`
+	Email      string    `gorm:"type:varchar(255);unique;not null" json:"email"`
+	Auth0ID    string    `gorm:"type:varchar(255);unique;not null;index" json:"auth0_id"`
 	Avatar     *string   `gorm:"type:varchar(500)" json:"avatar,omitempty"`
 	IsVerified bool      `gorm:"default:false" json:"is_verified"`
 	CreatedAt  time.Time `gorm:"default:current_timestamp" json:"created_at"`
