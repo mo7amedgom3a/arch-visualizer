@@ -102,3 +102,27 @@ func DisplayRegions() {
 		fmt.Printf("  %d. %s\n", i+1, FormatRegionName(region))
 	}
 }
+
+// RegionAZs maps regions to their availability zones
+var RegionAZs = map[string][]string{
+	"us-east-1":      {"us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e", "us-east-1f"},
+	"us-east-2":      {"us-east-2a", "us-east-2b", "us-east-2c"},
+	"us-west-1":      {"us-west-1a", "us-west-1c"},
+	"us-west-2":      {"us-west-2a", "us-west-2b", "us-west-2c", "us-west-2d"},
+	"eu-west-1":      {"eu-west-1a", "eu-west-1b", "eu-west-1c"},
+	"eu-west-2":      {"eu-west-2a", "eu-west-2b", "eu-west-2c"},
+	"eu-central-1":   {"eu-central-1a", "eu-central-1b", "eu-central-1c"},
+	"ap-southeast-1": {"ap-southeast-1a", "ap-southeast-1b", "ap-southeast-1c"},
+	"ap-southeast-2": {"ap-southeast-2a", "ap-southeast-2b", "ap-southeast-2c"},
+	"ap-northeast-1": {"ap-northeast-1a", "ap-northeast-1c", "ap-northeast-1d"},
+	"sa-east-1":      {"sa-east-1a", "sa-east-1b", "sa-east-1c"},
+}
+
+// GetAZsForRegion returns availability zones for a given region
+func GetAZsForRegion(region string) []string {
+	if azs, ok := RegionAZs[region]; ok {
+		return azs
+	}
+	// Return a default mock list if not found, or empty
+	return []string{region + "a", region + "b", region + "c"}
+}

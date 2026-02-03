@@ -88,3 +88,27 @@ func (ctrl *StaticController) ListResourceModels(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models)
 }
+
+// ListCloudConfigs retrieves global cloud configurations
+// @Summary      Get cloud configurations
+// @Description  Get global cloud configurations like regions, instance types, etc.
+// @Tags         static
+// @Produce      json
+// @Param        provider  query     string  false  "Provider name (e.g. aws)"
+// @Success      200       {object}  serverinterfaces.CloudConfig
+// @Failure      500       {object}  map[string]string "Internal Server Error"
+// @Router       /static/cloud-config [get]
+func (ctrl *StaticController) ListCloudConfigs(c *gin.Context) {
+	provider := c.Query("provider")
+	if provider == "" {
+		provider = "aws" // Default to AWS
+	}
+
+	config, err := ctrl.staticService.ListCloudConfiguration(c.Request.Context(), provider)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list cloud configurations: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}

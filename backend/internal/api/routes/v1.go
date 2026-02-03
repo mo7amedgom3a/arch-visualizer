@@ -11,16 +11,20 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 	{
 		// Static Routes
 		staticCtrl := controllers.NewStaticController(srv.StaticDataService)
-		v1.GET("/static/providers", staticCtrl.ListProviders)
-		v1.GET("/static/resource-types", staticCtrl.ListResourceTypes)
-		v1.GET("/static/resource-models", staticCtrl.ListResourceModels)
+		staticGroup := v1.Group("/static")
+		{
+			staticGroup.GET("/providers", staticCtrl.ListProviders)
+			staticGroup.GET("/resource-types", staticCtrl.ListResourceTypes)
+			staticGroup.GET("/resource-models", staticCtrl.ListResourceModels)
+			staticGroup.GET("/cloud-config", staticCtrl.ListCloudConfigs)
+		}
 
 		setupStaticRoutes(v1)
 
 		// Controllers
 		projectCtrl := controllers.NewProjectController(srv.ProjectService)
 		userCtrl := controllers.NewUserController(srv.UserService)
-		diagramCtrl := controllers.NewDiagramController(srv.PipelineOrchestrator)
+		diagramCtrl := controllers.NewDiagramController(srv.PipelineOrchestrator, srv.DiagramService, srv.ArchitectureService)
 
 		// Users Routes
 		users := v1.Group("/users")
@@ -43,6 +47,8 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		diagrams := v1.Group("/diagrams")
 		{
 			diagrams.POST("/process", diagramCtrl.ProcessDiagram)
+			diagrams.POST("/validate", diagramCtrl.ValidateDiagram)
+			diagrams.POST("/validate-rules", diagramCtrl.ValidateDomainRules)
 		}
 	}
 }

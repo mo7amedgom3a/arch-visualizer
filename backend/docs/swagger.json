@@ -85,6 +85,109 @@
                 }
             }
         },
+        "/diagrams/validate": {
+            "post": {
+                "description": "Validate correct structure and schema of a diagram JSON",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagrams"
+                ],
+                "summary": "Validate diagram structure",
+                "parameters": [
+                    {
+                        "description": "Diagram JSON",
+                        "name": "diagram",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/diagrams/validate-rules": {
+            "post": {
+                "description": "Validate architectural rules and constraints (e.g., security, valid configs)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "diagrams"
+                ],
+                "summary": "Validate domain rules",
+                "parameters": [
+                    {
+                        "description": "Diagram JSON",
+                        "name": "diagram",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cloud Provider (default: aws)",
+                        "name": "provider",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RuleValidationResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/projects": {
             "post": {
                 "description": "Create a new project for the authenticated user",
@@ -273,6 +376,43 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/static/cloud-config": {
+            "get": {
+                "description": "Get global cloud configurations like regions, instance types, etc.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "static"
+                ],
+                "summary": "Get cloud configurations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Provider name (e.g. aws)",
+                        "name": "provider",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CloudConfig"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -1679,6 +1819,67 @@
                 }
             }
         },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CloudConfig": {
+            "type": "object",
+            "properties": {
+                "instance_types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.InstanceTypeConfig"
+                    }
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "regions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RegionConfig"
+                    }
+                },
+                "storage_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.InstanceTypeConfig": {
+            "type": "object",
+            "properties": {
+                "memory_gib": {
+                    "type": "number"
+                },
+                "name": {
+                    "description": "e.g., \"t3.micro\"",
+                    "type": "string"
+                },
+                "vcpu": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RegionConfig": {
+            "type": "object",
+            "properties": {
+                "azs": {
+                    "description": "e.g., [\"us-east-1a\", \"us-east-1b\"]",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "code": {
+                    "description": "e.g., \"us-east-1\"",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "e.g., \"US East (N. Virginia)\"",
+                    "type": "string"
+                }
+            }
+        },
         "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModel": {
             "type": "object",
             "properties": {
@@ -1714,6 +1915,63 @@
                 },
                 "service_type": {
                     "description": "e.g., \"Compute\"",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceValidationResult": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ValidationError"
+                    }
+                },
+                "resourceID": {
+                    "type": "string"
+                },
+                "resourceType": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RuleValidationResult": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "results": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceValidationResult"
+                    }
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ValidationError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "resourceID": {
+                    "type": "string"
+                },
+                "resourceType": {
                     "type": "string"
                 }
             }

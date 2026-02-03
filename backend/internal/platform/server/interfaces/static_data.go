@@ -24,6 +24,28 @@ type ResourceModelGroup struct {
 	Resources   []ResourceModel `json:"resources"`
 }
 
+// CloudConfig represents global cloud configurations
+type CloudConfig struct {
+	Provider      string               `json:"provider"`
+	Regions       []RegionConfig       `json:"regions"`
+	InstanceTypes []InstanceTypeConfig `json:"instance_types"`
+	StorageTypes  []string             `json:"storage_types"`
+}
+
+// RegionConfig represents a cloud region
+type RegionConfig struct {
+	Code string   `json:"code"` // e.g., "us-east-1"
+	Name string   `json:"name"` // e.g., "US East (N. Virginia)"
+	AZs  []string `json:"azs"`  // e.g., ["us-east-1a", "us-east-1b"]
+}
+
+// InstanceTypeConfig represents an EC2 instance type
+type InstanceTypeConfig struct {
+	Name      string  `json:"name"` // e.g., "t3.micro"
+	VCPU      int     `json:"vcpu"`
+	MemoryGiB float64 `json:"memory_gib"`
+}
+
 // StaticDataService handles static reference data
 type StaticDataService interface {
 	// ListResourceTypes retrieves all resource types grouped by category
@@ -34,4 +56,6 @@ type StaticDataService interface {
 	ListResourceOutputModels(ctx context.Context, provider string) ([]ResourceModelGroup, error)
 	// ListProviders retrieves supported cloud providers
 	ListProviders(ctx context.Context) ([]string, error)
+	// ListCloudConfiguration retrieves global cloud configurations
+	ListCloudConfiguration(ctx context.Context, provider string) (*CloudConfig, error)
 }

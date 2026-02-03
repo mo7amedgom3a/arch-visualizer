@@ -10,6 +10,7 @@ import (
 	net_outputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/common"
 )
 
 // StaticDataServiceImpl implements StaticDataService interface
@@ -243,4 +244,45 @@ func (s *StaticDataServiceImpl) groupResourceTypes(types []*models.ResourceType)
 // ListProviders retrieves supported cloud providers
 func (s *StaticDataServiceImpl) ListProviders(ctx context.Context) ([]string, error) {
 	return []string{"aws", "azure", "gcp"}, nil
+}
+
+// ListCloudConfiguration retrieves global cloud configurations
+func (s *StaticDataServiceImpl) ListCloudConfiguration(ctx context.Context, provider string) (*serverinterfaces.CloudConfig, error) {
+	config := &serverinterfaces.CloudConfig{
+		Provider: provider,
+	}
+
+	if provider == "aws" {
+		// Regions
+		for _, regionCode := range common.SupportedRegions {
+			config.Regions = append(config.Regions, serverinterfaces.RegionConfig{
+				Code: regionCode,
+				Name: common.FormatRegionName(regionCode),
+				AZs:  common.GetAZsForRegion(regionCode),
+			})
+		}
+
+		// Instance Types (Mock data for commonly used types)
+		config.InstanceTypes = []serverinterfaces.InstanceTypeConfig{
+			{Name: "t3.nano", VCPU: 2, MemoryGiB: 0.5},
+			{Name: "t3.micro", VCPU: 2, MemoryGiB: 1.0},
+			{Name: "t3.small", VCPU: 2, MemoryGiB: 2.0},
+			{Name: "t3.medium", VCPU: 2, MemoryGiB: 4.0},
+			{Name: "t3.large", VCPU: 2, MemoryGiB: 8.0},
+			{Name: "m5.large", VCPU: 2, MemoryGiB: 8.0},
+			{Name: "m5.xlarge", VCPU: 4, MemoryGiB: 16.0},
+			{Name: "c5.large", VCPU: 2, MemoryGiB: 4.0},
+			{Name: "r5.large", VCPU: 2, MemoryGiB: 16.0},
+		}
+
+		// Storage Types
+		config.StorageTypes = []string{"gp2", "gp3", "io1", "io2", "st1", "sc1", "standard"}
+	} else {
+		// Return empty for other providers for now
+		config.Regions = []serverinterfaces.RegionConfig{}
+		config.InstanceTypes = []serverinterfaces.InstanceTypeConfig{}
+		config.StorageTypes = []string{}
+	}
+
+	return config, nil
 }

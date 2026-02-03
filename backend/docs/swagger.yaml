@@ -742,6 +742,47 @@ definitions:
       updated_at:
         type: string
     type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CloudConfig:
+    properties:
+      instance_types:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.InstanceTypeConfig'
+        type: array
+      provider:
+        type: string
+      regions:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RegionConfig'
+        type: array
+      storage_types:
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.InstanceTypeConfig:
+    properties:
+      memory_gib:
+        type: number
+      name:
+        description: e.g., "t3.micro"
+        type: string
+      vcpu:
+        type: integer
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RegionConfig:
+    properties:
+      azs:
+        description: e.g., ["us-east-1a", "us-east-1b"]
+        items:
+          type: string
+        type: array
+      code:
+        description: e.g., "us-east-1"
+        type: string
+      name:
+        description: e.g., "US East (N. Virginia)"
+        type: string
+    type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModel:
     properties:
       model: {}
@@ -766,6 +807,43 @@ definitions:
         type: array
       service_type:
         description: e.g., "Compute"
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceValidationResult:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ValidationError'
+        type: array
+      resourceID:
+        type: string
+      resourceType:
+        type: string
+      valid:
+        type: boolean
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RuleValidationResult:
+    properties:
+      errors:
+        items:
+          type: string
+        type: array
+      results:
+        additionalProperties:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceValidationResult'
+        type: object
+      valid:
+        type: boolean
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ValidationError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      resourceID:
+        type: string
+      resourceType:
         type: string
     type: object
 host: localhost:9000
@@ -825,6 +903,76 @@ paths:
             additionalProperties: true
             type: object
       summary: Process a collected diagram
+      tags:
+      - diagrams
+  /diagrams/validate:
+    post:
+      consumes:
+      - application/json
+      description: Validate correct structure and schema of a diagram JSON
+      parameters:
+      - description: Diagram JSON
+        in: body
+        name: diagram
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validate diagram structure
+      tags:
+      - diagrams
+  /diagrams/validate-rules:
+    post:
+      consumes:
+      - application/json
+      description: Validate architectural rules and constraints (e.g., security, valid
+        configs)
+      parameters:
+      - description: Diagram JSON
+        in: body
+        name: diagram
+        required: true
+        schema:
+          type: object
+      - description: 'Cloud Provider (default: aws)'
+        in: query
+        name: provider
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RuleValidationResult'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validate domain rules
       tags:
       - diagrams
   /projects:
@@ -958,6 +1106,30 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /static/cloud-config:
+    get:
+      description: Get global cloud configurations like regions, instance types, etc.
+      parameters:
+      - description: Provider name (e.g. aws)
+        in: query
+        name: provider
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CloudConfig'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get cloud configurations
+      tags:
+      - static
   /static/providers:
     get:
       description: Get a list of all supported cloud providers (AWS, GCP, etc.)

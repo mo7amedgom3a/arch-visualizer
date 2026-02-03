@@ -55,6 +55,54 @@ Get the JSON structure of resource output models grouped by service category wit
 curl -X GET "http://localhost:9000/api/v1/static/resource-models?provider=aws"
 ```
 
+### List Cloud Configurations
+
+Get global cloud configurations (regions, instance types, storage types).
+
+- **Method**: `GET`
+- **Path**: `/static/cloud-config`
+- **Query Params**:
+  - `provider` (optional): e.g., `aws`
+
+**Curl commands**:
+
+```bash
+curl -X GET "http://localhost:9000/api/v1/static/cloud-config?provider=aws"
+```
+
+---
+
+## Diagrams
+
+### Process Diagram
+
+Process a diagram JSON and create/update a project.
+
+- **Method**: `POST`
+- **Path**: `/diagrams/process`
+
+### Validate Diagram (Structural)
+
+Validate the structure and schema of a diagram JSON.
+
+- **Method**: `POST`
+- **Path**: `/diagrams/validate`
+- **Body**: Diagram JSON
+
+### Validate Diagram (Domain Rules)
+
+Validate the diagram against architectural rules and constraints.
+
+- **Method**: `POST`
+- **Path**: `/diagrams/validate-rules`
+- **Body**: Diagram JSON
+- **Query Params**:
+  - `provider` (optional): `aws` (default)
+
+```bash
+curl -X GET "http://localhost:9000/api/v1/static/cloud-config?provider=aws"
+```
+
 ---
 
 ## Users
