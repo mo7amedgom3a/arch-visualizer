@@ -105,7 +105,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreateProjectRequest"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateProjectRequest"
                         }
                     }
                 ],
@@ -113,7 +113,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.ProjectResponse"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse"
                         }
                     },
                     "400": {
@@ -156,7 +156,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.ProjectResponse"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse"
                         }
                     },
                     "400": {
@@ -208,7 +208,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateProjectRequest"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.UpdateProjectRequest"
                         }
                     }
                 ],
@@ -216,7 +216,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.ProjectResponse"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse"
                         }
                     },
                     "400": {
@@ -310,9 +310,49 @@
                 }
             }
         },
+        "/static/resource-models": {
+            "get": {
+                "description": "Get the JSON structure of resource output models grouped by service category with default mock data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "static"
+                ],
+                "summary": "Get resource output models",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Provider name (e.g. aws)",
+                        "name": "provider",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModelGroup"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/static/resource-types": {
             "get": {
-                "description": "Get a list of all supported resource types, optionally filtered by provider",
+                "description": "Get a list of all supported resource types, grouped by service category (e.g. Compute, Storage)",
                 "produces": [
                     "application/json"
                 ],
@@ -331,7 +371,12 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceTypeGroup"
+                            }
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -365,7 +410,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreateUserRequest"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateUserRequest"
                         }
                     }
                 ],
@@ -373,7 +418,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.UserResponse"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.UserResponse"
                         }
                     },
                     "400": {
@@ -416,7 +461,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.UserResponse"
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.UserResponse"
                         }
                     },
                     "400": {
@@ -489,7 +534,7 @@
         }
     },
     "definitions": {
-        "request.CreateProjectRequest": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateProjectRequest": {
             "type": "object",
             "required": [
                 "cloud_provider",
@@ -524,7 +569,7 @@
                 }
             }
         },
-        "request.CreateUserRequest": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateUserRequest": {
             "type": "object",
             "required": [
                 "auth0_id",
@@ -548,7 +593,7 @@
                 }
             }
         },
-        "request.UpdateProjectRequest": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.UpdateProjectRequest": {
             "type": "object",
             "properties": {
                 "cloud_provider": {
@@ -573,7 +618,7 @@
                 }
             }
         },
-        "response.ProjectResponse": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse": {
             "type": "object",
             "properties": {
                 "cloud_provider": {
@@ -602,7 +647,7 @@
                 }
             }
         },
-        "response.UserResponse": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.UserResponse": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -621,6 +666,1054 @@
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Category": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "templates": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ComplianceStandard": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "templates": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.DependencyType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource_dependencies": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACFormat": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "templates": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACTarget": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "projects": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.PricingComponent": {
+            "type": "object",
+            "properties": {
+                "component_name": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "resource_pricing": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing"
+                        }
+                    ]
+                },
+                "resource_pricing_id": {
+                    "type": "integer"
+                },
+                "subtotal": {
+                    "type": "number"
+                },
+                "unit": {
+                    "type": "string"
+                },
+                "unit_rate": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project": {
+            "type": "object",
+            "properties": {
+                "cloud_provider": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "iac_target": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACTarget"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "infra_tool": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project_pricing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ProjectPricing"
+                    }
+                },
+                "region": {
+                    "type": "string"
+                },
+                "resource_pricing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing"
+                    }
+                },
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                    }
+                },
+                "service_pricing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServicePricing"
+                    }
+                },
+                "service_type_pricing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServiceTypePricing"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User"
+                        }
+                    ]
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ProjectPricing": {
+            "type": "object",
+            "properties": {
+                "calculated_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "duration_seconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "period": {
+                    "type": "string"
+                },
+                "project": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                        }
+                    ]
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "total_cost": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource": {
+            "type": "object",
+            "properties": {
+                "child_containments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceContainment"
+                    }
+                },
+                "config": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "from_dependencies": {
+                    "description": "Dependency relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_visual_only": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_containments": {
+                    "description": "Containment relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceContainment"
+                    }
+                },
+                "pos_x": {
+                    "type": "integer"
+                },
+                "pos_y": {
+                    "type": "integer"
+                },
+                "project": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                        }
+                    ]
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "resource_pricing": {
+                    "description": "Pricing",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing"
+                    }
+                },
+                "resource_type": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType"
+                },
+                "resource_type_id": {
+                    "type": "integer"
+                },
+                "to_dependencies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceCategory": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource_types": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType"
+                    }
+                },
+                "service_pricing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServicePricing"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceConstraint": {
+            "type": "object",
+            "properties": {
+                "constraint_type": {
+                    "type": "string"
+                },
+                "constraint_value": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "resource_type": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType"
+                        }
+                    ]
+                },
+                "resource_type_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceContainment": {
+            "type": "object",
+            "properties": {
+                "child_resource": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                },
+                "child_resource_id": {
+                    "type": "string"
+                },
+                "parent_resource": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                        }
+                    ]
+                },
+                "parent_resource_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency": {
+            "type": "object",
+            "properties": {
+                "dependency_type": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.DependencyType"
+                },
+                "dependency_type_id": {
+                    "type": "integer"
+                },
+                "from_resource": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                        }
+                    ]
+                },
+                "from_resource_id": {
+                    "type": "string"
+                },
+                "to_resource": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                },
+                "to_resource_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceKind": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resource_types": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing": {
+            "type": "object",
+            "properties": {
+                "calculated_at": {
+                    "type": "string"
+                },
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.PricingComponent"
+                    }
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "duration_seconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "period": {
+                    "type": "string"
+                },
+                "project": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                        }
+                    ]
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "resource": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                },
+                "resource_id": {
+                    "type": "string"
+                },
+                "total_cost": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceCategory"
+                        }
+                    ]
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "cloud_provider": {
+                    "type": "string"
+                },
+                "constraints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceConstraint"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_global": {
+                    "type": "boolean"
+                },
+                "is_regional": {
+                    "type": "boolean"
+                },
+                "kind": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceKind"
+                },
+                "kind_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource"
+                    }
+                },
+                "service_type_pricing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServiceTypePricing"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Review": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "creator_response": {
+                    "type": "string"
+                },
+                "deployment_time": {
+                    "type": "string"
+                },
+                "helpful_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                },
+                "team_size": {
+                    "type": "string"
+                },
+                "template": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                        }
+                    ]
+                },
+                "template_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "use_case": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServicePricing": {
+            "type": "object",
+            "properties": {
+                "calculated_at": {
+                    "type": "string"
+                },
+                "category": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceCategory"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "duration_seconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "period": {
+                    "type": "string"
+                },
+                "project": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                        }
+                    ]
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "total_cost": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServiceTypePricing": {
+            "type": "object",
+            "properties": {
+                "calculated_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "duration_seconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "period": {
+                    "type": "string"
+                },
+                "project": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                        }
+                    ]
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType"
+                },
+                "resource_type_id": {
+                    "type": "integer"
+                },
+                "total_cost": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Technology": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "templates": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User"
+                },
+                "author_id": {
+                    "type": "string"
+                },
+                "category": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Category"
+                        }
+                    ]
+                },
+                "category_id": {
+                    "type": "string"
+                },
+                "cloud_provider": {
+                    "type": "string"
+                },
+                "compliance_standards": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ComplianceStandard"
+                    }
+                },
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateComponent"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deployment_time": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "downloads": {
+                    "type": "integer"
+                },
+                "estimated_cost_max": {
+                    "type": "number"
+                },
+                "estimated_cost_min": {
+                    "type": "number"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateFeature"
+                    }
+                },
+                "iac_formats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACFormat"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "is_new": {
+                    "type": "boolean"
+                },
+                "is_popular": {
+                    "type": "boolean"
+                },
+                "is_subscription": {
+                    "type": "boolean"
+                },
+                "last_updated": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "regions": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "integer"
+                },
+                "review_count": {
+                    "type": "integer"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Review"
+                    }
+                },
+                "subscription_price": {
+                    "type": "number"
+                },
+                "technologies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Technology"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "use_cases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateUseCase"
+                    }
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateComponent": {
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "monthly_cost": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "purpose": {
+                    "type": "string"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "template": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                        }
+                    ]
+                },
+                "template_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateFeature": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
+                "feature": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "template": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                        }
+                    ]
+                },
+                "template_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateUseCase": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "display_order": {
+                    "type": "integer"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "template": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                        }
+                    ]
+                },
+                "template_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User": {
+            "type": "object",
+            "properties": {
+                "auth0_id": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "projects": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project"
+                    }
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Review"
+                    }
+                },
+                "templates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModel": {
+            "type": "object",
+            "properties": {
+                "model": {},
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModelGroup": {
+            "type": "object",
+            "properties": {
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModel"
+                    }
+                },
+                "service_type": {
+                    "description": "e.g., \"Networking\", \"Compute\"",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceTypeGroup": {
+            "type": "object",
+            "properties": {
+                "resources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType"
+                    }
+                },
+                "service_type": {
+                    "description": "e.g., \"Compute\"",
                     "type": "string"
                 }
             }

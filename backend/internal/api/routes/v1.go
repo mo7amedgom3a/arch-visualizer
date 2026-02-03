@@ -13,6 +13,7 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		staticCtrl := controllers.NewStaticController(srv.StaticDataService)
 		v1.GET("/static/providers", staticCtrl.ListProviders)
 		v1.GET("/static/resource-types", staticCtrl.ListResourceTypes)
+		v1.GET("/static/resource-models", staticCtrl.ListResourceModels)
 
 		setupStaticRoutes(v1)
 

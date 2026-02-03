@@ -31,12 +31,28 @@ Get a list of resource types, optionally filtered by provider.
 
 **Curl commands**:
 
-```bash
+````bash
 # List all
 curl -X GET "http://localhost:9000/api/v1/static/resource-types"
 
+```bash
 # Filter by AWS
 curl -X GET "http://localhost:9000/api/v1/static/resource-types?provider=aws"
+````
+
+### List Resource Output Models
+
+Get the JSON structure of resource output models grouped by service category with default mock data.
+
+- **Method**: `GET`
+- **Path**: `/static/resource-models`
+- **Query Params**:
+  - `provider` (optional): e.g., `aws`
+
+**Curl commands**:
+
+```bash
+curl -X GET "http://localhost:9000/api/v1/static/resource-models?provider=aws"
 ```
 
 ---

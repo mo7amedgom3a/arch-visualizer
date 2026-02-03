@@ -38,11 +38,11 @@ func (ctrl *StaticController) ListProviders(c *gin.Context) {
 
 // ListResourceTypes retrieves resource types
 // @Summary      List resource types
-// @Description  Get a list of all supported resource types, optionally filtered by provider
+// @Description  Get a list of all supported resource types, grouped by service category (e.g. Compute, Storage)
 // @Tags         static
 // @Produce      json
 // @Param        provider  query     string  false  "Provider name (e.g. aws)"
-// @Success      200       {object}  interface{}
+// @Success      200       {object}  []serverinterfaces.ResourceTypeGroup
 // @Failure      500       {object}  map[string]string "Internal Server Error"
 // @Router       /static/resource-types [get]
 func (ctrl *StaticController) ListResourceTypes(c *gin.Context) {
@@ -63,4 +63,28 @@ func (ctrl *StaticController) ListResourceTypes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, types)
+}
+
+// ListResourceModels retrieves resource output models
+// @Summary      Get resource output models
+// @Description  Get the JSON structure of resource output models grouped by service category with default mock data
+// @Tags         static
+// @Produce      json
+// @Param        provider  query     string  false  "Provider name (e.g. aws)"
+// @Success      200       {object}  []serverinterfaces.ResourceModelGroup
+// @Failure      500       {object}  map[string]string "Internal Server Error"
+// @Router       /static/resource-models [get]
+func (ctrl *StaticController) ListResourceModels(c *gin.Context) {
+	provider := c.Query("provider")
+	if provider == "" {
+		provider = "aws" // Default to AWS
+	}
+
+	models, err := ctrl.staticService.ListResourceOutputModels(c.Request.Context(), provider)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list resource models: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, models)
 }

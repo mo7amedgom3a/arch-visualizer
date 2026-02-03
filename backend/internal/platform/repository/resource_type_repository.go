@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
 
 // ResourceTypeRepository provides operations for resource type lookups
@@ -47,6 +47,7 @@ func (r *ResourceTypeRepository) FindByID(ctx context.Context, id uint) (*models
 func (r *ResourceTypeRepository) ListByProvider(ctx context.Context, provider string) ([]*models.ResourceType, error) {
 	var resourceTypes []*models.ResourceType
 	err := r.GetDB(ctx).
+		Preload("Category").
 		Where("cloud_provider = ?", provider).
 		Find(&resourceTypes).Error
 	return resourceTypes, err
