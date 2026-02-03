@@ -33,6 +33,10 @@ You are an expert **Backend System Architect** and **Go Developer** specializing
    - Rules stored in database, not hardcoded
    - Dynamic constraint evaluation
    - Extensible without code changes
+5. **Testing over implementation**
+   - Always write tests before implementation
+   - Test-driven development (TDD)
+   - Integration tests for all layers
 
 ---
 
@@ -1258,6 +1262,8 @@ go run cmd/api/main.go
 - **ERD**: `ERD-Diagram.png` - Database schema
 - **Workflow**: `workflow.md` - System flow
 - **Architecture**: `docs/ARCHITECTURE_FLOW.md`
+- **Swagger**: `docs/swagger.yaml` - OpenAPI specification
+
 - **Migrations**: `docs/MIGRATIONS.md`
 - **Config**: `configs/app.yaml`
 

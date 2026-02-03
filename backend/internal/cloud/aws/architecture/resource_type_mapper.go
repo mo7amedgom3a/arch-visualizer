@@ -2,6 +2,7 @@ package architecture
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
@@ -23,6 +24,16 @@ func (m *AWSResourceTypeMapper) MapIRTypeToResourceType(irType string) (*resourc
 			// Map resource name to ResourceType
 			return m.MapResourceNameToResourceType(resourceName)
 		}
+		// Try lowercase fallback
+		if resourceName, found := mapper.GetResourceNameByIRType(strings.ToLower(irType)); found {
+			return m.MapResourceNameToResourceType(resourceName)
+		}
+	}
+
+	// Final fallback: try to map based on the input string being a valid ResourceName already
+	// This handles cases where the FE sends "IAMPolicy" or "Lambda" directly as the type
+	if rt, err := m.MapResourceNameToResourceType(irType); err == nil {
+		return rt, nil
 	}
 
 	return nil, fmt.Errorf("unknown IR type for AWS: %s", irType)
@@ -150,6 +161,38 @@ func (m *AWSResourceTypeMapper) MapResourceNameToResourceType(resourceName strin
 			Kind:       "VirtualMachine",
 			IsRegional: true,
 			IsGlobal:   false,
+		},
+		"IAMPolicy": {
+			ID:         "iam-policy",
+			Name:       "IAMPolicy",
+			Category:   string(resource.CategoryIAM),
+			Kind:       "Policy",
+			IsRegional: false,
+			IsGlobal:   true,
+		},
+		"IAMUser": {
+			ID:         "iam-user",
+			Name:       "IAMUser",
+			Category:   string(resource.CategoryIAM),
+			Kind:       "User",
+			IsRegional: false,
+			IsGlobal:   true,
+		},
+		"IAMRole": {
+			ID:         "iam-role",
+			Name:       "IAMRole",
+			Category:   string(resource.CategoryIAM),
+			Kind:       "Role",
+			IsRegional: false,
+			IsGlobal:   true,
+		},
+		"IAMRolePolicyAttachment": {
+			ID:         "iam-role-policy-attachment",
+			Name:       "IAMRolePolicyAttachment",
+			Category:   string(resource.CategoryIAM),
+			Kind:       "Attachment",
+			IsRegional: false,
+			IsGlobal:   true,
 		},
 	}
 

@@ -42,7 +42,7 @@ func (ctrl *StaticController) ListProviders(c *gin.Context) {
 // @Tags         static
 // @Produce      json
 // @Param        provider  query     string  false  "Provider name (e.g. aws)"
-// @Success      200       {object}  []serverinterfaces.ResourceTypeGroup
+// @Success      200       {object}  []map[string]interface{}
 // @Failure      500       {object}  map[string]string "Internal Server Error"
 // @Router       /static/resource-types [get]
 func (ctrl *StaticController) ListResourceTypes(c *gin.Context) {
@@ -71,7 +71,7 @@ func (ctrl *StaticController) ListResourceTypes(c *gin.Context) {
 // @Tags         static
 // @Produce      json
 // @Param        provider  query     string  false  "Provider name (e.g. aws)"
-// @Success      200       {object}  []serverinterfaces.ResourceModelGroup
+// @Success      200       {object}  []map[string]interface{}
 // @Failure      500       {object}  map[string]string "Internal Server Error"
 // @Router       /static/resource-models [get]
 func (ctrl *StaticController) ListResourceModels(c *gin.Context) {
@@ -95,7 +95,7 @@ func (ctrl *StaticController) ListResourceModels(c *gin.Context) {
 // @Tags         static
 // @Produce      json
 // @Param        provider  query     string  false  "Provider name (e.g. aws)"
-// @Success      200       {object}  serverinterfaces.CloudConfig
+// @Success      200       {object}  map[string]interface{}
 // @Failure      500       {object}  map[string]string "Internal Server Error"
 // @Router       /static/cloud-config [get]
 func (ctrl *StaticController) ListCloudConfigs(c *gin.Context) {

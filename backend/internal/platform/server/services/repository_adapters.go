@@ -54,6 +54,31 @@ func (a *ProjectRepositoryAdapter) RollbackTransaction(tx interface{}) error {
 	return nil
 }
 
+func (a *ProjectRepositoryAdapter) FindAll(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error) {
+	return a.Repo.FindAll(ctx, userID, page, limit, sort, order, search)
+}
+
+// ProjectVersionRepositoryAdapter adapts repository.ProjectVersionRepository to serverinterfaces.ProjectVersionRepository
+type ProjectVersionRepositoryAdapter struct {
+	Repo *repository.ProjectVersionRepository
+}
+
+func (a *ProjectVersionRepositoryAdapter) Create(ctx context.Context, version *models.ProjectVersion) error {
+	return a.Repo.Create(ctx, version)
+}
+
+func (a *ProjectVersionRepositoryAdapter) FindByID(ctx context.Context, id uuid.UUID) (*models.ProjectVersion, error) {
+	return a.Repo.FindByID(ctx, id)
+}
+
+func (a *ProjectVersionRepositoryAdapter) ListByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error) {
+	return a.Repo.ListByProjectID(ctx, projectID)
+}
+
+func (a *ProjectVersionRepositoryAdapter) Delete(ctx context.Context, id uuid.UUID) error {
+	return a.Repo.Delete(ctx, id)
+}
+
 // ResourceRepositoryAdapter adapts repository.ResourceRepository to serverinterfaces.ResourceRepository
 type ResourceRepositoryAdapter struct {
 	Repo *repository.ResourceRepository

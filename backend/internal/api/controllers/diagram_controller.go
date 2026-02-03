@@ -157,7 +157,7 @@ func (ctrl *DiagramController) ValidateDiagram(c *gin.Context) {
 // @Produce      json
 // @Param        diagram  body      object  true   "Diagram JSON"
 // @Param        provider query     string  false  "Cloud Provider (default: aws)"
-// @Success      200      {object}  serverinterfaces.RuleValidationResult
+// @Success      200      {object}  map[string]interface{}
 // @Failure      400      {object}  map[string]interface{}
 // @Failure      500      {object}  map[string]interface{}
 // @Router       /diagrams/validate-rules [post]

@@ -1,5 +1,127 @@
 basePath: /api/v1
 definitions:
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      source:
+        type: string
+      target:
+        type: string
+      type:
+        description: '"contains" or "depends_on" (or default for generic)'
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData'
+      id:
+        type: string
+      parentId:
+        type: string
+      position:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition'
+      type:
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData:
+    properties:
+      config:
+        additionalProperties: true
+        type: object
+      isVisualOnly:
+        type: boolean
+      label:
+        type: string
+      resourceType:
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse:
+    properties:
+      edges:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge'
+        type: array
+      nodes:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode'
+        type: array
+      variables:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable'
+        type: array
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      sensitive:
+        type: boolean
+      type:
+        type: string
+      value:
+        description: Current value or default
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition:
+    properties:
+      x:
+        type: number
+      "y":
+        type: number
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest:
+    properties:
+      edges:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge'
+        type: array
+      nodes:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode'
+        type: array
+      variables:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable'
+        type: array
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest:
+    properties:
+      data:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData'
+      position:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition'
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue:
+    properties:
+      message:
+        type: string
+      nodeId:
+        type: string
+      severity:
+        description: '"error", "warning"'
+        type: string
+      type:
+        description: e.g., "cost", "security", "structural"
+        type: string
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue'
+        type: array
+      valid:
+        type: boolean
+      warnings:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue'
+        type: array
+    type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest:
     properties:
       assume_role_policy:
@@ -231,757 +353,6 @@ definitions:
         description: Stable unique identifier
         type: string
     type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Category:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      slug:
-        type: string
-      templates:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ComplianceStandard:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      slug:
-        type: string
-      templates:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.DependencyType:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      resource_dependencies:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACFormat:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      slug:
-        type: string
-      templates:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACTarget:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      projects:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.PricingComponent:
-    properties:
-      component_name:
-        type: string
-      currency:
-        type: string
-      id:
-        type: integer
-      model:
-        type: string
-      quantity:
-        type: number
-      resource_pricing:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing'
-        description: Relationships
-      resource_pricing_id:
-        type: integer
-      subtotal:
-        type: number
-      unit:
-        type: string
-      unit_rate:
-        type: number
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project:
-    properties:
-      cloud_provider:
-        type: string
-      created_at:
-        type: string
-      iac_target:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACTarget'
-      id:
-        type: string
-      infra_tool:
-        type: integer
-      name:
-        type: string
-      project_pricing:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ProjectPricing'
-        type: array
-      region:
-        type: string
-      resource_pricing:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing'
-        type: array
-      resources:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-        type: array
-      service_pricing:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServicePricing'
-        type: array
-      service_type_pricing:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServiceTypePricing'
-        type: array
-      updated_at:
-        type: string
-      user:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User'
-        description: Relationships
-      user_id:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ProjectPricing:
-    properties:
-      calculated_at:
-        type: string
-      currency:
-        type: string
-      duration_seconds:
-        type: integer
-      id:
-        type: integer
-      period:
-        type: string
-      project:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        description: Relationships
-      project_id:
-        type: string
-      provider:
-        type: string
-      region:
-        type: string
-      total_cost:
-        type: number
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource:
-    properties:
-      child_containments:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceContainment'
-        type: array
-      config:
-        items:
-          type: integer
-        type: array
-      created_at:
-        type: string
-      from_dependencies:
-        description: Dependency relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency'
-        type: array
-      id:
-        type: string
-      is_visual_only:
-        type: boolean
-      name:
-        type: string
-      parent_containments:
-        description: Containment relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceContainment'
-        type: array
-      pos_x:
-        type: integer
-      pos_y:
-        type: integer
-      project:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        description: Relationships
-      project_id:
-        type: string
-      resource_pricing:
-        description: Pricing
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing'
-        type: array
-      resource_type:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType'
-      resource_type_id:
-        type: integer
-      to_dependencies:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceCategory:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      resource_types:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType'
-        type: array
-      service_pricing:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServicePricing'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceConstraint:
-    properties:
-      constraint_type:
-        type: string
-      constraint_value:
-        type: string
-      id:
-        type: integer
-      resource_type:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType'
-        description: Relationships
-      resource_type_id:
-        type: integer
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceContainment:
-    properties:
-      child_resource:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-      child_resource_id:
-        type: string
-      parent_resource:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-        description: Relationships
-      parent_resource_id:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceDependency:
-    properties:
-      dependency_type:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.DependencyType'
-      dependency_type_id:
-        type: integer
-      from_resource:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-        description: Relationships
-      from_resource_id:
-        type: string
-      to_resource:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-      to_resource_id:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceKind:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      resource_types:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourcePricing:
-    properties:
-      calculated_at:
-        type: string
-      components:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.PricingComponent'
-        type: array
-      currency:
-        type: string
-      duration_seconds:
-        type: integer
-      id:
-        type: integer
-      period:
-        type: string
-      project:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        description: Relationships
-      project_id:
-        type: string
-      provider:
-        type: string
-      region:
-        type: string
-      resource:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-      resource_id:
-        type: string
-      total_cost:
-        type: number
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType:
-    properties:
-      category:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceCategory'
-        description: Relationships
-      category_id:
-        type: integer
-      cloud_provider:
-        type: string
-      constraints:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceConstraint'
-        type: array
-      id:
-        type: integer
-      is_global:
-        type: boolean
-      is_regional:
-        type: boolean
-      kind:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceKind'
-      kind_id:
-        type: integer
-      name:
-        type: string
-      resources:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Resource'
-        type: array
-      service_type_pricing:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServiceTypePricing'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Review:
-    properties:
-      content:
-        type: string
-      created_at:
-        type: string
-      creator_response:
-        type: string
-      deployment_time:
-        type: string
-      helpful_count:
-        type: integer
-      id:
-        type: string
-      rating:
-        type: integer
-      team_size:
-        type: string
-      template:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        description: Relationships
-      template_id:
-        type: string
-      title:
-        type: string
-      updated_at:
-        type: string
-      use_case:
-        type: string
-      user:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User'
-      user_id:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServicePricing:
-    properties:
-      calculated_at:
-        type: string
-      category:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceCategory'
-      category_id:
-        type: integer
-      currency:
-        type: string
-      duration_seconds:
-        type: integer
-      id:
-        type: integer
-      period:
-        type: string
-      project:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        description: Relationships
-      project_id:
-        type: string
-      provider:
-        type: string
-      region:
-        type: string
-      total_cost:
-        type: number
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ServiceTypePricing:
-    properties:
-      calculated_at:
-        type: string
-      currency:
-        type: string
-      duration_seconds:
-        type: integer
-      id:
-        type: integer
-      period:
-        type: string
-      project:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        description: Relationships
-      project_id:
-        type: string
-      provider:
-        type: string
-      region:
-        type: string
-      resource_type:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType'
-      resource_type_id:
-        type: integer
-      total_cost:
-        type: number
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Technology:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      slug:
-        type: string
-      templates:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template:
-    properties:
-      author:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User'
-      author_id:
-        type: string
-      category:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Category'
-        description: Relationships
-      category_id:
-        type: string
-      cloud_provider:
-        type: string
-      compliance_standards:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ComplianceStandard'
-        type: array
-      components:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateComponent'
-        type: array
-      created_at:
-        type: string
-      deployment_time:
-        type: string
-      description:
-        type: string
-      downloads:
-        type: integer
-      estimated_cost_max:
-        type: number
-      estimated_cost_min:
-        type: number
-      features:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateFeature'
-        type: array
-      iac_formats:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.IACFormat'
-        type: array
-      id:
-        type: string
-      image_url:
-        type: string
-      is_new:
-        type: boolean
-      is_popular:
-        type: boolean
-      is_subscription:
-        type: boolean
-      last_updated:
-        type: string
-      price:
-        type: number
-      rating:
-        type: number
-      regions:
-        type: string
-      resources:
-        type: integer
-      review_count:
-        type: integer
-      reviews:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Review'
-        type: array
-      subscription_price:
-        type: number
-      technologies:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Technology'
-        type: array
-      title:
-        type: string
-      updated_at:
-        type: string
-      use_cases:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateUseCase'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateComponent:
-    properties:
-      configuration:
-        type: string
-      created_at:
-        type: string
-      display_order:
-        type: integer
-      id:
-        type: string
-      monthly_cost:
-        type: number
-      name:
-        type: string
-      purpose:
-        type: string
-      service:
-        type: string
-      template:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        description: Relationships
-      template_id:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateFeature:
-    properties:
-      created_at:
-        type: string
-      display_order:
-        type: integer
-      feature:
-        type: string
-      id:
-        type: string
-      template:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        description: Relationships
-      template_id:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.TemplateUseCase:
-    properties:
-      created_at:
-        type: string
-      description:
-        type: string
-      display_order:
-        type: integer
-      icon:
-        type: string
-      id:
-        type: string
-      template:
-        allOf:
-        - $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        description: Relationships
-      template_id:
-        type: string
-      title:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.User:
-    properties:
-      auth0_id:
-        type: string
-      avatar:
-        type: string
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      is_verified:
-        type: boolean
-      name:
-        type: string
-      projects:
-        description: Relationships
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Project'
-        type: array
-      reviews:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Review'
-        type: array
-      templates:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.Template'
-        type: array
-      updated_at:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CloudConfig:
-    properties:
-      instance_types:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.InstanceTypeConfig'
-        type: array
-      provider:
-        type: string
-      regions:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RegionConfig'
-        type: array
-      storage_types:
-        items:
-          type: string
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.InstanceTypeConfig:
-    properties:
-      memory_gib:
-        type: number
-      name:
-        description: e.g., "t3.micro"
-        type: string
-      vcpu:
-        type: integer
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RegionConfig:
-    properties:
-      azs:
-        description: e.g., ["us-east-1a", "us-east-1b"]
-        items:
-          type: string
-        type: array
-      code:
-        description: e.g., "us-east-1"
-        type: string
-      name:
-        description: e.g., "US East (N. Virginia)"
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModel:
-    properties:
-      model: {}
-      name:
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModelGroup:
-    properties:
-      resources:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModel'
-        type: array
-      service_type:
-        description: e.g., "Networking", "Compute"
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceTypeGroup:
-    properties:
-      resources:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_models.ResourceType'
-        type: array
-      service_type:
-        description: e.g., "Compute"
-        type: string
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceValidationResult:
-    properties:
-      errors:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ValidationError'
-        type: array
-      resourceID:
-        type: string
-      resourceType:
-        type: string
-      valid:
-        type: boolean
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RuleValidationResult:
-    properties:
-      errors:
-        items:
-          type: string
-        type: array
-      results:
-        additionalProperties:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceValidationResult'
-        type: object
-      valid:
-        type: boolean
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ValidationError:
-    properties:
-      code:
-        type: string
-      message:
-        type: string
-      resourceID:
-        type: string
-      resourceType:
-        type: string
-    type: object
 host: localhost:9000
 info:
   contact:
@@ -1097,7 +468,8 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.RuleValidationResult'
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -1201,6 +573,54 @@ paths:
       tags:
       - iam
   /projects:
+    get:
+      description: Get a list of projects with pagination, sorting, and searching
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: User ID filter
+        in: query
+        name: user_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List projects
+      tags:
+      - projects
     post:
       consumes:
       - application/json
@@ -1331,6 +751,286 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{id}/architecture:
+    get:
+      description: Get full architecture for a project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get architecture
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Save/update full architecture
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Architecture Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update architecture
+      tags:
+      - projects
+  /projects/{id}/architecture/nodes/{nodeId}:
+    delete:
+      description: Delete a specific node
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Node ID
+        in: path
+        name: nodeId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete architecture node
+      tags:
+      - projects
+    patch:
+      consumes:
+      - application/json
+      description: Update a specific node in architecture
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Node ID
+        in: path
+        name: nodeId
+        required: true
+        type: string
+      - description: Node Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update architecture node
+      tags:
+      - projects
+  /projects/{id}/architecture/validate:
+    post:
+      description: Validate project architecture
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validate architecture
+      tags:
+      - projects
+  /projects/{id}/duplicate:
+    post:
+      consumes:
+      - application/json
+      description: Create a copy of an existing project and its architecture
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Duplicate Request (requires 'name')
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Duplicate a project
+      tags:
+      - projects
+  /projects/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Restore a project to a specific version
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Restore Request (requires 'versionId')
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Restore project version
+      tags:
+      - projects
+  /projects/{id}/versions:
+    get:
+      description: Retrieve the history of versions for a project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get project versions
+      tags:
+      - projects
   /static/cloud-config:
     get:
       description: Get global cloud configurations like regions, instance types, etc.
@@ -1345,7 +1045,8 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CloudConfig'
+            additionalProperties: true
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -1392,7 +1093,8 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceModelGroup'
+              additionalProperties: true
+              type: object
             type: array
         "500":
           description: Internal Server Error
@@ -1419,7 +1121,8 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceTypeGroup'
+              additionalProperties: true
+              type: object
             type: array
         "500":
           description: Internal Server Error
@@ -1494,36 +1197,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Get a user
-      tags:
-      - users
-  /users/{id}/projects:
-    get:
-      description: Get a list of all projects for a specific user
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: List user projects
       tags:
       - users
 swagger: "2.0"

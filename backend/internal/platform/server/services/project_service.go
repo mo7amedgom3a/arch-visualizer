@@ -19,6 +19,7 @@ import (
 // ProjectServiceImpl implements ProjectService interface
 type ProjectServiceImpl struct {
 	projectRepo        serverinterfaces.ProjectRepository
+	versionRepo        serverinterfaces.ProjectVersionRepository
 	resourceRepo       serverinterfaces.ResourceRepository
 	resourceTypeRepo   serverinterfaces.ResourceTypeRepository
 	containmentRepo    serverinterfaces.ResourceContainmentRepository
@@ -32,6 +33,7 @@ type ProjectServiceImpl struct {
 // NewProjectService creates a new project service
 func NewProjectService(
 	projectRepo serverinterfaces.ProjectRepository,
+	versionRepo serverinterfaces.ProjectVersionRepository,
 	resourceRepo serverinterfaces.ResourceRepository,
 	resourceTypeRepo serverinterfaces.ResourceTypeRepository,
 	containmentRepo serverinterfaces.ResourceContainmentRepository,
@@ -42,6 +44,7 @@ func NewProjectService(
 ) serverinterfaces.ProjectService {
 	return &ProjectServiceImpl{
 		projectRepo:        projectRepo,
+		versionRepo:        versionRepo,
 		resourceRepo:       resourceRepo,
 		resourceTypeRepo:   resourceTypeRepo,
 		containmentRepo:    containmentRepo,
@@ -56,6 +59,7 @@ func NewProjectService(
 // NewProjectServiceWithPricing creates a new project service with pricing support
 func NewProjectServiceWithPricing(
 	projectRepo serverinterfaces.ProjectRepository,
+	versionRepo serverinterfaces.ProjectVersionRepository,
 	resourceRepo serverinterfaces.ResourceRepository,
 	resourceTypeRepo serverinterfaces.ResourceTypeRepository,
 	containmentRepo serverinterfaces.ResourceContainmentRepository,
@@ -67,6 +71,7 @@ func NewProjectServiceWithPricing(
 ) serverinterfaces.ProjectService {
 	return &ProjectServiceImpl{
 		projectRepo:        projectRepo,
+		versionRepo:        versionRepo,
 		resourceRepo:       resourceRepo,
 		resourceTypeRepo:   resourceTypeRepo,
 		containmentRepo:    containmentRepo,
@@ -94,6 +99,8 @@ func (s *ProjectServiceImpl) Create(ctx context.Context, req *serverinterfaces.C
 		UserID:        req.UserID,
 		InfraToolID:   req.IACTargetID,
 		Name:          req.Name,
+		Description:   req.Description,
+		Tags:          req.Tags,
 		CloudProvider: req.CloudProvider,
 		Region:        req.Region,
 	}
@@ -110,9 +117,9 @@ func (s *ProjectServiceImpl) GetByID(ctx context.Context, id uuid.UUID) (*models
 	return s.projectRepo.FindByID(ctx, id)
 }
 
-// ListByUserID retrieves all projects for a user
-func (s *ProjectServiceImpl) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error) {
-	return s.projectRepo.FindByUserID(ctx, userID)
+// List retrieves projects with pagination and filtering
+func (s *ProjectServiceImpl) List(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error) {
+	return s.projectRepo.FindAll(ctx, userID, page, limit, sort, order, search)
 }
 
 // Update updates an existing project

@@ -647,7 +647,7 @@ func (m *AWSMapper) mapS3(res *resource.Resource) ([]tfmapper.TerraformBlock, er
 	return []tfmapper.TerraformBlock{
 		{
 			Kind:       "resource",
-			Labels:     []string{"aws_s3_bucket", tfName(res.ID)},
+			Labels:     []string{"aws_s3_bucket", tfName(res.Name)},
 			Attributes: attrs,
 		},
 	}, nil
@@ -909,7 +909,7 @@ func (m *AWSMapper) mapLambda(res *resource.Resource) ([]tfmapper.TerraformBlock
 	return []tfmapper.TerraformBlock{
 		{
 			Kind:       "resource",
-			Labels:     []string{"aws_lambda_function", tfName(res.ID)},
+			Labels:     []string{"aws_lambda_function", tfName(res.Name)},
 			Attributes: attrs,
 		},
 	}, nil

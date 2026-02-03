@@ -75,6 +75,46 @@ func run() error {
 	}
 	fmt.Println("✓ Database connected")
 
+	// 1.5 Clean up data to avoid migration issues (duplicates)
+	// WARNING: This deletes data, suitable for this simulation script only
+	if err := db.Exec("DELETE FROM resource_dependencies").Error; err != nil {
+		fmt.Printf("Warning cleaning dependencies: %v\n", err)
+	}
+	if err := db.Exec("DELETE FROM resource_containments").Error; err != nil {
+		fmt.Printf("Warning cleaning containments: %v\n", err)
+	}
+	if err := db.Exec("DELETE FROM resources").Error; err != nil {
+		fmt.Printf("Warning cleaning resources: %v\n", err)
+	}
+	if err := db.Exec("DELETE FROM project_versions").Error; err != nil {
+		fmt.Printf("Warning cleaning project_versions: %v\n", err)
+	}
+	if err := db.Exec("DELETE FROM projects").Error; err != nil {
+		fmt.Printf("Warning cleaning projects: %v\n", err)
+	}
+	if err := db.Exec("DELETE FROM users").Error; err != nil {
+		fmt.Printf("Warning cleaning users: %v\n", err)
+	}
+
+	// 1.6 Manual Schema Update (Bypassing AutoMigrate issues)
+	// Add missing columns to projects
+	db.Exec("ALTER TABLE projects ADD COLUMN IF NOT EXISTS description text")
+	db.Exec("ALTER TABLE projects ADD COLUMN IF NOT EXISTS thumbnail text")
+	db.Exec("ALTER TABLE projects ADD COLUMN IF NOT EXISTS tags text[]")
+
+	// Create project_versions table
+	db.Exec(`CREATE TABLE IF NOT EXISTS project_versions (
+		id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+		project_id uuid NOT NULL,
+		created_at timestamptz DEFAULT now(),
+		created_by uuid,
+		changes text,
+		snapshot jsonb
+	)`)
+	db.Exec("CREATE INDEX IF NOT EXISTS idx_project_versions_project_id ON project_versions (project_id)")
+
+	fmt.Println("✓ Database schema manually updated")
+
 	// 2. Seed Missing Resource Types (IAMPolicy, IAMRolePolicyAttachment)
 	resourceTypes := []models.ResourceType{
 		{Name: "IAMPolicy", CloudProvider: "aws", IsRegional: true},
@@ -112,6 +152,15 @@ func run() error {
 		return err
 	}
 	projectRepo := &ProjectRepoAdapter{projectRepoRaw}
+
+	versionRepoRaw, err := repository.NewProjectVersionRepository()
+	if err != nil {
+		return err
+	}
+	// Use the adapter from services package if possible, or define locally if needed.
+	// Since we are in main package and importing services, let's try to use services.ProjectVersionRepositoryAdapter?
+	// But struct fields are not exported? No, "Repo" field is exported in services.ProjectVersionRepositoryAdapter
+	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
 
 	resourceRepo, err := repository.NewResourceRepository()
 	if err != nil {
@@ -152,6 +201,7 @@ func run() error {
 	codegenService := services.NewCodegenService()
 	projectService := services.NewProjectService(
 		projectRepo, // Wrapped
+		versionRepo, // Wrapper
 		resourceRepo,
 		resourceTypeRepo,
 		containmentRepo,

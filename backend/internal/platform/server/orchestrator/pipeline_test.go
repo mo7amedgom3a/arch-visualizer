@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
@@ -103,9 +104,18 @@ type mockProjectService struct {
 	persistArchWithPricingFunc func(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error)
 	loadArchFunc               func(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error)
 	getProjectPricingFunc      func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error)
-	listByUserIDFunc           func(ctx context.Context, userID uuid.UUID) ([]*models.Project, error)
+	listFunc                   func(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error)
+	duplicateFunc              func(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, error)
+	getVersionsFunc            func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error)
+	restoreVersionFunc         func(ctx context.Context, versionID uuid.UUID) (*models.Project, error)
 	updateFunc                 func(ctx context.Context, project *models.Project) error
 	deleteFunc                 func(ctx context.Context, id uuid.UUID) error
+	// New methods
+	getArchFunc      func(ctx context.Context, projectID uuid.UUID) (*dto.ArchitectureResponse, error)
+	saveArchFunc     func(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*dto.ArchitectureResponse, error)
+	updateNodeFunc   func(ctx context.Context, projectID uuid.UUID, nodeID string, req *dto.UpdateNodeRequest) (*dto.ArchitectureNode, error)
+	deleteNodeFunc   func(ctx context.Context, projectID uuid.UUID, nodeID string) error
+	validateArchFunc func(ctx context.Context, projectID uuid.UUID) (*dto.ValidationResponse, error)
 }
 
 func (m *mockProjectService) Create(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error) {
@@ -164,11 +174,32 @@ func (m *mockProjectService) GetProjectPricing(ctx context.Context, projectID uu
 	return []*models.ProjectPricing{}, nil
 }
 
-func (m *mockProjectService) ListByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error) {
-	if m.listByUserIDFunc != nil {
-		return m.listByUserIDFunc(ctx, userID)
+func (m *mockProjectService) List(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error) {
+	if m.listFunc != nil {
+		return m.listFunc(ctx, userID, page, limit, sort, order, search)
 	}
-	return []*models.Project{}, nil
+	return []*models.Project{}, 0, nil
+}
+
+func (m *mockProjectService) Duplicate(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, error) {
+	if m.duplicateFunc != nil {
+		return m.duplicateFunc(ctx, projectID, name)
+	}
+	return &models.Project{ID: uuid.New(), Name: name}, nil
+}
+
+func (m *mockProjectService) GetVersions(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error) {
+	if m.getVersionsFunc != nil {
+		return m.getVersionsFunc(ctx, projectID)
+	}
+	return []*models.ProjectVersion{}, nil
+}
+
+func (m *mockProjectService) RestoreVersion(ctx context.Context, versionID uuid.UUID) (*models.Project, error) {
+	if m.restoreVersionFunc != nil {
+		return m.restoreVersionFunc(ctx, versionID)
+	}
+	return &models.Project{ID: uuid.New()}, nil
 }
 
 func (m *mockProjectService) Update(ctx context.Context, project *models.Project) error {
@@ -183,6 +214,41 @@ func (m *mockProjectService) Delete(ctx context.Context, id uuid.UUID) error {
 		return m.deleteFunc(ctx, id)
 	}
 	return nil
+}
+
+func (m *mockProjectService) GetArchitecture(ctx context.Context, projectID uuid.UUID) (*dto.ArchitectureResponse, error) {
+	if m.getArchFunc != nil {
+		return m.getArchFunc(ctx, projectID)
+	}
+	return &dto.ArchitectureResponse{}, nil
+}
+
+func (m *mockProjectService) SaveArchitecture(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*dto.ArchitectureResponse, error) {
+	if m.saveArchFunc != nil {
+		return m.saveArchFunc(ctx, projectID, req)
+	}
+	return &dto.ArchitectureResponse{}, nil
+}
+
+func (m *mockProjectService) UpdateNode(ctx context.Context, projectID uuid.UUID, nodeID string, req *dto.UpdateNodeRequest) (*dto.ArchitectureNode, error) {
+	if m.updateNodeFunc != nil {
+		return m.updateNodeFunc(ctx, projectID, nodeID, req)
+	}
+	return &dto.ArchitectureNode{}, nil
+}
+
+func (m *mockProjectService) DeleteNode(ctx context.Context, projectID uuid.UUID, nodeID string) error {
+	if m.deleteNodeFunc != nil {
+		return m.deleteNodeFunc(ctx, projectID, nodeID)
+	}
+	return nil
+}
+
+func (m *mockProjectService) ValidateArchitecture(ctx context.Context, projectID uuid.UUID) (*dto.ValidationResponse, error) {
+	if m.validateArchFunc != nil {
+		return m.validateArchFunc(ctx, projectID)
+	}
+	return &dto.ValidationResponse{Valid: true}, nil
 }
 
 func TestPipelineOrchestrator_ProcessDiagram(t *testing.T) {

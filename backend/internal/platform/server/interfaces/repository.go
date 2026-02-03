@@ -14,12 +14,21 @@ type ProjectRepository interface {
 	Create(ctx context.Context, project *models.Project) error
 	FindByID(ctx context.Context, id uuid.UUID) (*models.Project, error)
 	FindByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error)
+	FindAll(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error)
 	Update(ctx context.Context, project *models.Project) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	BeginTransaction(ctx context.Context) (interface{}, context.Context)
 	CommitTransaction(tx interface{}) error
 	RollbackTransaction(tx interface{}) error
 }
+
+// ProjectVersionRepository defines project version repository operations
+type ProjectVersionRepository interface {
+	Create(ctx context.Context, version *models.ProjectVersion) error
+	FindByID(ctx context.Context, id uuid.UUID) (*models.ProjectVersion, error)
+	ListByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+} // added ProjectVersionRepository definitions
 
 // ResourceRepository defines resource repository operations
 type ResourceRepository interface {

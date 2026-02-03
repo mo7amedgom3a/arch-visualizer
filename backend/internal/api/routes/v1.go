@@ -39,9 +39,20 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		projects := v1.Group("/projects")
 		{
 			projects.POST("", projectCtrl.CreateProject)
+			projects.GET("", projectCtrl.ListProjects) // New List endpoint
 			projects.GET("/:id", projectCtrl.GetProject)
 			projects.PUT("/:id", projectCtrl.UpdateProject)
 			projects.DELETE("/:id", projectCtrl.DeleteProject)
+			projects.POST("/:id/duplicate", projectCtrl.DuplicateProject)
+			projects.GET("/:id/versions", projectCtrl.GetProjectVersions)
+			projects.POST("/:id/restore", projectCtrl.RestoreProjectVersion)
+
+			// Architecture endpoints
+			projects.GET("/:id/architecture", projectCtrl.GetArchitecture)
+			projects.PUT("/:id/architecture", projectCtrl.UpdateArchitecture)
+			projects.PATCH("/:id/architecture/nodes/:nodeId", projectCtrl.UpdateArchitectureNode)
+			projects.DELETE("/:id/architecture/nodes/:nodeId", projectCtrl.DeleteArchitectureNode)
+			projects.POST("/:id/architecture/validate", projectCtrl.ValidateArchitecture)
 		}
 
 		// IAM Routes

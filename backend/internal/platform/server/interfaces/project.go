@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
@@ -17,11 +18,35 @@ type ProjectService interface {
 	// GetByID retrieves a project by ID with related data
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Project, error)
 
-	// ListByUserID retrieves all projects for a user
-	ListByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error)
+	// List retrieves projects with pagination and filtering
+	List(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error)
+
+	// Duplicate duplicates an existing project
+	Duplicate(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, error)
 
 	// Update updates an existing project
 	Update(ctx context.Context, project *models.Project) error
+
+	// GetVersions retrieves version history for a project
+	GetVersions(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error)
+
+	// RestoreVersion restores a project to a specific version
+	RestoreVersion(ctx context.Context, versionID uuid.UUID) (*models.Project, error)
+
+	// GetArchitecture retrieves the full architecture for a project
+	GetArchitecture(ctx context.Context, projectID uuid.UUID) (*dto.ArchitectureResponse, error)
+
+	// SaveArchitecture saves the full architecture for a project
+	SaveArchitecture(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*dto.ArchitectureResponse, error)
+
+	// UpdateNode updates a single node in the architecture
+	UpdateNode(ctx context.Context, projectID uuid.UUID, nodeID string, req *dto.UpdateNodeRequest) (*dto.ArchitectureNode, error)
+
+	// DeleteNode deletes a node from the architecture
+	DeleteNode(ctx context.Context, projectID uuid.UUID, nodeID string) error
+
+	// ValidateArchitecture validates the current architecture
+	ValidateArchitecture(ctx context.Context, projectID uuid.UUID) (*dto.ValidationResponse, error)
 
 	// Delete deletes a project by ID
 	Delete(ctx context.Context, id uuid.UUID) error
@@ -43,6 +68,8 @@ type ProjectService interface {
 type CreateProjectRequest struct {
 	UserID        uuid.UUID
 	Name          string
+	Description   string
+	Tags          []string
 	IACTargetID   uint
 	CloudProvider string
 	Region        string

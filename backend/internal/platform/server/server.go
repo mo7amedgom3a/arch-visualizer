@@ -100,6 +100,14 @@ func NewServer() (*Server, error) {
 
 	// Create repository adapters
 	projectRepoAdapter := &services.ProjectRepositoryAdapter{Repo: projectRepo}
+
+	// Create project version repository
+	versionRepo, err := repository.NewProjectVersionRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create project version repository: %w", err)
+	}
+	versionRepoAdapter := &services.ProjectVersionRepositoryAdapter{Repo: versionRepo}
+
 	resourceRepoAdapter := &services.ResourceRepositoryAdapter{Repo: resourceRepo}
 	resourceTypeRepoAdapter := &services.ResourceTypeRepositoryAdapter{Repo: resourceTypeRepo}
 	containmentRepoAdapter := &services.ResourceContainmentRepositoryAdapter{Repo: containmentRepo}
@@ -128,6 +136,7 @@ func NewServer() (*Server, error) {
 	// Create project service with pricing support
 	projectService := services.NewProjectServiceWithPricing(
 		projectRepoAdapter,
+		versionRepoAdapter,
 		resourceRepoAdapter,
 		resourceTypeRepoAdapter,
 		containmentRepoAdapter,

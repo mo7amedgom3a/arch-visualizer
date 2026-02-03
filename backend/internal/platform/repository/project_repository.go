@@ -59,6 +59,55 @@ func (r *ProjectRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.GetDB(ctx).Delete(&models.Project{}, "id = ?", id).Error
 }
 
+// FindAll finds all projects with pagination, sorting, and searching
+func (r *ProjectRepository) FindAll(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error) {
+	var projects []*models.Project
+	var total int64
+
+	db := r.GetDB(ctx).Model(&models.Project{})
+
+	// Filter by user
+	if userID != uuid.Nil {
+		db = db.Where("user_id = ?", userID)
+	}
+
+	// Search
+	if search != "" {
+		searchParam := "%" + search + "%"
+		db = db.Where("name ILIKE ? OR description ILIKE ?", searchParam, searchParam)
+	}
+
+	// Count total before pagination
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Sorting
+	if sort != "" {
+		if order == "" {
+			order = "asc"
+		}
+		db = db.Order(sort + " " + order)
+	} else {
+		db = db.Order("created_at desc")
+	}
+
+	// Pagination
+	offset := (page - 1) * limit
+	if offset < 0 {
+		offset = 0
+	}
+
+	err := db.
+		Preload("User").
+		Preload("IACTarget").
+		Limit(limit).
+		Offset(offset).
+		Find(&projects).Error
+
+	return projects, total, err
+}
+
 // List lists all projects with pagination
 func (r *ProjectRepository) List(ctx context.Context, limit, offset int) ([]*models.Project, error) {
 	var projects []*models.Project

@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     name VARCHAR(255) NOT NULL,
     avatar VARCHAR(500),
     is_verified BOOLEAN DEFAULT false,
@@ -15,10 +15,43 @@ CREATE TABLE projects (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     infra_tool SERIAL  REFERENCES iac_targets(id),
     name TEXT NOT NULL,
+    description TEXT,
+    thumbnail TEXT,
+    tags TEXT[],
     cloud_provider TEXT NOT NULL CHECK (cloud_provider IN ('aws', 'azure', 'gcp')),
     region TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT now()
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    deleted_at TIMESTAMP
 );
+# Project Versions for version control
+CREATE TABLE project_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT now(),
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    changes TEXT,
+    snapshot JSONB
+);
+
+CREATE INDEX idx_project_versions_project_id ON project_versions (project_id);
+
+# Project Variables for Terraform/IaC variables
+CREATE TABLE project_variables (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL, -- string, number, bool, list(string), map(string)
+    description TEXT,
+    default_value JSONB,
+    sensitive BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now(),
+    UNIQUE(project_id, name)
+);
+
+CREATE INDEX idx_project_variables_project_id ON project_variables (project_id);
+
 # Resource Categories example: Compute, Networking, Storage, Database, Security
 CREATE TABLE resource_categories (
     id SERIAL PRIMARY KEY,
@@ -50,12 +83,13 @@ CREATE TABLE resources (
     resource_type_id INT REFERENCES resource_types(id),
     name TEXT NOT NULL,
 
-    -- Visual positioning
-    pos_x INT NOT NULL,
-    pos_y INT NOT NULL,
+-- Visual positioning
+pos_x INT NOT NULL, pos_y INT NOT NULL,
 
-    -- JSON config (CIDR, instance_type, tags...)
-    config JSONB NOT NULL DEFAULT '{}',
+-- JSON config (CIDR, instance_type, tags...)
+
+
+config JSONB NOT NULL DEFAULT '{}',
 
     created_at TIMESTAMP DEFAULT now()
 );
@@ -182,8 +216,13 @@ CREATE TABLE pricing_rates (
 );
 
 -- Create unique constraint using partial index for NULL region handling
-CREATE UNIQUE INDEX unique_pricing_rate 
-ON pricing_rates(provider, resource_type, component_name, COALESCE(region, ''), effective_from);
+CREATE UNIQUE INDEX unique_pricing_rate ON pricing_rates (
+    provider,
+    resource_type,
+    component_name,
+    COALESCE(region, ''),
+    effective_from
+);
 
 # Hidden dependencies - defines implicit resource dependencies (e.g., NAT Gateway -> Elastic IP)
 CREATE TABLE hidden_dependencies (
@@ -200,7 +239,7 @@ CREATE TABLE hidden_dependencies (
 
 -- Marketplace: Categories table
 CREATE TABLE categories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     name VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -208,20 +247,30 @@ CREATE TABLE categories (
 
 -- Marketplace: Templates table
 CREATE TABLE templates (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
-    cloud_provider VARCHAR(50) NOT NULL CHECK (cloud_provider IN ('AWS', 'Azure', 'GCP', 'Multi-Cloud')),
-    rating DECIMAL(3,2) DEFAULT 0 CHECK (rating >= 0 AND rating <= 5),
+    category_id UUID NOT NULL REFERENCES categories (id) ON DELETE RESTRICT,
+    cloud_provider VARCHAR(50) NOT NULL CHECK (
+        cloud_provider IN (
+            'AWS',
+            'Azure',
+            'GCP',
+            'Multi-Cloud'
+        )
+    ),
+    rating DECIMAL(3, 2) DEFAULT 0 CHECK (
+        rating >= 0
+        AND rating <= 5
+    ),
     review_count INTEGER DEFAULT 0,
     downloads INTEGER DEFAULT 0,
-    price DECIMAL(10,2) DEFAULT 0,
+    price DECIMAL(10, 2) DEFAULT 0,
     is_subscription BOOLEAN DEFAULT false,
-    subscription_price DECIMAL(10,2),
-    estimated_cost_min DECIMAL(10,2) NOT NULL,
-    estimated_cost_max DECIMAL(10,2) NOT NULL,
-    author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subscription_price DECIMAL(10, 2),
+    estimated_cost_min DECIMAL(10, 2) NOT NULL,
+    estimated_cost_max DECIMAL(10, 2) NOT NULL,
+    author_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     image_url VARCHAR(500),
     is_popular BOOLEAN DEFAULT false,
     is_new BOOLEAN DEFAULT false,
@@ -235,7 +284,7 @@ CREATE TABLE templates (
 
 -- Marketplace: Technologies lookup table
 CREATE TABLE technologies (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     name VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -243,14 +292,14 @@ CREATE TABLE technologies (
 
 -- Marketplace: Template Technologies junction table (Many-to-Many)
 CREATE TABLE template_technologies (
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-    technology_id UUID NOT NULL REFERENCES technologies(id) ON DELETE CASCADE,
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
+    technology_id UUID NOT NULL REFERENCES technologies (id) ON DELETE CASCADE,
     PRIMARY KEY (template_id, technology_id)
 );
 
 -- Marketplace: IAC Formats lookup table
 CREATE TABLE iac_formats (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     name VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -258,14 +307,14 @@ CREATE TABLE iac_formats (
 
 -- Marketplace: Template IAC Formats junction table (Many-to-Many)
 CREATE TABLE template_iac_formats (
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-    iac_format_id UUID NOT NULL REFERENCES iac_formats(id) ON DELETE CASCADE,
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
+    iac_format_id UUID NOT NULL REFERENCES iac_formats (id) ON DELETE CASCADE,
     PRIMARY KEY (template_id, iac_format_id)
 );
 
 -- Marketplace: Compliance standards lookup table
 CREATE TABLE compliance_standards (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
     name VARCHAR(100) NOT NULL UNIQUE,
     slug VARCHAR(100) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -273,15 +322,15 @@ CREATE TABLE compliance_standards (
 
 -- Marketplace: Template Compliance junction table (Many-to-Many)
 CREATE TABLE template_compliance (
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-    compliance_id UUID NOT NULL REFERENCES compliance_standards(id) ON DELETE CASCADE,
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
+    compliance_id UUID NOT NULL REFERENCES compliance_standards (id) ON DELETE CASCADE,
     PRIMARY KEY (template_id, compliance_id)
 );
 
 -- Marketplace: Template Use Cases
 CREATE TABLE template_use_cases (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
     icon VARCHAR(100),
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -291,8 +340,8 @@ CREATE TABLE template_use_cases (
 
 -- Marketplace: Template What You Get items
 CREATE TABLE template_features (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
     feature TEXT NOT NULL,
     display_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -300,12 +349,12 @@ CREATE TABLE template_features (
 
 -- Marketplace: Template Components
 CREATE TABLE template_components (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     service VARCHAR(255) NOT NULL,
     configuration TEXT,
-    monthly_cost DECIMAL(10,2) DEFAULT 0,
+    monthly_cost DECIMAL(10, 2) DEFAULT 0,
     purpose TEXT,
     display_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -313,10 +362,13 @@ CREATE TABLE template_components (
 
 -- Marketplace: Reviews table
 CREATE TABLE reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    template_id UUID NOT NULL REFERENCES templates(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    template_id UUID NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (
+        rating >= 1
+        AND rating <= 5
+    ),
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     use_case VARCHAR(255),
@@ -329,41 +381,62 @@ CREATE TABLE reviews (
 );
 
 -- Marketplace indexes
-CREATE INDEX idx_templates_category ON templates(category_id);
-CREATE INDEX idx_templates_author ON templates(author_id);
-CREATE INDEX idx_templates_cloud_provider ON templates(cloud_provider);
-CREATE INDEX idx_templates_rating ON templates(rating DESC);
-CREATE INDEX idx_templates_downloads ON templates(downloads DESC);
-CREATE INDEX idx_templates_price ON templates(price);
-CREATE INDEX idx_templates_is_popular ON templates(is_popular);
-CREATE INDEX idx_templates_is_new ON templates(is_new);
-CREATE INDEX idx_templates_created_at ON templates(created_at DESC);
+CREATE INDEX idx_templates_category ON templates (category_id);
 
-CREATE INDEX idx_reviews_template ON reviews(template_id);
-CREATE INDEX idx_reviews_user ON reviews(user_id);
-CREATE INDEX idx_reviews_rating ON reviews(rating);
-CREATE INDEX idx_reviews_created_at ON reviews(created_at DESC);
+CREATE INDEX idx_templates_author ON templates (author_id);
 
-CREATE INDEX idx_template_technologies_template ON template_technologies(template_id);
-CREATE INDEX idx_template_technologies_tech ON template_technologies(technology_id);
+CREATE INDEX idx_templates_cloud_provider ON templates (cloud_provider);
 
-CREATE INDEX idx_template_iac_formats_template ON template_iac_formats(template_id);
-CREATE INDEX idx_template_compliance_template ON template_compliance(template_id);
+CREATE INDEX idx_templates_rating ON templates (rating DESC);
 
-CREATE INDEX idx_template_use_cases_template ON template_use_cases(template_id);
-CREATE INDEX idx_template_features_template ON template_features(template_id);
-CREATE INDEX idx_template_components_template ON template_components(template_id);
+CREATE INDEX idx_templates_downloads ON templates (downloads DESC);
+
+CREATE INDEX idx_templates_price ON templates (price);
+
+CREATE INDEX idx_templates_is_popular ON templates (is_popular);
+
+CREATE INDEX idx_templates_is_new ON templates (is_new);
+
+CREATE INDEX idx_templates_created_at ON templates (created_at DESC);
+
+CREATE INDEX idx_reviews_template ON reviews (template_id);
+
+CREATE INDEX idx_reviews_user ON reviews (user_id);
+
+CREATE INDEX idx_reviews_rating ON reviews (rating);
+
+CREATE INDEX idx_reviews_created_at ON reviews (created_at DESC);
+
+CREATE INDEX idx_template_technologies_template ON template_technologies (template_id);
+
+CREATE INDEX idx_template_technologies_tech ON template_technologies (technology_id);
+
+CREATE INDEX idx_template_iac_formats_template ON template_iac_formats (template_id);
+
+CREATE INDEX idx_template_compliance_template ON template_compliance (template_id);
+
+CREATE INDEX idx_template_use_cases_template ON template_use_cases (template_id);
+
+CREATE INDEX idx_template_features_template ON template_features (template_id);
+
+CREATE INDEX idx_template_components_template ON template_components (template_id);
 
 -- Pricing tables indexes
-CREATE INDEX idx_pricing_rates_provider ON pricing_rates(provider);
-CREATE INDEX idx_pricing_rates_resource_type ON pricing_rates(resource_type);
-CREATE INDEX idx_pricing_rates_region ON pricing_rates(region);
-CREATE INDEX idx_pricing_rates_effective_from ON pricing_rates(effective_from);
-CREATE INDEX idx_pricing_rates_effective_to ON pricing_rates(effective_to);
+CREATE INDEX idx_pricing_rates_provider ON pricing_rates (provider);
 
-CREATE INDEX idx_hidden_dependencies_provider ON hidden_dependencies(provider);
-CREATE INDEX idx_hidden_dependencies_parent ON hidden_dependencies(parent_resource_type);
-CREATE INDEX idx_hidden_dependencies_child ON hidden_dependencies(child_resource_type);
+CREATE INDEX idx_pricing_rates_resource_type ON pricing_rates (resource_type);
+
+CREATE INDEX idx_pricing_rates_region ON pricing_rates (region);
+
+CREATE INDEX idx_pricing_rates_effective_from ON pricing_rates (effective_from);
+
+CREATE INDEX idx_pricing_rates_effective_to ON pricing_rates (effective_to);
+
+CREATE INDEX idx_hidden_dependencies_provider ON hidden_dependencies (provider);
+
+CREATE INDEX idx_hidden_dependencies_parent ON hidden_dependencies (parent_resource_type);
+
+CREATE INDEX idx_hidden_dependencies_child ON hidden_dependencies (child_resource_type);
 
 -- Marketplace: triggers to update derived fields
 CREATE OR REPLACE FUNCTION update_template_rating()
