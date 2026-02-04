@@ -4,21 +4,24 @@ import (
 	"context"
 	"fmt"
 
+	"log/slog"
+
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	tfgen "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 )
 
 // CodegenServiceImpl implements CodegenService interface
 type CodegenServiceImpl struct {
 	engines map[string]iac.Engine
+	logger  *slog.Logger
 }
 
 // NewCodegenService creates a new codegen service with default engines
-func NewCodegenService() serverinterfaces.CodegenService {
+func NewCodegenService(logger *slog.Logger) serverinterfaces.CodegenService {
 	engines := make(map[string]iac.Engine)
 
 	// Register Terraform engine
@@ -37,6 +40,7 @@ func NewCodegenService() serverinterfaces.CodegenService {
 
 	return &CodegenServiceImpl{
 		engines: engines,
+		logger:  logger,
 	}
 }
 
@@ -49,6 +53,7 @@ func NewCodegenServiceWithEngines(engines map[string]iac.Engine) serverinterface
 
 // Generate generates IaC code for an architecture using the specified engine
 func (s *CodegenServiceImpl) Generate(ctx context.Context, arch *architecture.Architecture, engine string) (*iac.Output, error) {
+	s.logger.Info("Generating code", "engine", engine)
 	if arch == nil {
 		return nil, fmt.Errorf("architecture is nil")
 	}

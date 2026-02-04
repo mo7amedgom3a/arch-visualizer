@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestCodegenService_SupportedEngines(t *testing.T) {
-	service := NewCodegenService()
+	service := NewCodegenService(slog.Default())
 
 	engines := service.SupportedEngines()
 	if len(engines) == 0 {
@@ -31,7 +32,7 @@ func TestCodegenService_SupportedEngines(t *testing.T) {
 }
 
 func TestCodegenService_Generate(t *testing.T) {
-	service := NewCodegenService()
+	service := NewCodegenService(slog.Default())
 	ctx := context.Background()
 
 	tests := []struct {
@@ -88,16 +89,16 @@ func TestCodegenService_Generate(t *testing.T) {
 }
 
 func TestCodegenService_GenerateWithValidArchitecture(t *testing.T) {
-	service := NewCodegenService()
+	service := NewCodegenService(slog.Default())
 	ctx := context.Background()
 
 	// Create a minimal valid architecture
 	arch := &architecture.Architecture{
-		Provider:  resource.AWS,
-		Region:     "us-east-1",
-		Resources:  []*resource.Resource{},
-		Variables:  []architecture.Variable{},
-		Outputs:    []architecture.Output{},
+		Provider:     resource.AWS,
+		Region:       "us-east-1",
+		Resources:    []*resource.Resource{},
+		Variables:    []architecture.Variable{},
+		Outputs:      []architecture.Output{},
 		Containments: make(map[string][]string),
 		Dependencies: make(map[string][]string),
 	}

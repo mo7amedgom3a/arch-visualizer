@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,7 +30,7 @@ func ArchitectureRoundtripRunner(ctx context.Context) error {
 
 	// Step 1: Initialize service layer server
 	fmt.Println("\n[Step 1] Initializing service layer server...")
-	srv, err := server.NewServer()
+	srv, err := server.NewServer(slog.Default())
 	if err != nil {
 		return fmt.Errorf("failed to initialize server: %w", err)
 	}

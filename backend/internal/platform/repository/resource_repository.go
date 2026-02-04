@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
@@ -11,19 +13,21 @@ import (
 // ResourceRepository defines operations for resource management
 type ResourceRepository struct {
 	*BaseRepository
+	logger *slog.Logger
 }
 
 // NewResourceRepository creates a new resource repository
-func NewResourceRepository() (*ResourceRepository, error) {
+func NewResourceRepository(logger *slog.Logger) (*ResourceRepository, error) {
 	base, err := NewBaseRepository()
 	if err != nil {
 		return nil, errors.NewDatabaseConnectionFailed(err)
 	}
-	return &ResourceRepository{BaseRepository: base}, nil
+	return &ResourceRepository{BaseRepository: base, logger: logger}, nil
 }
 
 // Create creates a new resource
 func (r *ResourceRepository) Create(ctx context.Context, resource *models.Resource) error {
+	r.logger.Info("Creating resource", "resource_id", resource.ID, "type", resource.ResourceTypeID)
 	err := r.GetDB(ctx).Create(resource).Error
 	if err != nil {
 		return errors.HandleGormError(err, "resource", "ResourceRepository.Create")

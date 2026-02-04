@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestDiagramService_Parse(t *testing.T) {
-	service := NewDiagramService()
+	service := NewDiagramService(slog.Default())
 	ctx := context.Background()
 
 	tests := []struct {
@@ -72,7 +73,7 @@ func TestDiagramService_Parse(t *testing.T) {
 }
 
 func TestDiagramService_Validate(t *testing.T) {
-	service := NewDiagramService()
+	service := NewDiagramService(slog.Default())
 	ctx := context.Background()
 
 	// Create a valid diagram graph
@@ -112,7 +113,7 @@ func TestDiagramService_Validate(t *testing.T) {
 			wantError: true,
 		},
 		{
-			name: "graph with validation options",
+			name:  "graph with validation options",
 			graph: validGraph,
 			opts: &validator.ValidationOptions{
 				Provider: "aws",
@@ -142,7 +143,7 @@ func TestDiagramService_Validate(t *testing.T) {
 }
 
 func TestDiagramService_Integration(t *testing.T) {
-	service := NewDiagramService()
+	service := NewDiagramService(slog.Default())
 	ctx := context.Background()
 
 	// Test full flow: Parse -> Validate

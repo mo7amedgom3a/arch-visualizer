@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/controllers"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server"
@@ -24,9 +26,9 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		// Controllers
 		projectCtrl := controllers.NewProjectController(srv.ProjectService)
 		userCtrl := controllers.NewUserController(srv.UserService)
-		diagramCtrl := controllers.NewDiagramController(srv.PipelineOrchestrator, srv.DiagramService, srv.ArchitectureService)
+		diagramCtrl := controllers.NewDiagramController(srv.PipelineOrchestrator, srv.DiagramService, srv.ArchitectureService, slog.Default())
 		iamCtrl := controllers.NewIAMController(srv.IAMService)
-		generationCtrl := controllers.NewGenerationController(srv.PipelineOrchestrator)
+		generationCtrl := controllers.NewGenerationController(srv.PipelineOrchestrator, slog.Default())
 
 		// Users Routes
 		users := v1.Group("/users")

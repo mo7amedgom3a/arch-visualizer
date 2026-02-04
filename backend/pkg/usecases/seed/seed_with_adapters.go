@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	awscomputeadapter "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/adapters/compute"
 	awsnetworkingadapter "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/adapters/networking"
@@ -58,12 +59,12 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 		return err
 	}
 
-	projectRepo, err := repository.NewProjectRepository()
+	projectRepo, err := repository.NewProjectRepository(slog.Default())
 	if err != nil {
 		return err
 	}
 
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(slog.Default())
 	if err != nil {
 		return err
 	}

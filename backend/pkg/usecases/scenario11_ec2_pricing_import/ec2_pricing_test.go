@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -173,7 +175,8 @@ func EC2PricingImportTestRunner(ctx context.Context, scraperJSONPath string) err
 	fmt.Println("\n[Step 4] Creating test architecture with multiple EC2 instance types...")
 
 	// Initialize server
-	srv, err := server.NewServer()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	srv, err := server.NewServer(logger)
 	if err != nil {
 		return fmt.Errorf("failed to initialize server: %w", err)
 	}

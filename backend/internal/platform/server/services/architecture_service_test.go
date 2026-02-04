@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
@@ -33,7 +34,7 @@ func (m *mockRuleService) ValidateArchitecture(ctx context.Context, architecture
 
 func TestArchitectureService_MapFromDiagram(t *testing.T) {
 	ruleService := &mockRuleService{}
-	service := NewArchitectureService(ruleService)
+	service := NewArchitectureService(ruleService, slog.Default())
 	ctx := context.Background()
 
 	// Create a valid diagram graph
@@ -139,7 +140,7 @@ func TestArchitectureService_ValidateRules(t *testing.T) {
 				tt.setupMock(tt.ruleService.(*mockRuleService))
 			}
 
-			service := NewArchitectureService(tt.ruleService)
+			service := NewArchitectureService(tt.ruleService, slog.Default())
 
 			// Create a minimal architecture for testing
 			// Note: This is a simplified test - in a real scenario, you'd create a full architecture
@@ -159,7 +160,7 @@ func TestArchitectureService_ValidateRules(t *testing.T) {
 }
 
 func TestArchitectureService_GetSortedResources(t *testing.T) {
-	service := NewArchitectureService(nil)
+	service := NewArchitectureService(nil, slog.Default())
 	ctx := context.Background()
 
 	tests := []struct {

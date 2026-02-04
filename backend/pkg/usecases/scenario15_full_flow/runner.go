@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
@@ -147,7 +149,8 @@ func run() error {
 	}
 
 	// 3. Initialize Repositories
-	projectRepoRaw, err := repository.NewProjectRepository()
+	logger := slog.Default()
+	projectRepoRaw, err := repository.NewProjectRepository(logger)
 	if err != nil {
 		return err
 	}
@@ -162,7 +165,7 @@ func run() error {
 	// But struct fields are not exported? No, "Repo" field is exported in services.ProjectVersionRepositoryAdapter
 	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
 
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(logger)
 	if err != nil {
 		return err
 	}
@@ -204,11 +207,11 @@ func run() error {
 		return err
 	}
 
-	// 4. Initialize Services
-	diagramService := services.NewDiagramService()
+	// 4. Initialize Services (logger already defined above)
+	diagramService := services.NewDiagramService(logger)
 	// Pass nil for ruleService as we don't need strict rule validation for this simulation
-	architectureService := services.NewArchitectureService(nil)
-	codegenService := services.NewCodegenService()
+	architectureService := services.NewArchitectureService(nil, logger)
+	codegenService := services.NewCodegenService(logger)
 	projectService := services.NewProjectService(
 		projectRepo, // Wrapped
 		versionRepo, // Wrapper

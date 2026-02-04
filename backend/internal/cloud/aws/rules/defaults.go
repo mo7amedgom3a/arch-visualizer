@@ -74,3 +74,47 @@ func DefaultNetworkingRules() []ConstraintRecord {
 		{ResourceType: "NATGateway", ConstraintType: "forbidden_dependencies", ConstraintValue: "InternetGateway,VPC"},
 	}
 }
+
+// DefaultComputeRules returns the default AWS compute rules
+func DefaultComputeRules() []ConstraintRecord {
+	return []ConstraintRecord{
+		// EC2 Rules
+		// EC2 requires Subnet as parent
+		{ResourceType: "EC2", ConstraintType: "requires_parent", ConstraintValue: "Subnet"},
+		// EC2 can only have Subnet as parent
+		{ResourceType: "EC2", ConstraintType: "allowed_parent", ConstraintValue: "Subnet"},
+		// EC2 requires region
+		{ResourceType: "EC2", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// EC2 can have dependencies on EBS, ENI, EIP, SecurityGroup, IAMRole
+		{ResourceType: "EC2", ConstraintType: "allowed_dependencies", ConstraintValue: "EBS,NetworkInterface,ElasticIP,SecurityGroup,IAMRole"},
+		// EC2 cannot depend on VPC directly
+		{ResourceType: "EC2", ConstraintType: "forbidden_dependencies", ConstraintValue: "VPC"},
+
+		// Lambda Rules
+		// Lambda is regional, no strict parent requirement in our model (can be standalone or in VPC)
+		// But for now, let's say it's regional (parent: nil or Region via visualizer logic?)
+		// In our graph model, regional resources often have no parent or Region as parent.
+		// Let's enforce Region requirement.
+		{ResourceType: "Lambda", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// Lambda can depend on IAMRole, S3, DynamoDB, etc.
+		{ResourceType: "Lambda", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole,S3,DynamoDB,SQS,SNS"},
+	}
+}
+
+// DefaultStorageRules returns the default AWS storage rules
+func DefaultStorageRules() []ConstraintRecord {
+	return []ConstraintRecord{
+		// S3 Rules
+		// S3 is global/regional mixed, but bucket exists in a region.
+		{ResourceType: "S3", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// S3 often has no parent in visualizer (top level)
+
+		// EBS Rules
+		// EBS needs to be attached to EC2 or just exist in AZ?
+		// Usually visualized attached to EC2 or independent.
+		{ResourceType: "EBS", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// EBS allowed dependency: Snapshot?
+		// Allowed parent? Usually none if independent, or EC2 if we model containment (but EBS isn't contained in EC2).
+		// Let's leave parent constraints loose for EBS for now.
+	}
+}

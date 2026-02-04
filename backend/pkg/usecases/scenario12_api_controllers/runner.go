@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto/request"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/routes"
@@ -25,7 +27,7 @@ func Run(ctx context.Context) error {
 
 	// Step 1: Initialize server and router
 	fmt.Println("\n[Step 1] Initializing server and router...")
-	srv, err := server.NewServer()
+	srv, err := server.NewServer(slog.Default())
 	if err != nil {
 		return fmt.Errorf("failed to initialize server: %w", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
@@ -428,12 +429,12 @@ func seedMarketplaceData(ctx context.Context, users []*models.User) error {
 
 // seedScenarios creates projects and resources based on the use case scenarios
 func seedScenarios(ctx context.Context, users []*models.User) error {
-	projectRepo, err := repository.NewProjectRepository()
+	projectRepo, err := repository.NewProjectRepository(slog.Default())
 	if err != nil {
 		return err
 	}
 
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(slog.Default())
 	if err != nil {
 		return err
 	}

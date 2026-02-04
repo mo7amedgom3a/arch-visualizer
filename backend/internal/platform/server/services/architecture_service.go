@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"log/slog"
+
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
@@ -16,17 +18,20 @@ import (
 // ArchitectureServiceImpl implements ArchitectureService interface
 type ArchitectureServiceImpl struct {
 	ruleService serverinterfaces.RuleService
+	logger      *slog.Logger
 }
 
 // NewArchitectureService creates a new architecture service
-func NewArchitectureService(ruleService serverinterfaces.RuleService) serverinterfaces.ArchitectureService {
+func NewArchitectureService(ruleService serverinterfaces.RuleService, logger *slog.Logger) serverinterfaces.ArchitectureService {
 	return &ArchitectureServiceImpl{
 		ruleService: ruleService,
+		logger:      logger,
 	}
 }
 
 // MapFromDiagram converts a diagram graph to a domain architecture
 func (s *ArchitectureServiceImpl) MapFromDiagram(ctx context.Context, graph *graph.DiagramGraph, provider resource.CloudProvider) (*architecture.Architecture, error) {
+	s.logger.Info("Mapping diagram to architecture", "provider", provider)
 	if graph == nil {
 		return nil, fmt.Errorf("diagram graph is nil")
 	}

@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"log/slog"
+
 	"github.com/google/uuid"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
@@ -11,19 +13,21 @@ import (
 // ProjectRepository defines operations for project management
 type ProjectRepository struct {
 	*BaseRepository
+	logger *slog.Logger
 }
 
 // NewProjectRepository creates a new project repository
-func NewProjectRepository() (*ProjectRepository, error) {
+func NewProjectRepository(logger *slog.Logger) (*ProjectRepository, error) {
 	base, err := NewBaseRepository()
 	if err != nil {
 		return nil, platformerrors.NewDatabaseConnectionFailed(err)
 	}
-	return &ProjectRepository{BaseRepository: base}, nil
+	return &ProjectRepository{BaseRepository: base, logger: logger}, nil
 }
 
 // Create creates a new project
 func (r *ProjectRepository) Create(ctx context.Context, project *models.Project) error {
+	r.logger.Info("Creating project", "project_id", project.ID)
 	return r.GetDB(ctx).Create(project).Error
 }
 

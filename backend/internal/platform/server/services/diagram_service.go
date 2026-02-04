@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"log/slog"
+
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
@@ -12,16 +14,19 @@ import (
 
 // DiagramServiceImpl implements DiagramService interface
 type DiagramServiceImpl struct {
-	// No dependencies needed - parser and validator are stateless
+	logger *slog.Logger
 }
 
 // NewDiagramService creates a new diagram service
-func NewDiagramService() serverinterfaces.DiagramService {
-	return &DiagramServiceImpl{}
+func NewDiagramService(logger *slog.Logger) serverinterfaces.DiagramService {
+	return &DiagramServiceImpl{
+		logger: logger,
+	}
 }
 
 // Parse parses diagram JSON into a DiagramGraph
 func (s *DiagramServiceImpl) Parse(ctx context.Context, jsonData []byte) (*graph.DiagramGraph, error) {
+	s.logger.Info("Parsing diagram", "size", len(jsonData))
 	// Parse IR diagram
 	irDiagram, err := parser.ParseIRDiagram(jsonData)
 	if err != nil {
@@ -44,5 +49,6 @@ func (s *DiagramServiceImpl) Validate(ctx context.Context, graph *graph.DiagramG
 	}
 
 	result := validator.Validate(graph, opts)
+	s.logger.Info("Validated diagram", "valid", result.Valid, "errors", len(result.Errors))
 	return result, nil
 }

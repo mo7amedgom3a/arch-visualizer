@@ -12,6 +12,16 @@ resource "aws_vpc" "vpc_2" {
   }
 }
 
+resource "aws_subnet" "subnet_4" {
+  availability_zone       = "us-east-1a"
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  tags = {
+    Name  =  "public"
+  }
+  vpc_id = aws_vpc.vpc_2.id
+}
+
 resource "aws_subnet" "subnet_6" {
   availability_zone       = "us-east-1b"
   cidr_block              = "10.0.2.0/24"
@@ -68,16 +78,6 @@ resource "aws_route_table_association" "route_table_8_assoc_0" {
   subnet_id      = aws_subnet.subnet_4.id
 }
 
-resource "aws_subnet" "subnet_4" {
-  availability_zone       = "us-east-1a"
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
-  tags = {
-    Name  =  "public"
-  }
-  vpc_id = aws_vpc.vpc_2.id
-}
-
 resource "aws_internet_gateway" "igw_9" {
   tags = {
     Name  =  "project-igw"
@@ -103,17 +103,6 @@ resource "aws_route_table_association" "route_table_10_assoc_0" {
   subnet_id      = aws_subnet.subnet_6.id
 }
 
-resource "aws_instance" "ec2_7" {
-  ami                         = "ami-0123456789"
-  associate_public_ip_address = false
-  instance_type               = var.instance_type
-  subnet_id                   = aws_subnet.subnet_6.id
-  tags = {
-    Name  =  "web-server"
-  }
-  vpc_security_group_ids = [aws_security_group.security_group_1.id]
-}
-
 resource "aws_eip" "nat_gateway_5_eip" {
   domain = "vpc"
   tags = {
@@ -127,5 +116,16 @@ resource "aws_nat_gateway" "nat_gateway_5" {
   tags = {
     Name  =  "my-nat-gateway"
   }
+}
+
+resource "aws_instance" "ec2_7" {
+  ami                         = "ami-0123456789"
+  associate_public_ip_address = false
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.subnet_6.id
+  tags = {
+    Name  =  "web-server"
+  }
+  vpc_security_group_ids = [aws_security_group.security_group_1.id]
 }
 

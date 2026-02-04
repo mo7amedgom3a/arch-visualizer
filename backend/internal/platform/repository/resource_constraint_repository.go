@@ -45,8 +45,16 @@ func (r *ResourceConstraintRepository) FindByResourceType(ctx context.Context, r
 	return constraints, err
 }
 
+// FindAll lists all constraints with their resource types.
+func (r *ResourceConstraintRepository) FindAll(ctx context.Context) ([]*models.ResourceConstraint, error) {
+	var constraints []*models.ResourceConstraint
+	err := r.GetDB(ctx).
+		Preload("ResourceType").
+		Find(&constraints).Error
+	return constraints, err
+}
+
 // Delete deletes a constraint by ID.
 func (r *ResourceConstraintRepository) Delete(ctx context.Context, id uint) error {
 	return r.GetDB(ctx).Delete(&models.ResourceConstraint{}, id).Error
 }
-

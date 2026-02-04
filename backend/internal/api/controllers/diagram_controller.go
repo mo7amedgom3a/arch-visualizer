@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ type DiagramController struct {
 	pipelineOrchestrator serverinterfaces.PipelineOrchestrator
 	diagramService       serverinterfaces.DiagramService
 	architectureService  serverinterfaces.ArchitectureService
+	logger               *slog.Logger
 }
 
 // NewDiagramController creates a new DiagramController
@@ -22,11 +24,13 @@ func NewDiagramController(
 	pipelineOrchestrator serverinterfaces.PipelineOrchestrator,
 	diagramService serverinterfaces.DiagramService,
 	architectureService serverinterfaces.ArchitectureService,
+	logger *slog.Logger,
 ) *DiagramController {
 	return &DiagramController{
 		pipelineOrchestrator: pipelineOrchestrator,
 		diagramService:       diagramService,
 		architectureService:  architectureService,
+		logger:               logger,
 	}
 }
 

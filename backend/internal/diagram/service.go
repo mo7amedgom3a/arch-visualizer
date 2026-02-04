@@ -7,6 +7,8 @@ import (
 	"strings"
 	"unicode"
 
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
@@ -23,16 +25,17 @@ type Service struct {
 	resourceRepo       *repository.ResourceRepository
 	resourceTypeRepo   *repository.ResourceTypeRepository
 	dependencyTypeRepo *repository.DependencyTypeRepository
+	logger             *slog.Logger
 }
 
 // NewService creates a new diagram service
-func NewService() (*Service, error) {
-	projectRepo, err := repository.NewProjectRepository()
+func NewService(logger *slog.Logger) (*Service, error) {
+	projectRepo, err := repository.NewProjectRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create project repository: %w", err)
 	}
 
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource repository: %w", err)
 	}
@@ -52,6 +55,7 @@ func NewService() (*Service, error) {
 		resourceRepo:       resourceRepo,
 		resourceTypeRepo:   resourceTypeRepo,
 		dependencyTypeRepo: dependencyTypeRepo,
+		logger:             logger,
 	}, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -18,7 +19,7 @@ type DiagramHandler struct {
 
 // NewDiagramHandler creates a new diagram handler
 func NewDiagramHandler() (*DiagramHandler, error) {
-	service, err := diagram.NewService()
+	service, err := diagram.NewService(slog.Default())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create diagram service: %w", err)
 	}
@@ -52,7 +53,7 @@ func (h *DiagramHandler) ProcessDiagram(w http.ResponseWriter, r *http.Request) 
 	// Parse the request - the body contains the diagram JSON
 	// We need to extract metadata (project_name, iac_tool_id, user_id) from query params or headers
 	// For now, we'll use query params for metadata and body for diagram JSON
-	
+
 	// Get metadata from query parameters
 	projectName := r.URL.Query().Get("project_name")
 	if projectName == "" {

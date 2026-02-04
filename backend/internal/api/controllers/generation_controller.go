@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"log/slog"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto"
@@ -15,11 +17,13 @@ import (
 
 type GenerationController struct {
 	orchestrator serverinterfaces.PipelineOrchestrator
+	logger       *slog.Logger
 }
 
-func NewGenerationController(orchestrator serverinterfaces.PipelineOrchestrator) *GenerationController {
+func NewGenerationController(orchestrator serverinterfaces.PipelineOrchestrator, logger *slog.Logger) *GenerationController {
 	return &GenerationController{
 		orchestrator: orchestrator,
+		logger:       logger,
 	}
 }
 
@@ -36,6 +40,7 @@ func NewGenerationController(orchestrator serverinterfaces.PipelineOrchestrator)
 // @Failure 500 {object} map[string]string
 // @Router /projects/{id}/generate [post]
 func (ctrl *GenerationController) GenerateCode(c *gin.Context) {
+	ctrl.logger.Info("Generating code request")
 	idStr := c.Param("id")
 	projectID, err := uuid.Parse(idStr)
 	if err != nil {

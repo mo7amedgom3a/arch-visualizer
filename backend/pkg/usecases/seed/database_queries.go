@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
@@ -19,7 +20,7 @@ type DatabaseQueryService struct {
 
 // NewDatabaseQueryService creates a new database query service
 func NewDatabaseQueryService() (*DatabaseQueryService, error) {
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(slog.Default())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource repository: %w", err)
 	}
@@ -463,5 +464,3 @@ func (dqs *DatabaseQueryService) PrintProjectResourcesSummary(ctx context.Contex
 	fmt.Printf("[LOG] Project summary printed for project %s\n", projectID.String())
 	return nil
 }
-
-

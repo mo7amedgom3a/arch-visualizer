@@ -1,7 +1,10 @@
 package server
 
 import (
+	"context"
 	"fmt"
+
+	"log/slog"
 
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
@@ -9,6 +12,7 @@ import (
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/orchestrator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/seeder"
 )
 
 // Server represents the service layer server with all dependencies wired
@@ -40,17 +44,18 @@ type Server struct {
 	pricingRepo        *repository.PricingRepository
 	pricingRateRepo    *repository.PricingRateRepository
 	hiddenDepRepo      *repository.HiddenDependencyRepository
+	constraintRepo     *repository.ResourceConstraintRepository
 }
 
 // NewServer creates a new server with all dependencies wired
-func NewServer() (*Server, error) {
+func NewServer(logger *slog.Logger) (*Server, error) {
 	// Initialize repositories
-	projectRepo, err := repository.NewProjectRepository()
+	projectRepo, err := repository.NewProjectRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create project repository: %w", err)
 	}
 
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource repository: %w", err)
 	}
@@ -99,6 +104,11 @@ func NewServer() (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create hidden dependency repository: %w", err)
 	}
+
+	constraintRepo, err := repository.NewResourceConstraintRepository()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create constraint repository: %w", err)
+	}
 	variableRepo, err := repository.NewProjectVariableRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create variable repository: %w", err)
@@ -130,13 +140,13 @@ func NewServer() (*Server, error) {
 	pricingRepoAdapter := &services.PricingRepositoryAdapter{Repo: pricingRepo}
 
 	// Initialize services
-	diagramService := services.NewDiagramService()
+	diagramService := services.NewDiagramService(logger)
 
 	// Create rule service adapter
 	ruleService := services.NewAWSRuleServiceAdapter()
 
-	architectureService := services.NewArchitectureService(ruleService)
-	codegenService := services.NewCodegenService()
+	architectureService := services.NewArchitectureService(ruleService, logger)
+	codegenService := services.NewCodegenService(logger)
 
 	// Create pricing service with DB-driven rates and hidden dependencies
 	pricingService := services.NewPricingServiceWithRepos(
@@ -144,6 +154,29 @@ func NewServer() (*Server, error) {
 		pricingRateRepo,
 		hiddenDepRepo,
 	)
+
+	// Create constraint service
+	constraintService := services.NewConstraintService(constraintRepo)
+
+	// Run seeder for resource constraints
+	// We need a background context for seeding
+	seedCtx := context.Background()
+	if err := seeder.SeedResourceConstraints(seedCtx, constraintRepo, resourceTypeRepo); err != nil {
+		fmt.Printf("Warning: Failed to seed resource constraints: %v\n", err)
+		// Continue anyway, don't crash
+	}
+
+	// Load constraints into rule service
+	// We do this after seeding to ensure we have the latest constraints
+	if constraints, err := constraintService.GetAllConstraints(seedCtx); err != nil {
+		fmt.Printf("Warning: Failed to load resource constraints: %v\n", err)
+	} else {
+		if err := ruleService.LoadRulesWithDefaults(seedCtx, constraints); err != nil {
+			fmt.Printf("Warning: Failed to apply resource constraints: %v\n", err)
+		} else {
+			fmt.Printf("✓ Loaded %d resource constraints from database\n", len(constraints))
+		}
+	}
 
 	// Create project service with pricing support
 	projectService := services.NewProjectServiceWithPricing(
@@ -196,5 +229,6 @@ func NewServer() (*Server, error) {
 		pricingRepo:          pricingRepo,
 		pricingRateRepo:      pricingRateRepo,
 		hiddenDepRepo:        hiddenDepRepo,
+		constraintRepo:       constraintRepo,
 	}, nil
 }

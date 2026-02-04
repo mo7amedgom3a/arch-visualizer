@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -143,12 +144,12 @@ func TerraformWithPersistenceRunner(ctx context.Context) error {
 // persistToDatabase saves the project, resources, containments, and dependencies to the database
 func persistToDatabase(ctx context.Context, arch *architecture.Architecture, diagramGraph *graph.DiagramGraph) (uuid.UUID, error) {
 	// Initialize repositories
-	projectRepo, err := repository.NewProjectRepository()
+	projectRepo, err := repository.NewProjectRepository(slog.Default())
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create project repository: %w", err)
 	}
 
-	resourceRepo, err := repository.NewResourceRepository()
+	resourceRepo, err := repository.NewResourceRepository(slog.Default())
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create resource repository: %w", err)
 	}
