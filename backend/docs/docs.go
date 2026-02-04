@@ -843,6 +843,181 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{id}/cost/estimate": {
+            "get": {
+                "description": "Calculate the estimated cost for the entire project architecture",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cost"
+                ],
+                "summary": "Get project cost estimate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ArchitectureCostEstimate"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/cost/estimate/resources/{resourceName}": {
+            "get": {
+                "description": "Calculate the estimated cost for a specific resource in the project",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cost"
+                ],
+                "summary": "Get resource cost estimate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Resource Name",
+                        "name": "resourceName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/cost/optimize": {
+            "get": {
+                "description": "Get suggestions for cost optimization based on architectural patterns",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cost"
+                ],
+                "summary": "Get project cost optimization suggestions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationWithSavings"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/projects/{id}/download": {
             "get": {
                 "description": "Generates and downloads the ZIP file of the code",
@@ -1429,6 +1604,24 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sensitive": {
+                    "type": "boolean"
+                },
+                "value": {
+                    "description": "Expression",
+                    "type": "string"
+                }
+            }
+        },
         "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse": {
             "type": "object",
             "properties": {
@@ -1442,6 +1635,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput"
                     }
                 },
                 "variables": {
@@ -1587,6 +1786,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput"
                     }
                 },
                 "variables": {
@@ -1980,6 +2185,175 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ArchitectureCostEstimate": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "description": "Currency is the currency used",
+                    "type": "string"
+                },
+                "duration": {
+                    "description": "Duration is the duration used for the calculation",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/time.Duration"
+                        }
+                    ]
+                },
+                "period": {
+                    "description": "Period is the time period for the estimate",
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "Provider is the cloud provider",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "Region is the region (if applicable)",
+                    "type": "string"
+                },
+                "resource_estimates": {
+                    "description": "ResourceEstimates contains individual resource cost estimates",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate"
+                    }
+                },
+                "total_cost": {
+                    "description": "TotalCost is the total estimated cost for the architecture",
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CostBreakdownComponent": {
+            "type": "object",
+            "properties": {
+                "component_name": {
+                    "description": "ComponentName is the name of the cost component",
+                    "type": "string"
+                },
+                "currency": {
+                    "description": "Currency is the currency used",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the pricing model used",
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "Quantity is the amount consumed",
+                    "type": "number"
+                },
+                "subtotal": {
+                    "description": "Subtotal is the calculated cost for this component",
+                    "type": "number"
+                },
+                "unit_rate": {
+                    "description": "UnitRate is the rate per unit",
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationSuggestion": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "estimated_savings": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resource_id": {
+                    "type": "string"
+                },
+                "resource_type": {
+                    "type": "string"
+                },
+                "severity": {
+                    "description": "\"high\", \"medium\", \"low\"",
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationWithSavings": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "suggestions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationSuggestion"
+                    }
+                },
+                "total_potential_savings": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate": {
+            "type": "object",
+            "properties": {
+                "breakdown": {
+                    "description": "Breakdown contains the cost breakdown components",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CostBreakdownComponent"
+                    }
+                },
+                "currency": {
+                    "description": "Currency is the currency used",
+                    "type": "string"
+                },
+                "resource_id": {
+                    "description": "ResourceID is the domain resource ID",
+                    "type": "string"
+                },
+                "resource_name": {
+                    "description": "ResourceName is the name of the resource",
+                    "type": "string"
+                },
+                "resource_type": {
+                    "description": "ResourceType is the type of resource",
+                    "type": "string"
+                },
+                "total_cost": {
+                    "description": "TotalCost is the total estimated cost for this resource",
+                    "type": "number"
+                }
+            }
+        },
+        "time.Duration": {
+            "type": "integer",
+            "format": "int64",
+            "enum": [
+                -9223372036854775808,
+                9223372036854775807,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000
+            ],
+            "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour"
+            ]
         }
     }
 }`

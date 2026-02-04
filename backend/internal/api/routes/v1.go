@@ -30,6 +30,9 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		iamCtrl := controllers.NewIAMController(srv.IAMService)
 		generationCtrl := controllers.NewGenerationController(srv.PipelineOrchestrator, slog.Default())
 
+		// Cost Controller
+		costCtrl := controllers.NewCostController(srv.PricingService, srv.ProjectService, srv.OptimizationService)
+
 		// Users Routes
 		users := v1.Group("/users")
 		{
@@ -60,6 +63,11 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 			// Code Generation endpoints
 			projects.POST("/:id/generate", generationCtrl.GenerateCode)
 			projects.GET("/:id/download", generationCtrl.DownloadCode)
+
+			// Cost Estimation endpoints
+			projects.GET("/:id/cost/estimate", costCtrl.GetProjectEstimate)
+			projects.GET("/:id/cost/estimate/resources/:resourceName", costCtrl.GetResourceEstimate)
+			projects.GET("/:id/cost/optimize", costCtrl.GetProjectOptimization)
 		}
 
 		// IAM Routes

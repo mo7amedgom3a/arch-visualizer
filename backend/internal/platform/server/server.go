@@ -23,6 +23,7 @@ type Server struct {
 	CodegenService      serverinterfaces.CodegenService
 	ProjectService      serverinterfaces.ProjectService
 	PricingService      serverinterfaces.PricingService
+	OptimizationService serverinterfaces.OptimizationService
 	UserService         serverinterfaces.UserService
 	StaticDataService   serverinterfaces.StaticDataService
 	IAMService          iam.AWSIAMService
@@ -147,6 +148,7 @@ func NewServer(logger *slog.Logger) (*Server, error) {
 
 	architectureService := services.NewArchitectureService(ruleService, logger)
 	codegenService := services.NewCodegenService(logger)
+	optimizationService := services.NewOptimizationService()
 
 	// Create pricing service with DB-driven rates and hidden dependencies
 	pricingService := services.NewPricingServiceWithRepos(
@@ -207,11 +209,13 @@ func NewServer(logger *slog.Logger) (*Server, error) {
 	iamService := iam.NewIAMService()
 
 	return &Server{
-		DiagramService:       diagramService,
-		ArchitectureService:  architectureService,
-		CodegenService:       codegenService,
-		ProjectService:       projectService,
+		DiagramService:      diagramService,
+		ArchitectureService: architectureService,
+		CodegenService:      codegenService,
+		ProjectService:      projectService,
+
 		PricingService:       pricingService,
+		OptimizationService:  optimizationService,
 		UserService:          userService,
 		StaticDataService:    staticDataService,
 		IAMService:           iamService,
