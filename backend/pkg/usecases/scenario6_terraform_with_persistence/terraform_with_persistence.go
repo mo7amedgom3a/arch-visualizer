@@ -267,18 +267,25 @@ func persistToDatabase(ctx context.Context, arch *architecture.Architecture, dia
 			resourceTypeCache[res.Type.Name] = resourceTypeID
 		}
 
-		// Get position from metadata
-		posX, posY := 0, 0
-		if pos, ok := res.Metadata["position"].(map[string]interface{}); ok {
-			if x, ok := pos["x"].(float64); ok {
-				posX = int(x)
-			} else if x, ok := pos["x"].(int); ok {
-				posX = x
-			}
-			if y, ok := pos["y"].(float64); ok {
-				posY = int(y)
-			} else if y, ok := pos["y"].(int); ok {
-				posY = y
+		// Extract UI State
+		var uiState *models.ResourceUIState
+		if ui, ok := res.Metadata["ui"].(*graph.UIState); ok && ui != nil {
+			styleJSON, _ := json.Marshal(ui.Style)
+			measuredJSON, _ := json.Marshal(ui.Measured)
+
+			uiState = &models.ResourceUIState{
+				X:          ui.X,
+				Y:          ui.Y,
+				Width:      ui.Width,
+				Height:     ui.Height,
+				Style:      datatypes.JSON(styleJSON),
+				Measured:   datatypes.JSON(measuredJSON),
+				Selected:   ui.Selected,
+				Dragging:   ui.Dragging,
+				Resizing:   ui.Resizing,
+				Focusable:  ui.Focusable,
+				Selectable: ui.Selectable,
+				ZIndex:     ui.ZIndex,
 			}
 		}
 
@@ -301,8 +308,7 @@ func persistToDatabase(ctx context.Context, arch *architecture.Architecture, dia
 			ProjectID:      project.ID,
 			ResourceTypeID: resourceTypeID,
 			Name:           res.Name,
-			PosX:           posX,
-			PosY:           posY,
+			UIState:        uiState,
 			IsVisualOnly:   isVisualOnly,
 			Config:         datatypes.JSON(configJSON),
 		}

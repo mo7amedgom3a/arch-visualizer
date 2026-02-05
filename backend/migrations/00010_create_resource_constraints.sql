@@ -1,5 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
+DROP TABLE IF EXISTS resource_constraints;
+
 CREATE TABLE resource_constraints (
     id SERIAL PRIMARY KEY,
     resource_type_id INTEGER NOT NULL REFERENCES resource_types (id) ON DELETE CASCADE,

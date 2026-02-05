@@ -56,8 +56,6 @@ func TestPricingRepository_CreateAndQuery(t *testing.T) {
 		ProjectID:      project.ID,
 		ResourceTypeID: 1,
 		Name:           "r1",
-		PosX:           0,
-		PosY:           0,
 		CreatedAt:      time.Now(),
 	}
 	if err := db.Create(resource).Error; err != nil {

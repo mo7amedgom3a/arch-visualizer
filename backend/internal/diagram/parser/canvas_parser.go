@@ -11,12 +11,22 @@ import (
 
 // IRDiagram represents the intermediate representation JSON from frontend
 type IRDiagram struct {
-	Nodes     []IRNode     `json:"nodes"`
-	Edges     []IREdge     `json:"edges"`
-	Variables []IRVariable `json:"variables"`
-	Outputs   []IROutput   `json:"outputs"`
-	Policies  []IRPolicy   `json:"policies"`
-	Timestamp int64        `json:"timestamp"`
+	Nodes     []IRNode          `json:"nodes"`
+	Edges     []IREdge          `json:"edges"`
+	Variables []IRVariable      `json:"variables"`
+	Outputs   []IROutput        `json:"outputs"`
+	Policies  []IRPolicy        `json:"policies"`
+	Timestamp int64             `json:"timestamp"`
+	UIState   *IRProjectUIState `json:"uiState,omitempty"`
+}
+
+// IRProjectUIState represents the project-level UI state in IR JSON
+type IRProjectUIState struct {
+	Zoom            float64  `json:"zoom"`
+	ViewportX       float64  `json:"viewportX"`
+	ViewportY       float64  `json:"viewportY"`
+	SelectedNodeIDs []string `json:"selectedNodeIds"`
+	SelectedEdgeIDs []string `json:"selectedEdgeIds"`
 }
 
 // IRPolicy represents a policy definition in the IR JSON
@@ -50,12 +60,21 @@ type IROutput struct {
 
 // IRNode represents a node in the IR JSON
 type IRNode struct {
-	ID       string                 `json:"id"`
-	Type     string                 `json:"type"` // "containerNode" or "resourceNode"
-	Position *IRPosition            `json:"position,omitempty"`
-	ParentID *string                `json:"parentId,omitempty"`
-	Data     IRNodeData             `json:"data"`
-	Style    map[string]interface{} `json:"style,omitempty"`
+	ID         string                 `json:"id"`
+	Type       string                 `json:"type"` // "containerNode" or "resourceNode"
+	Position   *IRPosition            `json:"position,omitempty"`
+	ParentID   *string                `json:"parentId,omitempty"`
+	Data       IRNodeData             `json:"data"`
+	Style      map[string]interface{} `json:"style,omitempty"`
+	Measured   map[string]interface{} `json:"measured,omitempty"`
+	Selected   bool                   `json:"selected,omitempty"`
+	Dragging   bool                   `json:"dragging,omitempty"`
+	Resizing   bool                   `json:"resizing,omitempty"`
+	Width      *float64               `json:"width,omitempty"`
+	Height     *float64               `json:"height,omitempty"`
+	Focusable  *bool                  `json:"focusable,omitempty"`
+	Selectable *bool                  `json:"selectable,omitempty"`
+	ZIndex     int                    `json:"zIndex,omitempty"`
 }
 
 // IRPosition represents node position coordinates
@@ -232,6 +251,17 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 		Policies:  make([]graph.Policy, 0),
 	}
 
+	// Extract Project UI State
+	if ir.UIState != nil {
+		g.UI = &graph.ProjectUIState{
+			Zoom:            ir.UIState.Zoom,
+			ViewportX:       ir.UIState.ViewportX,
+			ViewportY:       ir.UIState.ViewportY,
+			SelectedNodeIDs: ir.UIState.SelectedNodeIDs,
+			SelectedEdgeIDs: ir.UIState.SelectedEdgeIDs,
+		}
+	}
+
 	// Convert IR variables to graph variables
 	for _, v := range ir.Variables {
 		g.Variables = append(g.Variables, graph.Variable{
@@ -275,11 +305,35 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 			isVisualOnly = *irNode.Data.IsVisualOnly
 		}
 
-		// Extract position
-		posX, posY := 0, 0
+		// Extract UI State
+		ui := &graph.UIState{
+			Style:    irNode.Style,
+			Measured: irNode.Measured,
+			Selected: irNode.Selected,
+			Dragging: irNode.Dragging,
+			Resizing: irNode.Resizing,
+			ZIndex:   irNode.ZIndex,
+			// Default values
+			Focusable:  true,
+			Selectable: true,
+		}
+
 		if irNode.Position != nil {
-			posX = int(irNode.Position.X)
-			posY = int(irNode.Position.Y)
+			ui.X = irNode.Position.X
+			ui.Y = irNode.Position.Y
+		}
+
+		if irNode.Width != nil {
+			ui.Width = irNode.Width
+		}
+		if irNode.Height != nil {
+			ui.Height = irNode.Height
+		}
+		if irNode.Focusable != nil {
+			ui.Focusable = *irNode.Focusable
+		}
+		if irNode.Selectable != nil {
+			ui.Selectable = *irNode.Selectable
 		}
 
 		node := &graph.Node{
@@ -288,8 +342,7 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 			ResourceType: irNode.Data.ResourceType,
 			Label:        irNode.Data.Label,
 			Config:       irNode.Data.Config,
-			PositionX:    posX,
-			PositionY:    posY,
+			UI:           ui,
 			ParentID:     irNode.ParentID,
 			Status:       irNode.Data.Status,
 			IsVisualOnly: isVisualOnly,

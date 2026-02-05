@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 // ProjectServiceImpl implements ProjectService interface
@@ -182,18 +184,25 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 			resourceTypeCache[res.Type.Name] = resourceTypeID
 		}
 
-		// Get position from metadata
-		posX, posY := 0, 0
-		if pos, ok := res.Metadata["position"].(map[string]interface{}); ok {
-			if x, ok := pos["x"].(float64); ok {
-				posX = int(x)
-			} else if x, ok := pos["x"].(int); ok {
-				posX = x
-			}
-			if y, ok := pos["y"].(float64); ok {
-				posY = int(y)
-			} else if y, ok := pos["y"].(int); ok {
-				posY = y
+		// Extract UI State
+		var uiState *models.ResourceUIState
+		if ui, ok := res.Metadata["ui"].(*graph.UIState); ok && ui != nil {
+			styleJSON, _ := json.Marshal(ui.Style)
+			measuredJSON, _ := json.Marshal(ui.Measured)
+
+			uiState = &models.ResourceUIState{
+				X:          ui.X,
+				Y:          ui.Y,
+				Width:      ui.Width,
+				Height:     ui.Height,
+				Style:      datatypes.JSON(styleJSON),
+				Measured:   datatypes.JSON(measuredJSON),
+				Selected:   ui.Selected,
+				Dragging:   ui.Dragging,
+				Resizing:   ui.Resizing,
+				Focusable:  ui.Focusable,
+				Selectable: ui.Selectable,
+				ZIndex:     ui.ZIndex,
 			}
 		}
 
@@ -216,8 +225,7 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 			ProjectID:      projectID,
 			ResourceTypeID: resourceTypeID,
 			Name:           res.Name,
-			PosX:           posX,
-			PosY:           posY,
+			UIState:        uiState,
 			IsVisualOnly:   isVisualOnly,
 			Config:         datatypes.JSON(configJSON),
 		}
@@ -330,6 +338,43 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 		}
 	}
 
+	// Persist Project UI State
+	// Persist Project UI State
+	if graph, ok := diagramGraph.(*graph.DiagramGraph); ok && graph.UI != nil {
+		gormTx, ok := tx.(*gorm.DB)
+		if !ok {
+			s.projectRepo.RollbackTransaction(tx)
+			return fmt.Errorf("failed to cast transaction to gorm db")
+		}
+
+		selectedNodeIDs, _ := json.Marshal(graph.UI.SelectedNodeIDs)
+		selectedEdgeIDs, _ := json.Marshal(graph.UI.SelectedEdgeIDs)
+
+		uiState := &models.ProjectUIState{
+			ProjectID:       projectID,
+			Zoom:            graph.UI.Zoom,
+			ViewportX:       graph.UI.ViewportX,
+			ViewportY:       graph.UI.ViewportY,
+			SelectedNodeIDs: datatypes.JSON(selectedNodeIDs),
+			SelectedEdgeIDs: datatypes.JSON(selectedEdgeIDs),
+		}
+
+		// Create or Update
+		var existing models.ProjectUIState
+		if err := gormTx.Where("project_id = ?", projectID).First(&existing).Error; err == nil {
+			uiState.ID = existing.ID
+			if err := gormTx.Save(uiState).Error; err != nil {
+				s.projectRepo.RollbackTransaction(tx)
+				return fmt.Errorf("failed to update project ui state: %w", err)
+			}
+		} else {
+			if err := gormTx.Create(uiState).Error; err != nil {
+				s.projectRepo.RollbackTransaction(tx)
+				return fmt.Errorf("failed to create project ui state: %w", err)
+			}
+		}
+	}
+
 	// Commit transaction
 	if err := s.projectRepo.CommitTransaction(tx); err != nil {
 		return fmt.Errorf("commit transaction: %w", err)
@@ -371,18 +416,25 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 			resourceTypeCache[res.Type.Name] = resourceTypeID
 		}
 
-		// Get position from metadata
-		posX, posY := 0, 0
-		if pos, ok := res.Metadata["position"].(map[string]interface{}); ok {
-			if x, ok := pos["x"].(float64); ok {
-				posX = int(x)
-			} else if x, ok := pos["x"].(int); ok {
-				posX = x
-			}
-			if y, ok := pos["y"].(float64); ok {
-				posY = int(y)
-			} else if y, ok := pos["y"].(int); ok {
-				posY = y
+		// Extract UI State
+		var uiState *models.ResourceUIState
+		if ui, ok := res.Metadata["ui"].(*graph.UIState); ok && ui != nil {
+			styleJSON, _ := json.Marshal(ui.Style)
+			measuredJSON, _ := json.Marshal(ui.Measured)
+
+			uiState = &models.ResourceUIState{
+				X:          ui.X,
+				Y:          ui.Y,
+				Width:      ui.Width,
+				Height:     ui.Height,
+				Style:      datatypes.JSON(styleJSON),
+				Measured:   datatypes.JSON(measuredJSON),
+				Selected:   ui.Selected,
+				Dragging:   ui.Dragging,
+				Resizing:   ui.Resizing,
+				Focusable:  ui.Focusable,
+				Selectable: ui.Selectable,
+				ZIndex:     ui.ZIndex,
 			}
 		}
 
@@ -405,8 +457,7 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 			ProjectID:      projectID,
 			ResourceTypeID: resourceTypeID,
 			Name:           res.Name,
-			PosX:           posX,
-			PosY:           posY,
+			UIState:        uiState,
 			IsVisualOnly:   isVisualOnly,
 			Config:         datatypes.JSON(configJSON),
 		}
@@ -614,11 +665,40 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 			metadata = make(map[string]interface{})
 		}
 
-		// Add position to metadata
-		metadata["position"] = map[string]interface{}{
-			"x": dbRes.PosX,
-			"y": dbRes.PosY,
+		// Add UI state to metadata
+		if dbRes.UIState != nil {
+			var style map[string]interface{}
+			var measured map[string]interface{}
+			_ = json.Unmarshal(dbRes.UIState.Style, &style)
+			_ = json.Unmarshal(dbRes.UIState.Measured, &measured)
+
+			metadata["ui"] = &graph.UIState{
+				X:          dbRes.UIState.X,
+				Y:          dbRes.UIState.Y,
+				Width:      dbRes.UIState.Width,
+				Height:     dbRes.UIState.Height,
+				Style:      style,
+				Measured:   measured,
+				Selected:   dbRes.UIState.Selected,
+				Dragging:   dbRes.UIState.Dragging,
+				Resizing:   dbRes.UIState.Resizing,
+				Focusable:  dbRes.UIState.Focusable,
+				Selectable: dbRes.UIState.Selectable,
+				ZIndex:     dbRes.UIState.ZIndex,
+			}
+			// Backward compatibility: Add position to metadata
+			metadata["position"] = map[string]interface{}{
+				"x": dbRes.UIState.X,
+				"y": dbRes.UIState.Y,
+			}
+		} else {
+			// Backward compatibility: Default position if UI state is missing
+			metadata["position"] = map[string]interface{}{
+				"x": 0,
+				"y": 0,
+			}
 		}
+
 		metadata["isVisualOnly"] = dbRes.IsVisualOnly
 
 		// Map resource type

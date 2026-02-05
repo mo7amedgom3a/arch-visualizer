@@ -189,10 +189,9 @@ func mapDiagramToArchitectureDefault(diagramGraph *graph.DiagramGraph, provider 
 		for k, v := range node.Config {
 			metadata[k] = v
 		}
-		// Add position
-		metadata["position"] = map[string]interface{}{
-			"x": node.PositionX,
-			"y": node.PositionY,
+		// Add UI State
+		if node.UI != nil {
+			metadata["ui"] = node.UI
 		}
 		// Add isVisualOnly flag
 		metadata["isVisualOnly"] = node.IsVisualOnly

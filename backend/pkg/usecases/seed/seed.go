@@ -482,8 +482,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project1.ID,
 			ResourceTypeID: vpcType.ID,
 			Name:           "web-app-vpc",
-			PosX:           100,
-			PosY:           100,
 			Config:         vpcConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, vpc); err != nil {
@@ -496,8 +494,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project1.ID,
 			ResourceTypeID: subnetType.ID,
 			Name:           "public-subnet-1",
-			PosX:           200,
-			PosY:           150,
 			Config:         publicSubnet1ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, publicSubnet1); err != nil {
@@ -512,8 +508,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project1.ID,
 			ResourceTypeID: subnetType.ID,
 			Name:           "private-subnet-1",
-			PosX:           200,
-			PosY:           250,
 			Config:         privateSubnet1ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, privateSubnet1); err != nil {
@@ -529,8 +523,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project1.ID,
 			ResourceTypeID: igwType.ID,
 			Name:           "web-app-igw",
-			PosX:           50,
-			PosY:           100,
 			Config:         igwConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, igw); err != nil {
@@ -543,8 +535,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project1.ID,
 			ResourceTypeID: sgType.ID,
 			Name:           "web-sg",
-			PosX:           300,
-			PosY:           150,
 			Config:         webSGConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, webSG); err != nil {
@@ -557,8 +547,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project1.ID,
 			ResourceTypeID: ec2Type.ID,
 			Name:           "web-server-1",
-			PosX:           350,
-			PosY:           150,
 			Config:         ec2ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, ec2); err != nil {
@@ -591,8 +579,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project2.ID,
 			ResourceTypeID: vpcType.ID,
 			Name:           "ha-vpc",
-			PosX:           100,
-			PosY:           100,
 			Config:         vpc2ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, vpc2); err != nil {
@@ -605,8 +591,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project2.ID,
 			ResourceTypeID: lbType.ID,
 			Name:           "ha-alb",
-			PosX:           50,
-			PosY:           100,
 			Config:         lbConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, lb); err != nil {
@@ -619,8 +603,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project2.ID,
 			ResourceTypeID: asgType.ID,
 			Name:           "ha-asg",
-			PosX:           200,
-			PosY:           200,
 			Config:         asgConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, asg); err != nil {
@@ -633,8 +615,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project2.ID,
 			ResourceTypeID: natType.ID,
 			Name:           "ha-nat-gateway",
-			PosX:           150,
-			PosY:           150,
 			Config:         natConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, nat); err != nil {
@@ -668,8 +648,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project3.ID,
 			ResourceTypeID: lambdaType.ID,
 			Name:           "data-processor",
-			PosX:           100,
-			PosY:           100,
 			Config:         lambdaConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, lambda); err != nil {
@@ -682,8 +660,6 @@ func seedScenarios(ctx context.Context, users []*models.User) error {
 			ProjectID:      project3.ID,
 			ResourceTypeID: s3Type.ID,
 			Name:           "data-bucket",
-			PosX:           200,
-			PosY:           100,
 			Config:         s3ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, s3); err != nil {

@@ -14,8 +14,6 @@ type Resource struct {
 	ProjectID      uuid.UUID      `gorm:"type:uuid;not null;index" json:"project_id"`
 	ResourceTypeID uint           `gorm:"not null;index" json:"resource_type_id"`
 	Name           string         `gorm:"type:text;not null" json:"name"`
-	PosX           int            `gorm:"not null" json:"pos_x"`
-	PosY           int            `gorm:"not null" json:"pos_y"`
 	IsVisualOnly   bool           `gorm:"default:false" json:"is_visual_only"`
 	Config         datatypes.JSON `gorm:"type:jsonb;not null;default:'{}'" json:"config"`
 	CreatedAt      time.Time      `gorm:"default:now()" json:"created_at"`
@@ -35,6 +33,9 @@ type Resource struct {
 
 	// Pricing
 	ResourcePricing []ResourcePricing `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"resource_pricing,omitempty"`
+
+	// UI State
+	UIState *ResourceUIState `gorm:"foreignKey:ResourceID;constraint:OnDelete:CASCADE" json:"ui_state,omitempty"`
 }
 
 // TableName specifies the table name for GORM

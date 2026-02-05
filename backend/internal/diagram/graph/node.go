@@ -12,6 +12,23 @@ type Node struct {
 	ParentID     *string
 	Status       string
 	IsVisualOnly bool // Track if this is a visual-only node (even if filtered, we track the flag)
+	UI           *UIState
+}
+
+// UIState represents the full UI state of a node
+type UIState struct {
+	X          float64
+	Y          float64
+	Width      *float64
+	Height     *float64
+	Style      map[string]interface{}
+	Measured   map[string]interface{}
+	Selected   bool
+	Dragging   bool
+	Resizing   bool
+	Focusable  bool
+	Selectable bool
+	ZIndex     int
 }
 
 // IsContainer returns true if the node is a container node

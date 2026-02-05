@@ -10,6 +10,7 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
@@ -163,18 +164,25 @@ func (s *Service) persistArchitecture(
 			return uuid.Nil, fmt.Errorf("failed to find resource type %s for provider %s: %w", domainRes.Type.Name, provider, err)
 		}
 
-		// Extract position from metadata
-		posX, posY := 0, 0
-		if positionMap, ok := domainRes.Metadata["position"].(map[string]interface{}); ok {
-			if x, ok := positionMap["x"].(float64); ok {
-				posX = int(x)
-			} else if x, ok := positionMap["x"].(int); ok {
-				posX = x
-			}
-			if y, ok := positionMap["y"].(float64); ok {
-				posY = int(y)
-			} else if y, ok := positionMap["y"].(int); ok {
-				posY = y
+		// Extract UI State
+		var uiState *models.ResourceUIState
+		if ui, ok := domainRes.Metadata["ui"].(*graph.UIState); ok && ui != nil {
+			styleJSON, _ := json.Marshal(ui.Style)
+			measuredJSON, _ := json.Marshal(ui.Measured)
+
+			uiState = &models.ResourceUIState{
+				X:          ui.X,
+				Y:          ui.Y,
+				Width:      ui.Width,
+				Height:     ui.Height,
+				Style:      datatypes.JSON(styleJSON),
+				Measured:   datatypes.JSON(measuredJSON),
+				Selected:   ui.Selected,
+				Dragging:   ui.Dragging,
+				Resizing:   ui.Resizing,
+				Focusable:  ui.Focusable,
+				Selectable: ui.Selectable,
+				ZIndex:     ui.ZIndex,
 			}
 		}
 
@@ -196,8 +204,7 @@ func (s *Service) persistArchitecture(
 			ProjectID:      project.ID,
 			ResourceTypeID: resourceType.ID,
 			Name:           domainRes.Name,
-			PosX:           posX,
-			PosY:           posY,
+			UIState:        uiState,
 			IsVisualOnly:   isVisualOnly,
 			Config:         datatypes.JSON(configJSON),
 		}

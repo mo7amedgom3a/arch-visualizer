@@ -1,0 +1,254 @@
+{
+  "Nodes": {
+    "ec2-5": {
+      "ID": "ec2-5",
+      "Type": "resourceNode",
+      "ResourceType": "ec2",
+      "Label": "EC2",
+      "Config": {
+        "ami": "ami-0123456789",
+        "instanceType": "t3.micro",
+        "name": "web-server"
+      },
+      "PositionX": 0,
+      "PositionY": 0,
+      "ParentID": "subnet-4",
+      "Status": "valid",
+      "IsVisualOnly": false,
+      "UI": {
+        "X": 100,
+        "Y": 80,
+        "Width": null,
+        "Height": null,
+        "Style": null,
+        "Measured": null,
+        "Selected": true,
+        "Dragging": false,
+        "Resizing": false,
+        "Focusable": true,
+        "Selectable": true,
+        "ZIndex": 0
+      }
+    },
+    "region-1": {
+      "ID": "region-1",
+      "Type": "containerNode",
+      "ResourceType": "region",
+      "Label": "Region",
+      "Config": {
+        "name": "us-east-1"
+      },
+      "PositionX": 0,
+      "PositionY": 0,
+      "ParentID": null,
+      "Status": "valid",
+      "IsVisualOnly": false,
+      "UI": {
+        "X": 280,
+        "Y": 120,
+        "Width": 800,
+        "Height": 600,
+        "Style": {
+          "backgroundColor": "#f0f0f0",
+          "border": "1px solid #ccc"
+        },
+        "Measured": null,
+        "Selected": false,
+        "Dragging": false,
+        "Resizing": false,
+        "Focusable": true,
+        "Selectable": true,
+        "ZIndex": 0
+      }
+    },
+    "route-table-3": {
+      "ID": "route-table-3",
+      "Type": "resourceNode",
+      "ResourceType": "route-table",
+      "Label": "Main Route Table",
+      "Config": {
+        "isMain": true,
+        "vpcId": "vpc-2"
+      },
+      "PositionX": 0,
+      "PositionY": 0,
+      "ParentID": "vpc-2",
+      "Status": "valid",
+      "IsVisualOnly": false,
+      "UI": {
+        "X": 60,
+        "Y": 30,
+        "Width": null,
+        "Height": null,
+        "Style": null,
+        "Measured": null,
+        "Selected": false,
+        "Dragging": false,
+        "Resizing": false,
+        "Focusable": true,
+        "Selectable": true,
+        "ZIndex": 0
+      }
+    },
+    "security-group-6": {
+      "ID": "security-group-6",
+      "Type": "containerNode",
+      "ResourceType": "security-group",
+      "Label": "Security Group",
+      "Config": {
+        "description": "Default SG",
+        "name": "default-sg"
+      },
+      "PositionX": 0,
+      "PositionY": 0,
+      "ParentID": "vpc-2",
+      "Status": "valid",
+      "IsVisualOnly": false,
+      "UI": {
+        "X": 40,
+        "Y": 60,
+        "Width": null,
+        "Height": null,
+        "Style": null,
+        "Measured": null,
+        "Selected": false,
+        "Dragging": false,
+        "Resizing": false,
+        "Focusable": true,
+        "Selectable": true,
+        "ZIndex": 0
+      }
+    },
+    "subnet-4": {
+      "ID": "subnet-4",
+      "Type": "containerNode",
+      "ResourceType": "subnet",
+      "Label": "Subnet",
+      "Config": {
+        "availabilityZoneId": "us-east-1b",
+        "cidr": "10.0.144.0/16",
+        "name": "project-subnet-private2-us-east-1b"
+      },
+      "PositionX": 0,
+      "PositionY": 0,
+      "ParentID": "vpc-2",
+      "Status": "valid",
+      "IsVisualOnly": false,
+      "UI": {
+        "X": 60,
+        "Y": 80,
+        "Width": 200,
+        "Height": 150,
+        "Style": null,
+        "Measured": null,
+        "Selected": false,
+        "Dragging": false,
+        "Resizing": false,
+        "Focusable": true,
+        "Selectable": true,
+        "ZIndex": 0
+      }
+    },
+    "vpc-2": {
+      "ID": "vpc-2",
+      "Type": "containerNode",
+      "ResourceType": "vpc",
+      "Label": "VPC",
+      "Config": {
+        "cidr": "10.0.0.0/16",
+        "name": "project-vpc",
+        "regionId": "us-east-1"
+      },
+      "PositionX": 0,
+      "PositionY": 0,
+      "ParentID": "region-1",
+      "Status": "valid",
+      "IsVisualOnly": false,
+      "UI": {
+        "X": 20,
+        "Y": 40,
+        "Width": 400,
+        "Height": 300,
+        "Style": null,
+        "Measured": null,
+        "Selected": false,
+        "Dragging": false,
+        "Resizing": false,
+        "Focusable": true,
+        "Selectable": true,
+        "ZIndex": 0
+      }
+    }
+  },
+  "Edges": [
+    {
+      "ID": "",
+      "Source": "subnet-4",
+      "Target": "ec2-5",
+      "Type": "containment",
+      "Config": null
+    },
+    {
+      "ID": "",
+      "Source": "vpc-2",
+      "Target": "security-group-6",
+      "Type": "containment",
+      "Config": null
+    },
+    {
+      "ID": "",
+      "Source": "region-1",
+      "Target": "vpc-2",
+      "Type": "containment",
+      "Config": null
+    },
+    {
+      "ID": "",
+      "Source": "vpc-2",
+      "Target": "route-table-3",
+      "Type": "containment",
+      "Config": null
+    },
+    {
+      "ID": "",
+      "Source": "vpc-2",
+      "Target": "subnet-4",
+      "Type": "containment",
+      "Config": null
+    }
+  ],
+  "Variables": [
+    {
+      "name": "environment",
+      "type": "string",
+      "description": "Deployment environment"
+    },
+    {
+      "name": "instance_type",
+      "type": "string",
+      "description": "EC2 instance size"
+    }
+  ],
+  "Outputs": [
+    {
+      "name": "vpc_id",
+      "value": "${vpc-2.id}",
+      "description": "The ID of the VPC"
+    },
+    {
+      "name": "ec2_public_ip",
+      "value": "${ec2-5.public_ip}",
+      "description": "Public IP of the web server"
+    }
+  ],
+  "Policies": [],
+  "UI": {
+    "zoom": 1.5,
+    "viewportX": 100,
+    "viewportY": 50,
+    "selectedNodeIds": [
+      "ec2-5"
+    ],
+    "selectedEdgeIds": []
+  }
+}

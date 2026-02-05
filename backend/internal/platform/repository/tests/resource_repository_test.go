@@ -54,8 +54,6 @@ func TestResourceRepository_CreateAndFindByProject(t *testing.T) {
 		ProjectID:      project.ID,
 		ResourceTypeID: rt.ID,
 		Name:           "instance-1",
-		PosX:           0,
-		PosY:           0,
 		CreatedAt:      time.Now(),
 	}
 	if err := repo.Create(ctx, resource); err != nil {

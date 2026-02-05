@@ -123,9 +123,9 @@ func (g *AWSArchitectureGenerator) Generate(diagramGraph *graph.DiagramGraph) (*
 		for k, v := range node.Config {
 			metadata[k] = v
 		}
-		metadata["position"] = map[string]interface{}{
-			"x": node.PositionX,
-			"y": node.PositionY,
+		// Add UI State
+		if node.UI != nil {
+			metadata["ui"] = node.UI
 		}
 		metadata["isVisualOnly"] = node.IsVisualOnly
 

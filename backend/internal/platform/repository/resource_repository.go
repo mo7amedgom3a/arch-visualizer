@@ -58,6 +58,9 @@ func (r *ResourceRepository) FindByProjectID(ctx context.Context, projectID uuid
 	err := r.GetDB(ctx).
 		Where("project_id = ?", projectID).
 		Preload("ResourceType").
+		Preload("ResourceType.Category").
+		Preload("ResourceType.Kind").
+		Preload("UIState").
 		Find(&resources).Error
 	return resources, err
 }

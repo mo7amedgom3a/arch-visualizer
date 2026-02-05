@@ -34,6 +34,9 @@ type Project struct {
 	ResourcePricing    []ResourcePricing    `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"resource_pricing,omitempty"`
 	Variables          []ProjectVariable    `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"variables,omitempty"`
 	Outputs            []ProjectOutput      `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"outputs,omitempty"`
+
+	// UI State
+	UIState *ProjectUIState `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"ui_state,omitempty"`
 }
 
 // TableName specifies the table name for GORM

@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
 
 // DependencyTypeRepository provides operations for dependency type lookups

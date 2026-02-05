@@ -140,8 +140,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project1.ID,
 			ResourceTypeID: vpcType.ID,
 			Name:           createdVPC.Name,
-			PosX:           100,
-			PosY:           100,
 			Config:         vpcConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, vpcResource); err != nil {
@@ -172,8 +170,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project1.ID,
 			ResourceTypeID: subnetType.ID,
 			Name:           createdPublicSubnet.Name,
-			PosX:           200,
-			PosY:           150,
 			Config:         publicSubnetConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, publicSubnetResource); err != nil {
@@ -206,8 +202,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project1.ID,
 			ResourceTypeID: subnetType.ID,
 			Name:           createdPrivateSubnet.Name,
-			PosX:           200,
-			PosY:           250,
 			Config:         privateSubnetConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, privateSubnetResource); err != nil {
@@ -240,8 +234,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project1.ID,
 			ResourceTypeID: igwType.ID,
 			Name:           createdIGW.Name,
-			PosX:           50,
-			PosY:           100,
 			Config:         igwConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, igwResource); err != nil {
@@ -269,8 +261,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project1.ID,
 			ResourceTypeID: sgType.ID,
 			Name:           createdSG.Name,
-			PosX:           300,
-			PosY:           150,
 			Config:         sgConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, sgResource); err != nil {
@@ -301,8 +291,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project1.ID,
 			ResourceTypeID: ec2Type.ID,
 			Name:           createdInstance.Name,
-			PosX:           350,
-			PosY:           150,
 			Config:         instanceConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, instanceResource); err != nil {
@@ -352,8 +340,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: vpcType.ID,
 			Name:           createdVPC2.Name,
-			PosX:           100,
-			PosY:           100,
 			Config:         vpc2ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, vpc2Resource); err != nil {
@@ -384,8 +370,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: subnetType.ID,
 			Name:           createdPublicSubnet1.Name,
-			PosX:           200,
-			PosY:           150,
 			Config:         publicSubnet1ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, publicSubnet1Resource); err != nil {
@@ -416,8 +400,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: subnetType.ID,
 			Name:           createdPublicSubnet2.Name,
-			PosX:           200,
-			PosY:           200,
 			Config:         publicSubnet2ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, publicSubnet2Resource); err != nil {
@@ -447,8 +429,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: sgType.ID,
 			Name:           createdSG2.Name,
-			PosX:           300,
-			PosY:           175,
 			Config:         sg2ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, sg2Resource); err != nil {
@@ -478,8 +458,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: lbType.ID,
 			Name:           createdLB.Name,
-			PosX:           50,
-			PosY:           175,
 			Config:         lbConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, lbResource); err != nil {
@@ -529,8 +507,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: asgType.ID,
 			Name:           createdASG.Name,
-			PosX:           250,
-			PosY:           250,
 			Config:         asgConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, asgResource); err != nil {
@@ -567,8 +543,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project2.ID,
 			ResourceTypeID: natType.ID,
 			Name:           createdNAT.Name,
-			PosX:           150,
-			PosY:           150,
 			Config:         natConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, natResource); err != nil {
@@ -625,8 +599,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project3.ID,
 			ResourceTypeID: lambdaType.ID,
 			Name:           createdLambda.FunctionName,
-			PosX:           100,
-			PosY:           100,
 			Config:         lambdaConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, lambdaResource); err != nil {
@@ -654,8 +626,6 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 			ProjectID:      project3.ID,
 			ResourceTypeID: s3Type.ID,
 			Name:           createdS3.Name,
-			PosX:           200,
-			PosY:           100,
 			Config:         s3ConfigJSON,
 		}
 		if err := resourceRepo.Create(ctx, s3Resource); err != nil {

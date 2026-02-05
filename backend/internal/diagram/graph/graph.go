@@ -8,6 +8,16 @@ type DiagramGraph struct {
 	Variables []Variable
 	Outputs   []Output
 	Policies  []Policy
+	UI        *ProjectUIState
+}
+
+// ProjectUIState represents the global UI state for the diagram
+type ProjectUIState struct {
+	Zoom            float64  `json:"zoom"`
+	ViewportX       float64  `json:"viewportX"`
+	ViewportY       float64  `json:"viewportY"`
+	SelectedNodeIDs []string `json:"selectedNodeIds"`
+	SelectedEdgeIDs []string `json:"selectedEdgeIds"`
 }
 
 // Variable represents a Terraform input variable from the diagram
