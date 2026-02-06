@@ -8,7 +8,8 @@ import (
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/compute"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/hidden_deps"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/database"
+	hiddendeps "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/hidden_deps"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
@@ -19,10 +20,10 @@ import (
 
 // AWSPricingCalculator implements the PricingCalculator interface for AWS
 type AWSPricingCalculator struct {
-	service              *AWSPricingService
-	pricingRateRepo      *repository.PricingRateRepository
-	hiddenDepResolver    domainpricing.HiddenDependencyResolver
-	useDBRates           bool // Flag to enable/disable DB rates (for backward compatibility)
+	service           *AWSPricingService
+	pricingRateRepo   *repository.PricingRateRepository
+	hiddenDepResolver domainpricing.HiddenDependencyResolver
+	useDBRates        bool // Flag to enable/disable DB rates (for backward compatibility)
 }
 
 // NewAWSPricingCalculator creates a new AWS pricing calculator
@@ -42,9 +43,9 @@ func NewAWSPricingCalculatorWithRepos(
 	hiddenDepResolver := hiddendeps.NewAWSHiddenDependencyResolver(hiddenDepRepo)
 	return &AWSPricingCalculator{
 		service:           service,
-		pricingRateRepo:  pricingRateRepo,
+		pricingRateRepo:   pricingRateRepo,
 		hiddenDepResolver: hiddenDepResolver,
-		useDBRates:       true,
+		useDBRates:        true,
 	}
 }
 
@@ -78,10 +79,10 @@ func (c *AWSPricingCalculator) CalculateResourceCost(ctx context.Context, res *r
 func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *resource.Resource, duration time.Duration) (*domainpricing.CostEstimate, error) {
 	// Map resource type to pricing resource type
 	pricingResourceType := c.mapToPricingResourceType(res.Type.Name)
-	
+
 	var dbRates []*models.PricingRate
 	var err error
-	
+
 	// Special handling for EC2 instances - lookup by instance type
 	if pricingResourceType == "ec2_instance" {
 		// Extract instance type from metadata
@@ -91,7 +92,7 @@ func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *re
 				instanceType = it
 			}
 		}
-		
+
 		// Extract operating system from metadata (default to linux)
 		operatingSystem := "linux"
 		if res.Metadata != nil {
@@ -99,13 +100,13 @@ func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *re
 				operatingSystem = os
 			}
 		}
-		
+
 		// Lookup rates by instance type
 		region := ""
 		if res.Region != "" {
 			region = res.Region
 		}
-		
+
 		dbRates, err = c.pricingRateRepo.FindByInstanceType(ctx, "aws", instanceType, region, operatingSystem)
 		if err != nil || len(dbRates) == 0 {
 			// Fallback to hardcoded rates if DB rates not found
@@ -117,7 +118,7 @@ func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *re
 		if res.Region != "" {
 			region = &res.Region
 		}
-		
+
 		dbRates, err = c.pricingRateRepo.FindActiveRates(ctx, "aws", pricingResourceType, region)
 		if err != nil || len(dbRates) == 0 {
 			// Fallback to hardcoded rates if DB rates not found
@@ -128,7 +129,7 @@ func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *re
 	// Calculate base resource cost from DB rates
 	var totalCost float64
 	var breakdown []domainpricing.CostComponent
-	
+
 	for _, rate := range dbRates {
 		componentCost := c.calculateComponentCost(rate, res, duration)
 		totalCost += componentCost.Subtotal
@@ -151,7 +152,7 @@ func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *re
 						Breakdown:              hiddenEstimate.Breakdown,
 						Currency:               hiddenEstimate.Currency,
 						IsAttached:             hiddenDep.Dependency.IsAttached,
-						Description:             hiddenDep.Dependency.Description,
+						Description:            hiddenDep.Dependency.Description,
 					})
 					totalCost += hiddenEstimate.TotalCost
 				}
@@ -171,15 +172,15 @@ func (c *AWSPricingCalculator) calculateWithDBRates(ctx context.Context, res *re
 
 	return &domainpricing.CostEstimate{
 		TotalCost:             totalCost,
-		Currency:               domainpricing.USD,
-		Breakdown:              breakdown,
+		Currency:              domainpricing.USD,
+		Breakdown:             breakdown,
 		HiddenDependencyCosts: hiddenDepCosts,
-		Period:                 period,
-		Duration:               duration,
-		CalculatedAt:           time.Now(),
-		ResourceType:           &res.Type.Name,
-		Provider:               domainpricing.AWS,
-		Region:                 &res.Region,
+		Period:                period,
+		Duration:              duration,
+		CalculatedAt:          time.Now(),
+		ResourceType:          &res.Type.Name,
+		Provider:              domainpricing.AWS,
+		Region:                &res.Region,
 	}, nil
 }
 
@@ -207,7 +208,7 @@ func (c *AWSPricingCalculator) enhanceWithHiddenDependencies(ctx context.Context
 				Breakdown:              hiddenEstimate.Breakdown,
 				Currency:               hiddenEstimate.Currency,
 				IsAttached:             hiddenDep.Dependency.IsAttached,
-				Description:             hiddenDep.Dependency.Description,
+				Description:            hiddenDep.Dependency.Description,
 			})
 			totalCost += hiddenEstimate.TotalCost
 		}
@@ -403,6 +404,56 @@ func (c *AWSPricingCalculator) calculateResourceCostFallback(ctx context.Context
 				Quantity:      duration.Hours(),
 				UnitRate:      hourlyRate,
 				Subtotal:      cost,
+				Currency:      domainpricing.USD,
+			},
+		}
+
+	case "rds_instance":
+		// Extract RDS parameters
+		instanceClass := "db.t3.micro"
+		engine := "mysql"
+		allocatedStorage := 20.0
+		storageType := "gp2"
+		multiAZ := false
+
+		if res.Metadata != nil {
+			if ic, ok := res.Metadata["instance_class"].(string); ok && ic != "" {
+				instanceClass = ic
+			}
+			if e, ok := res.Metadata["engine"].(string); ok && e != "" {
+				engine = e
+			}
+			if as, ok := res.Metadata["allocated_storage"].(float64); ok {
+				allocatedStorage = as
+			} else if as, ok := res.Metadata["allocated_storage"].(int); ok {
+				allocatedStorage = float64(as)
+			}
+			if st, ok := res.Metadata["storage_type"].(string); ok && st != "" {
+				storageType = st
+			}
+			if maz, ok := res.Metadata["multi_az"].(bool); ok {
+				multiAZ = maz
+			}
+		}
+
+		rdsPricing := database.GetRDSInstancePricing(instanceClass, engine, multiAZ, allocatedStorage, storageType, res.Region)
+
+		// Calculate costs
+		cost := database.CalculateRDSInstanceCost(duration, instanceClass, engine, multiAZ, allocatedStorage, storageType, res.Region)
+		totalCost = cost
+
+		// Breakdown
+
+		instanceRate := rdsPricing.Components[0].Rate
+		// Storage handled via hidden dependency
+
+		breakdown = []domainpricing.CostComponent{
+			{
+				ComponentName: "RDS Instance Hourly",
+				Model:         domainpricing.PerHour,
+				Quantity:      duration.Hours(),
+				UnitRate:      instanceRate,
+				Subtotal:      instanceRate * duration.Hours(),
 				Currency:      domainpricing.USD,
 			},
 		}
@@ -799,13 +850,13 @@ func (c *AWSPricingCalculator) CalculateArchitectureCost(ctx context.Context, re
 
 	return &domainpricing.CostEstimate{
 		TotalCost:             totalCost,
-		Currency:               domainpricing.USD,
-		Breakdown:              allBreakdown,
+		Currency:              domainpricing.USD,
+		Breakdown:             allBreakdown,
 		HiddenDependencyCosts: allHiddenDepCosts,
-		Period:                 period,
-		Duration:               duration,
-		CalculatedAt:           time.Now(),
-		Provider:               domainpricing.AWS,
+		Period:                period,
+		Duration:              duration,
+		CalculatedAt:          time.Now(),
+		Provider:              domainpricing.AWS,
 	}, nil
 }
 

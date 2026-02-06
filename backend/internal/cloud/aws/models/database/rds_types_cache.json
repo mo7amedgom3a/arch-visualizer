@@ -1,0 +1,30 @@
+{
+    "engine_versions": {
+        "mysql": ["5.7.38", "8.0.28", "8.0.30"],
+        "postgres": ["13.7", "14.1", "14.2", "15.0"],
+        "mariadb": ["10.6.8", "10.5.16"],
+        "oracle-ee": ["19.0.0.0.ru-2022-01.rur-2022-01.r1", "21.0.0.0.ru-2022-01.rur-2022-01.r1"],
+        "sqlserver-ex": ["15.00.4043.16.v1", "14.00.3421.10.v1"],
+        "sqlserver-web": ["14.00.3421.10.v1"],
+        "sqlserver-se": ["14.00.3421.10.v1"],
+        "sqlserver-ee": ["14.00.3421.10.v1"]
+    },
+    "instance_classes": {
+        "mysql:5.7.38": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "mysql:8.0.28": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "mysql:8.0.30": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "postgres:13.7": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "postgres:14.1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "postgres:14.2": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "postgres:15.0": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "mariadb:10.6.8": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "mariadb:10.5.16": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "oracle-ee:19.0.0.0.ru-2022-01.rur-2022-01.r1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "oracle-ee:21.0.0.0.ru-2022-01.rur-2022-01.r1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "sqlserver-ex:15.00.4043.16.v1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "sqlserver-ex:14.00.3421.10.v1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "sqlserver-web:14.00.3421.10.v1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "sqlserver-se:14.00.3421.10.v1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"],
+        "sqlserver-ee:14.00.3421.10.v1": ["db.t3.micro", "db.t3.small", "db.m5.large", "db.m5.xlarge", "db.r5.large"]
+    }
+}

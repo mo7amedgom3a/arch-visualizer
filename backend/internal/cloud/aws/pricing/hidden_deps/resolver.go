@@ -37,7 +37,7 @@ func (r *AWSHiddenDependencyResolver) ResolveHiddenDependencies(ctx context.Cont
 		dep := &domainpricing.HiddenDependency{
 			ParentResourceType:  dbDep.ParentResourceType,
 			ChildResourceType:   dbDep.ChildResourceType,
-			QuantityExpression:   dbDep.QuantityExpression,
+			QuantityExpression:  dbDep.QuantityExpression,
 			ConditionExpression: dbDep.ConditionExpression,
 			IsAttached:          dbDep.IsAttached,
 			Description:         dbDep.Description,
@@ -62,7 +62,7 @@ func (r *AWSHiddenDependencyResolver) ResolveHiddenDependencies(ctx context.Cont
 		resolved = append(resolved, &domainpricing.HiddenDependencyResource{
 			Dependency: dep,
 			Resource:   hiddenRes,
-			Quantity:    quantity,
+			Quantity:   quantity,
 		})
 	}
 
@@ -95,7 +95,7 @@ func (r *AWSHiddenDependencyResolver) GetHiddenDependenciesForResourceType(ctx c
 
 	dbDeps, err := r.hiddenDepRepo.FindByParentResourceType(ctx, "aws", resourceType)
 	if err != nil {
-			// Fall back to hardcoded definitions
+		// Fall back to hardcoded definitions
 		return GetHiddenDependenciesForResourceType(resourceType), nil
 	}
 
@@ -104,7 +104,7 @@ func (r *AWSHiddenDependencyResolver) GetHiddenDependenciesForResourceType(ctx c
 		deps = append(deps, &domainpricing.HiddenDependency{
 			ParentResourceType:  dbDep.ParentResourceType,
 			ChildResourceType:   dbDep.ChildResourceType,
-			QuantityExpression:   dbDep.QuantityExpression,
+			QuantityExpression:  dbDep.QuantityExpression,
 			ConditionExpression: dbDep.ConditionExpression,
 			IsAttached:          dbDep.IsAttached,
 			Description:         dbDep.Description,
@@ -158,13 +158,13 @@ func (r *AWSHiddenDependencyResolver) evaluateCondition(condition string, res *r
 		}
 	}
 
-	// Check if backup_retention > 0 (RDS case)
-	if condition == "metadata.backup_retention > 0" {
+	// Check if backup_retention_period > 0 (RDS case)
+	if condition == "metadata.backup_retention_period > 0" {
 		if res.Metadata != nil {
-			if br, ok := res.Metadata["backup_retention"].(float64); ok && br > 0 {
+			if br, ok := res.Metadata["backup_retention_period"].(float64); ok && br > 0 {
 				return true
 			}
-			if br, ok := res.Metadata["backup_retention"].(int); ok && br > 0 {
+			if br, ok := res.Metadata["backup_retention_period"].(int); ok && br > 0 {
 				return true
 			}
 		}
@@ -215,6 +215,9 @@ func (r *AWSHiddenDependencyResolver) createHiddenResource(dep *domainpricing.Hi
 	} else if dep.ChildResourceType == "elastic_ip" {
 		metadata["domain"] = "vpc"
 		metadata["is_attached"] = dep.IsAttached
+	} else if dep.ChildResourceType == "s3_bucket" {
+		metadata["size_gb"] = quantity
+		metadata["storage_class"] = "standard"
 	}
 
 	return &resource.Resource{

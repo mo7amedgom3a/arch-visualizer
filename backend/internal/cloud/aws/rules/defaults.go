@@ -118,3 +118,24 @@ func DefaultStorageRules() []ConstraintRecord {
 		// Let's leave parent constraints loose for EBS for now.
 	}
 }
+
+// DefaultDatabaseRules returns the default AWS database rules
+func DefaultDatabaseRules() []ConstraintRecord {
+	return []ConstraintRecord{
+		// RDS Rules
+		// RDS requires Subnet as parent (must run in a VPC)
+		{ResourceType: "RDS", ConstraintType: "requires_parent", ConstraintValue: "Subnet"},
+		// RDS requires region
+		{ResourceType: "RDS", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// RDS can depend on SecurityGroup, S3 (import/export), IAMRole, KMS
+		{ResourceType: "RDS", ConstraintType: "allowed_dependencies", ConstraintValue: "SecurityGroup,S3,IAMRole,KMSKey"},
+		// RDS cannot depend on VPC directly (must go through subnet)
+		{ResourceType: "RDS", ConstraintType: "forbidden_dependencies", ConstraintValue: "VPC"},
+
+		// DynamoDB Rules
+		// DynamoDB is regional, no parent requirement usually
+		{ResourceType: "DynamoDB", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// DynamoDB can depend on IAMRole, KMS
+		{ResourceType: "DynamoDB", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole,KMSKey"},
+	}
+}

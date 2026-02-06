@@ -51,6 +51,9 @@ func (s *AWSRuleService) LoadRulesFromConstraints(ctx context.Context, constrain
 func (s *AWSRuleService) LoadRulesWithDefaults(ctx context.Context, dbConstraints []ConstraintRecord) error {
 	// Start with defaults
 	defaultRules := DefaultNetworkingRules()
+	defaultRules = append(defaultRules, DefaultComputeRules()...)
+	defaultRules = append(defaultRules, DefaultStorageRules()...)
+	defaultRules = append(defaultRules, DefaultDatabaseRules()...)
 
 	// Create a map to track which default rules should be overridden
 	overrideMap := make(map[string]bool)

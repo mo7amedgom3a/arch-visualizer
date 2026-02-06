@@ -664,6 +664,9 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 			// If unmarshal fails, create empty metadata
 			metadata = make(map[string]interface{})
 		}
+		if metadata == nil {
+			metadata = make(map[string]interface{})
+		}
 
 		// Add UI state to metadata
 		if dbRes.UIState != nil {

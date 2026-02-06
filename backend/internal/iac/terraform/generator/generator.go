@@ -107,6 +107,43 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 		}
 	}
 
+	// Build a lookup map for all resources: ID -> Resource
+	// This helps resolve dependencies
+	resourceMap := make(map[string]*resource.Resource)
+	resourceIDToName := make(map[string]string)
+	for _, res := range arch.Resources {
+		resourceMap[res.ID] = res
+		// Pre-calculate terraform name for each resource
+		// We use a local helper tfName (duplicated/matched from mapper) or just the Name if suitable
+		// But here we just store the raw name and let mapper decide, OR we decide here.
+		// User wants "provided name or default".
+		// Let's store the raw Name.
+		resourceIDToName[res.ID] = res.Name
+	}
+
+	// Enrich resources with explicit dependencies (DependsOn field)
+	// We pass the dependency's ID and Type to the mapper via metadata
+	for _, res := range arch.Resources {
+		if len(res.DependsOn) > 0 {
+			if res.Metadata == nil {
+				res.Metadata = make(map[string]interface{})
+			}
+			var deps []map[string]string
+			for _, depID := range res.DependsOn {
+				if depRes, ok := resourceMap[depID]; ok {
+					deps = append(deps, map[string]string{
+						"id":   depRes.ID,
+						"type": depRes.Type.Name,
+						"name": depRes.Name,
+					})
+				}
+			}
+			if len(deps) > 0 {
+				res.Metadata["_dependsOn"] = deps
+			}
+		}
+	}
+
 	for _, res := range sortedResources {
 		if res == nil {
 			continue
@@ -126,6 +163,39 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 			resolveSecurityGroupIDs(res, sgIDToResourceID)
 			// Enrich EC2 with parent subnet info for associate_public_ip_address
 			enrichEC2WithSubnetInfo(res, subnetInfo)
+		}
+
+		// Enrich with parent name for references
+		if res.ParentID != nil && *res.ParentID != "" {
+			if pName, ok := resourceIDToName[*res.ParentID]; ok {
+				if res.Metadata == nil {
+					res.Metadata = make(map[string]interface{})
+				}
+				res.Metadata["_parentName"] = pName
+			}
+		}
+
+		// Enrich Security Groups with names
+		if validSGs := getSecurityGroupRefs(res); len(validSGs) > 0 {
+			sgNames := make(map[string]string)
+			for _, sgID := range validSGs {
+				if name, ok := resourceIDToName[sgID]; ok {
+					sgNames[sgID] = name
+				}
+			}
+			if len(sgNames) > 0 {
+				if res.Metadata == nil {
+					res.Metadata = make(map[string]interface{})
+				}
+				res.Metadata["_securityGroupNames"] = sgNames
+			}
+		}
+
+		// Enrich Subnet ID references (e.g. for NAT Gateway)
+		if subnetID, ok := res.Metadata["subnetId"].(string); ok && subnetID != "" {
+			if name, ok := resourceIDToName[subnetID]; ok {
+				res.Metadata["_subnetName"] = name
+			}
 		}
 
 		bs, err := mapper.MapResource(res)
@@ -452,6 +522,35 @@ func tfName(id string) string {
 		s = "r_" + s
 	}
 	return s
+}
+
+// getSecurityGroupRefs extracts security group IDs from metadata (generic)
+func getSecurityGroupRefs(res *resource.Resource) []string {
+	var ids []string
+
+	// Check "vpc_security_group_ids" (RDS, etc)
+	if list, ok := res.Metadata["vpc_security_group_ids"].([]interface{}); ok {
+		for _, item := range list {
+			if s, ok := item.(string); ok {
+				ids = append(ids, s)
+			}
+		}
+	}
+
+	// Check "securityGroups" (EC2)
+	// Note: resolveSecurityGroupIDs might have already run or not.
+	// We handle explicit IDs.
+	if sgs, ok := res.Metadata["securityGroups"].([]interface{}); ok {
+		for _, item := range sgs {
+			if m, ok := item.(map[string]interface{}); ok {
+				if id, ok := m["id"].(string); ok {
+					ids = append(ids, id)
+				}
+			}
+		}
+	}
+
+	return ids
 }
 
 var _ iac.Engine = (*Engine)(nil)

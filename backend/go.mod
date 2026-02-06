@@ -11,6 +11,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.54.6
 	github.com/aws/aws-sdk-go-v2/service/iam v1.53.2
 	github.com/aws/aws-sdk-go-v2/service/lambda v1.87.1
+	github.com/aws/aws-sdk-go-v2/service/rds v1.114.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/hcl/v2 v2.24.0

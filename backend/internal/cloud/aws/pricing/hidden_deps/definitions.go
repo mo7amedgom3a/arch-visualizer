@@ -54,6 +54,14 @@ func GetHiddenDependenciesForResourceType(resourceType string) []*domainpricing.
 				IsAttached:          true,
 				Description:         "RDS instance requires storage volume based on allocated_storage.",
 			},
+			{
+				ParentResourceType:  resourceType,
+				ChildResourceType:   "s3_bucket",
+				QuantityExpression:  "metadata.allocated_storage",
+				ConditionExpression: "metadata.backup_retention_period > 0",
+				IsAttached:          false,
+				Description:         "RDS automated backups stored in S3 (assumed equal to DB size for estimation).",
+			},
 		}
 	case "lambda_function", "Lambda":
 		// Lambda has CloudWatch Logs costs, but these are usage-based and hard to estimate
@@ -92,7 +100,7 @@ func ResolveForResource(res *resource.Resource, architecture interface{}) ([]*do
 		resolved = append(resolved, &domainpricing.HiddenDependencyResource{
 			Dependency: dep,
 			Resource:   hiddenRes,
-			Quantity:    quantity,
+			Quantity:   quantity,
 		})
 	}
 

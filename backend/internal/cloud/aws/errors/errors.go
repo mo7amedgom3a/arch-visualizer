@@ -63,6 +63,10 @@ const (
 	CodeInvalidVCPU              = "INVALID_VCPU"
 	CodeInvalidMemory            = "INVALID_MEMORY"
 
+	// RDS errors
+	CodeRDSInstanceNotFound       = "RDS_INSTANCE_NOT_FOUND"
+	CodeRDSInstanceCreationFailed = "RDS_INSTANCE_CREATION_FAILED"
+
 	// SDK/API errors
 	CodeAWSSDKError    = "AWS_SDK_ERROR"
 	CodeAWSAPIError    = "AWS_API_ERROR"
@@ -143,6 +147,12 @@ func NewInvalidCategory(category string) *errors.AppError {
 		WithMeta("category", category)
 }
 
+// NewRDSInstanceNotFound creates an error for when an RDS instance is not found
+func NewRDSInstanceNotFound(instanceID string) *errors.AppError {
+	return errors.New(CodeRDSInstanceNotFound, errors.KindNotFound, "RDS instance not found").
+		WithMeta("instance_id", instanceID)
+}
+
 // NewInvalidVCPU creates an error for invalid VCPU count
 func NewInvalidVCPU(vcpu int) *errors.AppError {
 	return errors.New(CodeInvalidVCPU, errors.KindValidation, "VCPU count must be greater than 0").
@@ -172,3 +182,4 @@ func NewAWSConfigError(reason string) *errors.AppError {
 	return errors.New(CodeAWSConfigError, errors.KindInternal, "AWS configuration error").
 		WithMeta("reason", reason)
 }
+

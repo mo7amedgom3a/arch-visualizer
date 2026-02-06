@@ -49,14 +49,15 @@ func NewAWSClient(ctx context.Context) (*AWSClient, error) {
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
-	return &AWSClient{
+	client := &AWSClient{
 		Config:      cfg,
 		EC2:         ec2.NewFromConfig(cfg),
 		IAM:         iam.NewFromConfig(cfg),
 		ELBv2:       elasticloadbalancingv2.NewFromConfig(cfg),
 		AutoScaling: autoscaling.NewFromConfig(cfg),
 		Lambda:      lambda.NewFromConfig(cfg),
-	}, nil
+	}
+	return client, nil
 }
 
 // NewAWSClientWithConfig creates a new AWS client with explicit configuration
@@ -88,14 +89,15 @@ func NewAWSClientWithConfig(ctx context.Context, region string, accessKeyID, sec
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
 
-	return &AWSClient{
+	client := &AWSClient{
 		Config:      cfg,
 		EC2:         ec2.NewFromConfig(cfg),
 		IAM:         iam.NewFromConfig(cfg),
 		ELBv2:       elasticloadbalancingv2.NewFromConfig(cfg),
 		AutoScaling: autoscaling.NewFromConfig(cfg),
 		Lambda:      lambda.NewFromConfig(cfg),
-	}, nil
+	}
+	return client, nil
 }
 
 // getRegion returns the AWS region from environment variable or default
