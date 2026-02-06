@@ -384,6 +384,25 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 				ruleAttrs["cidr_blocks"] = tfList([]tfmapper.TerraformValue{tfString(cidr)})
 			}
 
+			// Handle source security group reference
+			if sourceSGID, ok := getString(rule, "sourceSecurityGroupId"); ok && sourceSGID != "" {
+				sgName := tfName(sourceSGID)
+				// Try to lookup the name if available (passed by generator)
+				if sgNames, ok := res.Metadata["_securityGroupNames"].(map[string]string); ok {
+					if name, found := sgNames[sourceSGID]; found {
+						sgName = tfName(name)
+					}
+				}
+
+				ruleAttrs["security_groups"] = tfList([]tfmapper.TerraformValue{
+					tfExpr(tfmapper.Reference{
+						ResourceType: "aws_security_group",
+						ResourceName: sgName,
+						Attribute:    "id",
+					}.Expr()),
+				})
+			}
+
 			nestedBlock := tfmapper.NestedBlock{Attributes: ruleAttrs}
 
 			if ruleType == "ingress" {

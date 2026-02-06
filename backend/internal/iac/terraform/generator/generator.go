@@ -550,6 +550,17 @@ func getSecurityGroupRefs(res *resource.Resource) []string {
 		}
 	}
 
+	// Check "rules" (SecurityGroup) for "sourceSecurityGroupId"
+	if rules, ok := res.Metadata["rules"].([]interface{}); ok {
+		for _, ruleRaw := range rules {
+			if rule, ok := ruleRaw.(map[string]interface{}); ok {
+				if sourceSGID, ok := rule["sourceSecurityGroupId"].(string); ok && sourceSGID != "" {
+					ids = append(ids, sourceSGID)
+				}
+			}
+		}
+	}
+
 	return ids
 }
 

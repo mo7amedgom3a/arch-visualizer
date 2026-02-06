@@ -108,15 +108,15 @@ resource "aws_security_group" "rds_sg" {
     to_port     = 0
   }
   ingress {
-    cidr_blocks = ["10.0.0.0/16"]
-    description = "PostgreSQL"
-    from_port   = 5432
-    protocol    = "tcp"
-    to_port     = 5432
+    description     = "PostgreSQL"
+    from_port       = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ec2_sg.id] // allow ec2_sg to access rds_sg
+    to_port         = 5432
   }
 }
 
-resource "aws_eip" "bec58f77_5b81_4e3d_8501_b18f96f4795f_eip" {
+resource "aws_eip" "r_523f2dbe_754d_4a5f_adb0_25ba9f20cb57_eip" {
   domain = "vpc"
   tags = {
     Name  =  "nat-gw-eip"
@@ -124,7 +124,7 @@ resource "aws_eip" "bec58f77_5b81_4e3d_8501_b18f96f4795f_eip" {
 }
 
 resource "aws_nat_gateway" "nat_gw" {
-  allocation_id = aws_eip.bec58f77_5b81_4e3d_8501_b18f96f4795f_eip.id
+  allocation_id = aws_eip.r_523f2dbe_754d_4a5f_adb0_25ba9f20cb57_eip.id
   subnet_id     = aws_subnet.public_subnet_1.id
   tags = {
     Name  =  "nat-gw"
@@ -137,7 +137,7 @@ resource "aws_db_instance" "primary_db" {
   db_name                 = "mydb"
   engine                  = "postgres"
   engine_version          = "13.7"
-  identifier              = "b87add4d_110a_4bf9_b801_ab6d3240f492"
+  identifier              = "db762c8f_db82_4fee_9cfa_c0cb2a7ee881"
   instance_class          = "db.t3.micro"
   multi_az                = true
   password                = "password"

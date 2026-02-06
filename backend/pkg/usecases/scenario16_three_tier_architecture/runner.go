@@ -281,7 +281,7 @@ func run() error {
 	// This is typically done via ingress rule referencing SG ID.
 	// Updating RDS SG metadata to include rule
 	rdsSGRules := []map[string]interface{}{
-		{"type": "ingress", "protocol": "tcp", "portRange": "5432", "cidr": "10.0.0.0/16", "description": "PostgreSQL"}, // CIDR for now, or could use SG reference if properly mapped
+		{"type": "ingress", "protocol": "tcp", "portRange": "5432", "sourceSecurityGroupId": ec2SG.ID.String(), "description": "PostgreSQL"}, // Reference EC2 SG
 	}
 	rdsSGRulesJSON, _ := json.Marshal(map[string]interface{}{
 		"description": "Allow EC2",
