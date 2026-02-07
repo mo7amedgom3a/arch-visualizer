@@ -191,8 +191,8 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 			measuredJSON, _ := json.Marshal(ui.Measured)
 
 			uiState = &models.ResourceUIState{
-				X:          ui.X,
-				Y:          ui.Y,
+				X:          ui.Position.X,
+				Y:          ui.Position.Y,
 				Width:      ui.Width,
 				Height:     ui.Height,
 				Style:      datatypes.JSON(styleJSON),
@@ -222,6 +222,7 @@ func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID 
 		// Create resource
 		dbResource := &models.Resource{
 			ID:             uuid.New(),
+			OriginalID:     res.ID, // Store original frontend node ID for reference resolution
 			ProjectID:      projectID,
 			ResourceTypeID: resourceTypeID,
 			Name:           res.Name,
@@ -423,8 +424,8 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 			measuredJSON, _ := json.Marshal(ui.Measured)
 
 			uiState = &models.ResourceUIState{
-				X:          ui.X,
-				Y:          ui.Y,
+				X:          ui.Position.X,
+				Y:          ui.Position.Y,
 				Width:      ui.Width,
 				Height:     ui.Height,
 				Style:      datatypes.JSON(styleJSON),
@@ -454,6 +455,7 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 		// Create resource
 		dbResource := &models.Resource{
 			ID:             uuid.New(),
+			OriginalID:     res.ID, // Store original frontend node ID for reference resolution
 			ProjectID:      projectID,
 			ResourceTypeID: resourceTypeID,
 			Name:           res.Name,
@@ -643,6 +645,11 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 	if err != nil {
 		return nil, fmt.Errorf("failed to load resources: %w", err)
 	}
+	// fmt.Printf("🔍 Loading %d resources for project %s\n", len(dbResources), projectID)
+	// for _, dbRes := range dbResources {
+	// 	fmt.Printf("  - Resource: %s (%s)\n", dbRes.Name, dbRes.ResourceType)
+	// 	fmt.Printf("    Config: %s\n", string(dbRes.Config))
+	// }
 
 	// Step 3: Convert database resources to domain resources
 	domainResources := make([]*resource.Resource, 0, len(dbResources))
@@ -676,8 +683,7 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 			_ = json.Unmarshal(dbRes.UIState.Measured, &measured)
 
 			metadata["ui"] = &graph.UIState{
-				X:          dbRes.UIState.X,
-				Y:          dbRes.UIState.Y,
+				Position:   graph.Position{X: dbRes.UIState.X, Y: dbRes.UIState.Y},
 				Width:      dbRes.UIState.Width,
 				Height:     dbRes.UIState.Height,
 				Style:      style,
@@ -734,6 +740,23 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 		}
 
 		domainResources = append(domainResources, domainRes)
+	}
+
+	// Step 3.5: Build originalID → name mapping for reference resolution in Terraform generation
+	// This allows resolving references like "subnet-5" to the actual resource name "public-1"
+	originalIDToName := make(map[string]string)
+	for _, dbRes := range dbResources {
+		if dbRes.OriginalID != "" {
+			originalIDToName[dbRes.OriginalID] = dbRes.Name
+		}
+	}
+
+	// Inject the mapping into each domain resource's metadata
+	for _, domainRes := range domainResources {
+		if domainRes.Metadata == nil {
+			domainRes.Metadata = make(map[string]interface{})
+		}
+		domainRes.Metadata["_originalIDToName"] = originalIDToName
 	}
 
 	// Step 4: Load containments and build parent-child relationships

@@ -75,6 +75,22 @@ type IRNode struct {
 	Focusable  *bool                  `json:"focusable,omitempty"`
 	Selectable *bool                  `json:"selectable,omitempty"`
 	ZIndex     int                    `json:"zIndex,omitempty"`
+	UI         *IRNodeUI              `json:"ui,omitempty"`
+}
+
+// IRNodeUI represents the UI state nested object in IR JSON
+type IRNodeUI struct {
+	Position     IRPosition             `json:"position"`
+	Width        *float64               `json:"width,omitempty"`
+	Height       *float64               `json:"height,omitempty"`
+	Measured     map[string]interface{} `json:"measured,omitempty"`
+	Style        map[string]interface{} `json:"style,omitempty"`
+	Resizing     bool                   `json:"resizing,omitempty"`
+	DragHandle   string                 `json:"dragHandle,omitempty"`
+	Focusable    bool                   `json:"focusable,omitempty"`
+	Selectable   bool                   `json:"selectable,omitempty"`
+	IsVisualOnly bool                   `json:"isVisualOnly,omitempty"`
+	ZIndex       int                    `json:"zIndex,omitempty"`
 }
 
 // IRPosition represents node position coordinates
@@ -299,41 +315,69 @@ func NormalizeToGraph(ir *IRDiagram) (*graph.DiagramGraph, error) {
 
 	// First pass: create nodes, tracking visual-only flag for all nodes
 	for _, irNode := range ir.Nodes {
-		// Extract isVisualOnly flag (default to false if not specified)
+		// Extract isVisualOnly flag
 		isVisualOnly := false
 		if irNode.Data.IsVisualOnly != nil {
 			isVisualOnly = *irNode.Data.IsVisualOnly
 		}
+		if irNode.UI != nil {
+			isVisualOnly = irNode.UI.IsVisualOnly
+		}
 
 		// Extract UI State
-		ui := &graph.UIState{
-			Style:    irNode.Style,
-			Measured: irNode.Measured,
-			Selected: irNode.Selected,
-			Dragging: irNode.Dragging,
-			Resizing: irNode.Resizing,
-			ZIndex:   irNode.ZIndex,
-			// Default values
-			Focusable:  true,
-			Selectable: true,
-		}
+		var ui *graph.UIState
+		if irNode.UI != nil {
+			// New nested structure
+			ui = &graph.UIState{
+				Position: graph.Position{
+					X: irNode.UI.Position.X,
+					Y: irNode.UI.Position.Y,
+				},
+				Width:        irNode.UI.Width,
+				Height:       irNode.UI.Height,
+				Measured:     irNode.UI.Measured,
+				Style:        irNode.UI.Style,
+				Resizing:     irNode.UI.Resizing,
+				DragHandle:   irNode.UI.DragHandle,
+				Focusable:    irNode.UI.Focusable,
+				Selectable:   irNode.UI.Selectable,
+				IsVisualOnly: irNode.UI.IsVisualOnly,
+				ZIndex:       irNode.UI.ZIndex,
+			}
+		} else {
+			// Backward compatibility for flat structure
+			ui = &graph.UIState{
+				// Position handled below
+				Measured:   irNode.Measured,
+				Style:      irNode.Style,
+				Selected:   irNode.Selected,
+				Dragging:   irNode.Dragging,
+				Resizing:   irNode.Resizing,
+				ZIndex:     irNode.ZIndex,
+				Focusable:  true,
+				Selectable: true,
+			}
 
-		if irNode.Position != nil {
-			ui.X = irNode.Position.X
-			ui.Y = irNode.Position.Y
-		}
+			if irNode.Position != nil {
+				ui.Position = graph.Position{
+					X: irNode.Position.X,
+					Y: irNode.Position.Y,
+				}
+			}
 
-		if irNode.Width != nil {
-			ui.Width = irNode.Width
-		}
-		if irNode.Height != nil {
-			ui.Height = irNode.Height
-		}
-		if irNode.Focusable != nil {
-			ui.Focusable = *irNode.Focusable
-		}
-		if irNode.Selectable != nil {
-			ui.Selectable = *irNode.Selectable
+			if irNode.Width != nil {
+				ui.Width = irNode.Width
+			}
+			if irNode.Height != nil {
+				ui.Height = irNode.Height
+			}
+			if irNode.Focusable != nil {
+				ui.Focusable = *irNode.Focusable
+			}
+			if irNode.Selectable != nil {
+				ui.Selectable = *irNode.Selectable
+			}
+			ui.IsVisualOnly = isVisualOnly
 		}
 
 		node := &graph.Node{

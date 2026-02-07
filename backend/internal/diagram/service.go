@@ -171,8 +171,8 @@ func (s *Service) persistArchitecture(
 			measuredJSON, _ := json.Marshal(ui.Measured)
 
 			uiState = &models.ResourceUIState{
-				X:          ui.X,
-				Y:          ui.Y,
+				X:          ui.Position.X,
+				Y:          ui.Position.Y,
 				Width:      ui.Width,
 				Height:     ui.Height,
 				Style:      datatypes.JSON(styleJSON),
@@ -315,12 +315,13 @@ func convertDBNameToIRType(dbName string) string {
 
 	// Special case mappings for known exceptions
 	specialCases := map[string]string{
-		"DynamoDB": "dynamodb",
-		"EC2":      "ec2",
-		"S3":       "s3",
-		"EBS":      "ebs",
-		"RDS":      "rds",
-		"VPC":      "vpc",
+		"DynamoDB":         "dynamodb",
+		"EC2":              "ec2",
+		"S3":               "s3",
+		"EBS":              "ebs",
+		"RDS":              "rds",
+		"VPC":              "vpc",
+		"AutoScalingGroup": "autoscaling-group",
 	}
 	if mapped, ok := specialCases[dbName]; ok {
 		return mapped

@@ -245,6 +245,9 @@ func validateResourceTypes(g *graph.DiagramGraph, result *ValidationResult, opts
 	}
 
 	for _, node := range g.Nodes {
+		if node.IsVisualOnly {
+			continue
+		}
 		if node.ResourceType == "" {
 			result.Errors = append(result.Errors, &ValidationError{
 				Code:    "MISSING_RESOURCE_TYPE",
@@ -305,6 +308,9 @@ func validateConfigSchemaWithRegistry(g *graph.DiagramGraph, result *ValidationR
 	}
 
 	for _, node := range g.Nodes {
+		if node.IsVisualOnly {
+			continue
+		}
 		rt := strings.ToLower(node.ResourceType)
 		if node.Config == nil {
 			node.Config = map[string]interface{}{}
@@ -521,6 +527,9 @@ func validateContainmentTypes(g *graph.DiagramGraph, result *ValidationResult, o
 	}
 
 	for _, node := range g.Nodes {
+		if node.IsVisualOnly {
+			continue
+		}
 		if node.ParentID == nil {
 			continue // Root node, no parent to validate
 		}
@@ -566,6 +575,9 @@ func validateCIDRs(g *graph.DiagramGraph, result *ValidationResult) {
 
 	// Parse VPC CIDRs
 	for _, node := range g.Nodes {
+		if node.IsVisualOnly {
+			continue
+		}
 		if strings.ToLower(node.ResourceType) != "vpc" {
 			continue
 		}
@@ -593,6 +605,9 @@ func validateCIDRs(g *graph.DiagramGraph, result *ValidationResult) {
 	})
 
 	for _, node := range g.Nodes {
+		if node.IsVisualOnly {
+			continue
+		}
 		if strings.ToLower(node.ResourceType) != "subnet" {
 			continue
 		}

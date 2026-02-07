@@ -11,6 +11,7 @@ import (
 // Resource represents a resource instance in a project
 type Resource struct {
 	ID             uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	OriginalID     string         `gorm:"type:varchar(255);index" json:"original_id"` // Frontend node ID for reference resolution
 	ProjectID      uuid.UUID      `gorm:"type:uuid;not null;index" json:"project_id"`
 	ResourceTypeID uint           `gorm:"not null;index" json:"resource_type_id"`
 	Name           string         `gorm:"type:text;not null" json:"name"`

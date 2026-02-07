@@ -107,6 +107,31 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 		}
 	}
 
+	// Build list of private subnet IDs for RDS resources
+	// RDS instances should use private subnets for their DB subnet groups
+	privateSubnetIDs := make([]string, 0)
+	for subnetID, info := range subnetInfo {
+		if !info.isPublic {
+			privateSubnetIDs = append(privateSubnetIDs, subnetID)
+		}
+	}
+
+	// Inject private subnet IDs into RDS resources
+	// This allows RDS mapper to auto-use private subnets if none specified
+	for _, res := range arch.Resources {
+		if res.Type.Name == "RDS" {
+			if res.Metadata == nil {
+				res.Metadata = make(map[string]interface{})
+			}
+			// Only inject if no explicit subnets are configured
+			if _, hasSubnets := res.Metadata["subnets"]; !hasSubnets {
+				if _, hasSubnetIds := res.Metadata["subnetIds"]; !hasSubnetIds {
+					res.Metadata["_privateSubnetIDs"] = privateSubnetIDs
+				}
+			}
+		}
+	}
+
 	// Build a lookup map for all resources: ID -> Resource
 	// This helps resolve dependencies
 	resourceMap := make(map[string]*resource.Resource)
@@ -142,6 +167,12 @@ func (e *Engine) Generate(ctx context.Context, arch *architecture.Architecture, 
 				res.Metadata["_dependsOn"] = deps
 			}
 		}
+
+		// Enrich with global ID->Name map
+		if res.Metadata == nil {
+			res.Metadata = make(map[string]interface{})
+		}
+		res.Metadata["_resourceNames"] = resourceIDToName
 	}
 
 	for _, res := range sortedResources {

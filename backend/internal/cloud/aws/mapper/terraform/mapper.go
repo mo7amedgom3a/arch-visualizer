@@ -32,7 +32,11 @@ func New() *AWSMapper {
 	inv.SetTerraformMapper("ElasticIP", mapper.mapElasticIP)
 	inv.SetTerraformMapper("S3", mapper.mapS3)
 	inv.SetTerraformMapper("RDS", mapper.mapRDS)
+	inv.SetTerraformMapper("AutoScalingGroup", mapper.mapAutoScalingGroup)
 	inv.SetTerraformMapper("Lambda", mapper.mapLambda)
+	inv.SetTerraformMapper("AvailabilityZone", mapper.mapAvailabilityZone)
+	inv.SetTerraformMapper("LoadBalancer", mapper.mapLoadBalancer)
+	inv.SetTerraformMapper("LaunchTemplate", mapper.mapLaunchTemplate)
 
 	return mapper
 }
@@ -87,6 +91,14 @@ func (m *AWSMapper) mapResourceFallback(res *resource.Resource) ([]tfmapper.Terr
 		return m.mapS3(res)
 	case "RDS":
 		return m.mapRDS(res)
+	case "AutoScalingGroup":
+		return m.mapAutoScalingGroup(res)
+	case "AvailabilityZone":
+		return m.mapAvailabilityZone(res)
+	case "LoadBalancer":
+		return m.mapLoadBalancer(res)
+	case "LaunchTemplate":
+		return m.mapLaunchTemplate(res)
 	default:
 		return nil, fmt.Errorf("unsupported resource type %q", res.Type.Name)
 	}
@@ -150,14 +162,8 @@ func (m *AWSMapper) mapSubnet(res *resource.Resource) ([]tfmapper.TerraformBlock
 		return nil, fmt.Errorf("subnet requires parent vpc (parentID missing)")
 	}
 
-	// Resolve Parent VPC Name
-	vpcName := tfName(*res.ParentID)
-	if pName, ok := res.Metadata["_parentName"].(string); ok {
-		vpcName = tfName(pName)
-	}
-
 	attrs := map[string]tfmapper.TerraformValue{
-		"vpc_id":            tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: vpcName, Attribute: "id"}.Expr()),
+		"vpc_id":            tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: resolveRef(*res.ParentID, res.Metadata), Attribute: "id"}.Expr()),
 		"cidr_block":        tfStringOrVar(res.Metadata, "cidr", cidr),
 		"availability_zone": tfStringOrVar(res.Metadata, "availabilityZoneId", az),
 		"tags":              tfTags(res.Name),
@@ -216,7 +222,7 @@ func (m *AWSMapper) mapEC2(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 	attrs := map[string]tfmapper.TerraformValue{
 		"ami":           tfStringOrVar(res.Metadata, "ami", ami),
 		"instance_type": tfStringOrVar(res.Metadata, "instanceType", instanceType),
-		"subnet_id":     tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: tfName(*res.ParentID), Attribute: "id"}.Expr()),
+		"subnet_id":     tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: resolveRef(*res.ParentID, res.Metadata), Attribute: "id"}.Expr()),
 		"tags":          tfTags(res.Name),
 	}
 
@@ -250,11 +256,7 @@ func (m *AWSMapper) mapEC2(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 
 	// Handle subnet
 	if res.ParentID != nil && *res.ParentID != "" {
-		subnetName := tfName(*res.ParentID) // Default to ID
-		if n, ok := res.Metadata["_parentName"].(string); ok {
-			subnetName = tfName(n)
-		}
-		attrs["subnet_id"] = tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: subnetName, Attribute: "id"}.Expr())
+		attrs["subnet_id"] = tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: resolveRef(*res.ParentID, res.Metadata), Attribute: "id"}.Expr())
 	}
 
 	// Handle security groups
@@ -283,11 +285,10 @@ func (m *AWSMapper) mapEC2(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 			if id == "" {
 				continue
 			}
-			// Reference the security group resource by its ID
-			// The ID should match the resource ID in the architecture
+			// Reference the security group resource
 			sgVals = append(sgVals, tfExpr(tfmapper.Reference{
 				ResourceType: "aws_security_group",
-				ResourceName: tfName(id),
+				ResourceName: resolveRef(id, res.Metadata),
 				Attribute:    "id",
 			}.Expr()))
 		}
@@ -318,16 +319,10 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 		desc = "managed by arch-visualizer"
 	}
 
-	// Resolve Parent VPC Name
-	vpcName := tfName(*res.ParentID)
-	if pName, ok := res.Metadata["_parentName"].(string); ok {
-		vpcName = tfName(pName)
-	}
-
 	attrs := map[string]tfmapper.TerraformValue{
 		"name":        tfString(res.Name),
 		"description": tfString(desc),
-		"vpc_id":      tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: vpcName, Attribute: "id"}.Expr()),
+		"vpc_id":      tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: resolveRef(*res.ParentID, res.Metadata), Attribute: "id"}.Expr()),
 		"tags":        tfTags(res.Name),
 	}
 
@@ -337,80 +332,113 @@ func (m *AWSMapper) mapSecurityGroup(res *resource.Resource) ([]tfmapper.Terrafo
 	var egressBlocks []tfmapper.NestedBlock
 	hasEgressRule := false
 
-	// Parse and add inline ingress/egress rules
+	// Try parsing "ingressRules" and "egressRules" arrays as well
+	if ingressRules, ok := getArray(res.Metadata, "ingressRules"); ok {
+		for _, ruleRaw := range ingressRules {
+			if rule, ok := ruleRaw.(map[string]interface{}); ok {
+				rule["type"] = "ingress" // Ensure type is set
+				// Append to "rules" to reuse parsing logic below?
+				// Better to just call a helper or duplicate loop.
+				// For valid JSON, we should just process them.
+				// Let's adapt the loop below to handle a combined list.
+			}
+		}
+	}
+
+	// Collect all rule sources
+	var allRules []interface{}
 	if rules, ok := getArray(res.Metadata, "rules"); ok {
-		for _, ruleRaw := range rules {
-			rule, ok := ruleRaw.(map[string]interface{})
-			if !ok {
-				continue
+		allRules = append(allRules, rules...)
+	}
+	if rules, ok := getArray(res.Metadata, "ingressRules"); ok {
+		for _, r := range rules {
+			if m, ok := r.(map[string]interface{}); ok {
+				m["type"] = "ingress"
+				allRules = append(allRules, m)
 			}
-
-			ruleType, _ := getString(rule, "type")
-			protocol, _ := getString(rule, "protocol")
-			portRange, _ := getString(rule, "portRange")
-			cidr, _ := getString(rule, "cidr")
-			description, _ := getString(rule, "description")
-
-			if ruleType == "" || protocol == "" {
-				continue
+		}
+	}
+	if rules, ok := getArray(res.Metadata, "egressRules"); ok {
+		for _, r := range rules {
+			if m, ok := r.(map[string]interface{}); ok {
+				m["type"] = "egress"
+				allRules = append(allRules, m)
 			}
+		}
+	}
 
-			// Parse port range (e.g., "22" or "80-443")
+	// Parse and add inline ingress/egress rules
+	for _, ruleRaw := range allRules {
+		rule, ok := ruleRaw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		ruleType, _ := getString(rule, "type")
+		protocol, _ := getString(rule, "protocol")
+		portRange, _ := getString(rule, "portRange")
+		// Check for specific ports if range not present
+		fromPortVal, hasFrom := getInt(rule, "fromPort")
+		toPortVal, hasTo := getInt(rule, "toPort")
+
+		cidr, _ := getString(rule, "cidr")
+		description, _ := getString(rule, "description")
+
+		if ruleType == "" || protocol == "" {
+			continue
+		}
+
+		ruleAttrs := map[string]tfmapper.TerraformValue{
+			"protocol": tfString(protocol),
+		}
+
+		// Handle Ports
+		if portRange != "" {
 			fromPort, toPort := parsePortRange(portRange)
-
-			ruleAttrs := map[string]tfmapper.TerraformValue{
-				"protocol": tfString(protocol),
+			if fromPort != nil {
+				ruleAttrs["from_port"] = tfNumber(float64(*fromPort))
 			}
-
-			// Add description if provided
-			if description != "" {
-				ruleAttrs["description"] = tfString(description)
+			if toPort != nil {
+				ruleAttrs["to_port"] = tfNumber(float64(*toPort))
 			}
+		} else if hasFrom && hasTo {
+			ruleAttrs["from_port"] = tfNumber(float64(fromPortVal))
+			ruleAttrs["to_port"] = tfNumber(float64(toPortVal))
+		}
 
-			// For protocol "-1" (all), from_port and to_port must be 0
-			if protocol == "-1" {
-				ruleAttrs["from_port"] = tfNumber(0)
-				ruleAttrs["to_port"] = tfNumber(0)
-			} else {
-				if fromPort != nil {
-					ruleAttrs["from_port"] = tfNumber(float64(*fromPort))
-				}
-				if toPort != nil {
-					ruleAttrs["to_port"] = tfNumber(float64(*toPort))
-				}
-			}
+		// Add description if provided
+		if description != "" {
+			ruleAttrs["description"] = tfString(description)
+		}
 
-			if cidr != "" {
-				ruleAttrs["cidr_blocks"] = tfList([]tfmapper.TerraformValue{tfString(cidr)})
-			}
+		// For protocol "-1" (all), from_port and to_port must be 0
+		if protocol == "-1" {
+			ruleAttrs["from_port"] = tfNumber(0)
+			ruleAttrs["to_port"] = tfNumber(0)
+		}
 
-			// Handle source security group reference
-			if sourceSGID, ok := getString(rule, "sourceSecurityGroupId"); ok && sourceSGID != "" {
-				sgName := tfName(sourceSGID)
-				// Try to lookup the name if available (passed by generator)
-				if sgNames, ok := res.Metadata["_securityGroupNames"].(map[string]string); ok {
-					if name, found := sgNames[sourceSGID]; found {
-						sgName = tfName(name)
-					}
-				}
+		if cidr != "" {
+			ruleAttrs["cidr_blocks"] = tfList([]tfmapper.TerraformValue{tfString(cidr)})
+		}
 
-				ruleAttrs["security_groups"] = tfList([]tfmapper.TerraformValue{
-					tfExpr(tfmapper.Reference{
-						ResourceType: "aws_security_group",
-						ResourceName: sgName,
-						Attribute:    "id",
-					}.Expr()),
-				})
-			}
+		// Handle source security group reference
+		if sourceSGID, ok := getString(rule, "sourceSecurityGroupId"); ok && sourceSGID != "" {
+			ruleAttrs["security_groups"] = tfList([]tfmapper.TerraformValue{
+				tfExpr(tfmapper.Reference{
+					ResourceType: "aws_security_group",
+					ResourceName: resolveRef(sourceSGID, res.Metadata),
+					Attribute:    "id",
+				}.Expr()),
+			})
+		}
 
-			nestedBlock := tfmapper.NestedBlock{Attributes: ruleAttrs}
+		nestedBlock := tfmapper.NestedBlock{Attributes: ruleAttrs}
 
-			if ruleType == "ingress" {
-				ingressBlocks = append(ingressBlocks, nestedBlock)
-			} else if ruleType == "egress" {
-				egressBlocks = append(egressBlocks, nestedBlock)
-				hasEgressRule = true
-			}
+		if ruleType == "ingress" {
+			ingressBlocks = append(ingressBlocks, nestedBlock)
+		} else if ruleType == "egress" {
+			egressBlocks = append(egressBlocks, nestedBlock)
+			hasEgressRule = true
 		}
 	}
 
@@ -460,17 +488,12 @@ func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformB
 		return []tfmapper.TerraformBlock{}, nil
 	}
 
-	vpcName := tfName(*res.ParentID)
-	if pName, ok := res.Metadata["_parentName"].(string); ok {
-		vpcName = tfName(pName)
-	}
-
 	blocks := []tfmapper.TerraformBlock{
 		{
 			Kind:   "resource",
 			Labels: []string{"aws_route_table", tfBlockName(res)},
 			Attributes: map[string]tfmapper.TerraformValue{
-				"vpc_id": tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: vpcName, Attribute: "id"}.Expr()),
+				"vpc_id": tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: resolveRef(*res.ParentID, res.Metadata), Attribute: "id"}.Expr()),
 				"tags":   tfTags(res.Name),
 			},
 		},
@@ -516,7 +539,7 @@ func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformB
 				if targetResourceID != "" {
 					routeAttrs["gateway_id"] = tfExpr(tfmapper.Reference{
 						ResourceType: "aws_internet_gateway",
-						ResourceName: tfName(targetResourceID), // Use tfName for targetResourceID as it's an ID
+						ResourceName: resolveRef(targetResourceID, res.Metadata),
 						Attribute:    "id",
 					}.Expr())
 				}
@@ -524,7 +547,7 @@ func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformB
 				if targetResourceID != "" {
 					routeAttrs["nat_gateway_id"] = tfExpr(tfmapper.Reference{
 						ResourceType: "aws_nat_gateway",
-						ResourceName: tfName(targetResourceID), // Use tfName for targetResourceID as it's an ID
+						ResourceName: resolveRef(targetResourceID, res.Metadata),
 						Attribute:    "id",
 					}.Expr())
 				}
@@ -554,7 +577,6 @@ func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformB
 
 			assocType, _ := getString(assoc, "associationType")
 			associatedResourceID, _ := getString(assoc, "associatedResourceId")
-			associatedResourceName, _ := getString(assoc, "_associatedResourceName") // Get name if available
 
 			if associatedResourceID == "" {
 				continue
@@ -567,14 +589,9 @@ func (m *AWSMapper) mapRouteTable(res *resource.Resource) ([]tfmapper.TerraformB
 			// Map association type to Terraform resource
 			switch assocType {
 			case "Subnet":
-				// Prefer name if available, otherwise fall back to ID
-				resourceName := tfName(associatedResourceID)
-				if associatedResourceName != "" {
-					resourceName = tfName(associatedResourceName)
-				}
 				assocAttrs["subnet_id"] = tfExpr(tfmapper.Reference{
 					ResourceType: "aws_subnet",
-					ResourceName: resourceName,
+					ResourceName: resolveRef(associatedResourceID, res.Metadata),
 					Attribute:    "id",
 				}.Expr())
 			case "Gateway":
@@ -601,14 +618,8 @@ func (m *AWSMapper) mapInternetGateway(res *resource.Resource) ([]tfmapper.Terra
 		return nil, fmt.Errorf("internet-gateway requires parent vpc (parentID missing)")
 	}
 
-	// Resolve Parent VPC Name
-	vpcName := tfName(*res.ParentID)
-	if pName, ok := res.Metadata["_parentName"].(string); ok {
-		vpcName = tfName(pName)
-	}
-
 	attrs := map[string]tfmapper.TerraformValue{
-		"vpc_id": tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: vpcName, Attribute: "id"}.Expr()),
+		"vpc_id": tfExpr(tfmapper.Reference{ResourceType: "aws_vpc", ResourceName: resolveRef(*res.ParentID, res.Metadata), Attribute: "id"}.Expr()),
 		"tags":   tfTags(res.Name),
 	}
 	return []tfmapper.TerraformBlock{
@@ -637,6 +648,102 @@ func (m *AWSMapper) mapElasticIP(res *resource.Resource) ([]tfmapper.TerraformBl
 	}, nil
 }
 
+func (m *AWSMapper) mapAvailabilityZone(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+	// Implicitly used, no explicit Terraform code needed
+	return []tfmapper.TerraformBlock{}, nil
+}
+
+func (m *AWSMapper) mapLoadBalancer(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+	// Determine LB type (application or network)
+	lbType, _ := getString(res.Metadata, "load_balancer_type")
+	if lbType == "" {
+		lbType = "application" // Default
+	}
+
+	internal, _ := getBool(res.Metadata, "internal")
+
+	attrs := map[string]tfmapper.TerraformValue{
+		"name":               tfStringOrVar(res.Metadata, "name", res.Name),
+		"internal":           tfBool(internal),
+		"load_balancer_type": tfString(lbType),
+		"tags":               tfTags(res.Name),
+	}
+
+	// Security Groups (Application LBs only)
+	if lbType == "application" {
+		var sgIDs []string
+		if list, ok := getArray(res.Metadata, "securityGroups"); ok {
+			for _, item := range list {
+				if m, ok := item.(map[string]interface{}); ok {
+					if id, ok := m["id"].(string); ok {
+						sgIDs = append(sgIDs, id)
+					}
+				}
+			}
+		}
+		// Fallback to securityGroupIds
+		if len(sgIDs) == 0 {
+			if list, ok := getStringSlice(res.Metadata, "securityGroupIds"); ok {
+				sgIDs = list
+			}
+		}
+
+		if len(sgIDs) > 0 {
+			sgVals := make([]tfmapper.TerraformValue, 0, len(sgIDs))
+			for _, id := range sgIDs {
+				if id == "" {
+					continue
+				}
+				sgVals = append(sgVals, tfExpr(tfmapper.Reference{
+					ResourceType: "aws_security_group",
+					ResourceName: resolveRef(id, res.Metadata),
+					Attribute:    "id",
+				}.Expr()))
+			}
+			attrs["security_groups"] = tfList(sgVals)
+		}
+	}
+
+	// Subnets
+	var subnetIDs []string
+	if subnetsRaw, ok := getArray(res.Metadata, "subnets"); ok {
+		for _, sRaw := range subnetsRaw {
+			if sMap, ok := sRaw.(map[string]interface{}); ok {
+				if sid, ok := sMap["subnetId"].(string); ok {
+					subnetIDs = append(subnetIDs, sid)
+				}
+			}
+		}
+	}
+
+	if len(subnetIDs) > 0 {
+		subnetRefs := make([]tfmapper.TerraformValue, 0, len(subnetIDs))
+		for _, sid := range subnetIDs {
+			subnetRefs = append(subnetRefs, tfExpr(tfmapper.Reference{
+				ResourceType: "aws_subnet",
+				ResourceName: resolveRef(sid, res.Metadata),
+				Attribute:    "id",
+			}.Expr()))
+		}
+		attrs["subnets"] = tfList(subnetRefs)
+	}
+
+	// Enable deletion protection
+	if v, ok := getBool(res.Metadata, "enable_deletion_protection"); ok {
+		attrs["enable_deletion_protection"] = tfBool(v)
+	}
+
+	addDependsOn(attrs, res)
+
+	return []tfmapper.TerraformBlock{
+		{
+			Kind:       "resource",
+			Labels:     []string{"aws_lb", tfBlockName(res)},
+			Attributes: attrs,
+		},
+	}, nil
+}
+
 func (m *AWSMapper) mapNATGateway(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
 	// NAT GW must be in subnet; allow both parent subnet or explicit subnetId.
 	subnetID, _ := getString(res.Metadata, "subnetId")
@@ -650,13 +757,8 @@ func (m *AWSMapper) mapNATGateway(res *resource.Resource) ([]tfmapper.TerraformB
 	blocks := []tfmapper.TerraformBlock{}
 
 	natGatewayAttrs := map[string]tfmapper.TerraformValue{
-		"subnet_id": tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: tfName(subnetID), Attribute: "id"}.Expr()),
+		"subnet_id": tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: resolveRef(subnetID, res.Metadata), Attribute: "id"}.Expr()),
 		"tags":      tfTags(res.Name),
-	}
-
-	// Use _subnetName if available
-	if n, ok := res.Metadata["_subnetName"].(string); ok {
-		natGatewayAttrs["subnet_id"] = tfExpr(tfmapper.Reference{ResourceType: "aws_subnet", ResourceName: tfName(n), Attribute: "id"}.Expr())
 	}
 
 	// Check if user provided an allocation_id
@@ -740,16 +842,9 @@ func tfName(id string) string {
 }
 
 // tfBlockName returns the terraform local name for the resource choice: Name > ID
-func tfBlockName(res *resource.Resource) string {
-	// Prefer Name
-	if res.Name != "" {
-		s := tfName(res.Name)
-		if s != "resource" {
-			return s
-		}
-	}
-	return tfName(res.ID)
-}
+// DEPRECATED: This implementation often causes collisions.
+// Replaced by implementation at end of file.
+// OLD IMPLEMENTATION DELETED
 
 func sanitizeS3BucketName(name string) string {
 	s := strings.ToLower(strings.TrimSpace(name))
@@ -1005,12 +1100,80 @@ func (m *AWSMapper) mapRDS(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 		return nil, fmt.Errorf("rds requires engine")
 	}
 
+	blocks := []tfmapper.TerraformBlock{}
+
+	// DB Subnet Group
+	// Auto-create a subnet group using all subnets in the parent VPC (or user-defined logic)
+	// For now, let's create a subnet group for this DB if not provided
+	subnetGroupName := fmt.Sprintf("%s_subnet_group", tfBlockName(res))
+	if v, ok := getString(res.Metadata, "db_subnet_group_name"); ok && v != "" {
+		// If user provided a name, use it for the resource name attribute
+		// But we still need a sanitized Terraform identifier
+		subnetGroupName = tfName(v)
+	}
+
+	// Calculate subnets from metadata
+	var subnetIDs []string
+	if list, ok := getArray(res.Metadata, "subnets"); ok {
+		for _, item := range list {
+			if m, ok := item.(map[string]interface{}); ok {
+				if id, ok := m["subnetId"].(string); ok {
+					subnetIDs = append(subnetIDs, id)
+				}
+			}
+		}
+	} else if list, ok := getArray(res.Metadata, "subnetIds"); ok {
+		// Fallback to string array
+		for _, item := range list {
+			if s, ok := item.(string); ok {
+				subnetIDs = append(subnetIDs, s)
+			}
+		}
+	}
+
+	// If no subnets specified, use private subnets injected by generator
+	// RDS instances should always use private subnets
+	if len(subnetIDs) == 0 {
+		if privateSubnets, ok := res.Metadata["_privateSubnetIDs"].([]string); ok && len(privateSubnets) >= 2 {
+			// AWS requires at least 2 subnets for DB subnet groups
+			subnetIDs = privateSubnets
+		}
+	}
+
+	// Always try to create the subnet group if we have subnets
+	// This ensures "Required generator output" is present
+	if len(subnetIDs) > 0 {
+		subnetRefs := make([]tfmapper.TerraformValue, 0, len(subnetIDs))
+		for _, sid := range subnetIDs {
+			subnetRefs = append(subnetRefs, tfExpr(tfmapper.Reference{
+				ResourceType: "aws_subnet",
+				ResourceName: resolveRef(sid, res.Metadata), // Use resolveRef to properly resolve frontend node IDs
+				Attribute:    "id",
+			}.Expr()))
+		}
+
+		blocks = append(blocks, tfmapper.TerraformBlock{
+			Kind:   "resource",
+			Labels: []string{"aws_db_subnet_group", subnetGroupName},
+			Attributes: map[string]tfmapper.TerraformValue{
+				"name":       tfString(subnetGroupName),
+				"subnet_ids": tfList(subnetRefs),
+				"tags":       tfTags(res.Name + " subnet group"),
+			},
+		})
+	}
+
 	attrs := map[string]tfmapper.TerraformValue{
 		"identifier":          tfString(tfName(res.ID)),
 		"instance_class":      tfString(instanceClass),
 		"engine":              tfString(engine),
 		"tags":                tfTags(res.Name),
 		"skip_final_snapshot": tfBool(true), // Avoid hanging on destroy in dev environments
+		"db_subnet_group_name": tfExpr(tfmapper.Reference{
+			ResourceType: "aws_db_subnet_group",
+			ResourceName: subnetGroupName,
+			Attribute:    "name",
+		}.Expr()),
 	}
 
 	if v, ok := getString(res.Metadata, "engine_version"); ok && v != "" {
@@ -1035,11 +1198,6 @@ func (m *AWSMapper) mapRDS(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 		attrs["password"] = tfString(v)
 	}
 
-	// Handle db_subnet_group_name
-	if v, ok := getString(res.Metadata, "db_subnet_group_name"); ok && v != "" {
-		attrs["db_subnet_group_name"] = tfString(v)
-	}
-
 	if v, ok := getBool(res.Metadata, "multi_az"); ok {
 		attrs["multi_az"] = tfBool(v)
 	}
@@ -1059,20 +1217,222 @@ func (m *AWSMapper) mapRDS(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 			}
 		}
 	}
-	if len(sgIDs) > 0 {
-		// Use _securityGroupNames if available
-		sgNamesMap, _ := res.Metadata["_securityGroupNames"].(map[string]string)
+	// Also check securityGroups (object array) or securityGroupIds (string array)
+	if len(sgIDs) == 0 {
+		if list, ok := getArray(res.Metadata, "securityGroups"); ok {
+			for _, item := range list {
+				if m, ok := item.(map[string]interface{}); ok {
+					if id, ok := m["id"].(string); ok {
+						sgIDs = append(sgIDs, id)
+					}
+				}
+			}
+		}
+	}
+	if len(sgIDs) == 0 {
+		if list, ok := getStringSlice(res.Metadata, "securityGroupIds"); ok {
+			sgIDs = list
+		}
+	}
 
+	if len(sgIDs) > 0 {
 		sgVals := make([]tfmapper.TerraformValue, 0, len(sgIDs))
 		for _, id := range sgIDs {
-			refName := tfName(id)
-			if name, ok := sgNamesMap[id]; ok {
-				refName = tfName(name)
+			sgVals = append(sgVals, tfExpr(tfmapper.Reference{
+				ResourceType: "aws_security_group",
+				ResourceName: resolveRef(id, res.Metadata),
+				Attribute:    "id",
+			}.Expr()))
+		}
+		attrs["vpc_security_group_ids"] = tfList(sgVals)
+	}
+
+	addDependsOn(attrs, res)
+
+	blocks = append(blocks, tfmapper.TerraformBlock{
+		Kind:       "resource",
+		Labels:     []string{"aws_db_instance", tfBlockName(res)},
+		Attributes: attrs,
+	})
+
+	return blocks, nil
+}
+
+func (m *AWSMapper) mapAutoScalingGroup(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+	minSize, _ := getInt(res.Metadata, "minSize")
+	maxSize, _ := getInt(res.Metadata, "maxSize")
+	desiredCapacity, _ := getInt(res.Metadata, "desiredCapacity")
+
+	attrs := map[string]tfmapper.TerraformValue{
+		"name":             tfStringOrVar(res.Metadata, "name", res.Name),
+		"min_size":         tfNumber(float64(minSize)),
+		"max_size":         tfNumber(float64(maxSize)),
+		"desired_capacity": tfNumber(float64(desiredCapacity)),
+		"tags":             tfTags(res.Name),
+	}
+
+	// Check if Launch Template is explicitly referenced
+	ltID, _ := getString(res.Metadata, "launchTemplateId")
+
+	// If launchTemplateId is provided, use it
+	if ltID != "" && ltID != "implicit" {
+		attrs["launch_template"] = tfmapper.TerraformValue{
+			Map: map[string]tfmapper.TerraformValue{
+				"id":      tfExpr(tfmapper.Reference{ResourceType: "aws_launch_template", ResourceName: resolveRef(ltID, res.Metadata), Attribute: "id"}.Expr()),
+				"version": tfString("$Latest"),
+			},
+		}
+
+		// Dependencies will be handled by addDependsOn via _dependsOn
+	} else {
+		// FALLBACK: Create implicit Launch Template (legacy behavior)
+		ltName := res.Name + "-lt"
+		if n, ok := getString(res.Metadata, "launchTemplateName"); ok && n != "" {
+			ltName = n
+		}
+
+		// Create Launch Template resource
+		ltAttrs := map[string]tfmapper.TerraformValue{
+			"name_prefix":   tfString(ltName + "-"),
+			"image_id":      tfStringOrVar(res.Metadata, "ami", "ami-0123456789"), // Default AMI if missing
+			"instance_type": tfStringOrVar(res.Metadata, "instanceType", "t3.micro"),
+		}
+
+		// Add Launch Template block
+		ltBlock := tfmapper.TerraformBlock{
+			Kind:       "resource",
+			Labels:     []string{"aws_launch_template", tfName(res.ID) + "_lt"},
+			Attributes: ltAttrs,
+		}
+
+		attrs["launch_template"] = tfmapper.TerraformValue{
+			Map: map[string]tfmapper.TerraformValue{
+				"id":      tfExpr(tfmapper.Reference{ResourceType: "aws_launch_template", ResourceName: tfName(res.ID) + "_lt", Attribute: "id"}.Expr()),
+				"version": tfString("$Latest"),
+			},
+		}
+
+		// For implicit LT, we return both blocks
+		addDependsOn(attrs, res)
+		return []tfmapper.TerraformBlock{
+			ltBlock,
+			{
+				Kind:       "resource",
+				Labels:     []string{"aws_autoscaling_group", tfBlockName(res)},
+				Attributes: attrs,
+			},
+		}, nil
+	}
+
+	// Subnets
+	var subnetIDs []string
+	if subnetsRaw, ok := getArray(res.Metadata, "subnets"); ok {
+		for _, sRaw := range subnetsRaw {
+			if sMap, ok := sRaw.(map[string]interface{}); ok {
+				if sid, ok := sMap["subnetId"].(string); ok {
+					subnetIDs = append(subnetIDs, sid)
+				}
 			}
+		}
+	}
+
+	if len(subnetIDs) > 0 {
+		subnetRefs := make([]tfmapper.TerraformValue, 0, len(subnetIDs))
+		for _, sid := range subnetIDs {
+			subnetRefs = append(subnetRefs, tfExpr(tfmapper.Reference{
+				ResourceType: "aws_subnet",
+				ResourceName: resolveRef(sid, res.Metadata),
+				Attribute:    "id",
+			}.Expr()))
+		}
+		attrs["vpc_zone_identifier"] = tfList(subnetRefs)
+	}
+
+	addDependsOn(attrs, res)
+
+	return []tfmapper.TerraformBlock{
+		{
+			Kind:       "resource",
+			Labels:     []string{"aws_autoscaling_group", tfBlockName(res)},
+			Attributes: attrs,
+		},
+	}, nil
+}
+
+func (m *AWSMapper) mapLaunchTemplate(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+	attrs := map[string]tfmapper.TerraformValue{
+		"name_prefix":   tfString(tfName(res.Name) + "-"),
+		"image_id":      tfStringOrVar(res.Metadata, "image_id", "ami-0123456789"),
+		"instance_type": tfStringOrVar(res.Metadata, "instance_type", "t3.micro"),
+		"tags":          tfTags(res.Name),
+	}
+
+	// Allow overriding name_prefix with explicit Name if provided, but name_prefix is safer for conflicts
+	if v, ok := getString(res.Metadata, "name"); ok && v != "" {
+		// If explicit name is requested, use it, but LaunchTemplates are immutable so prefixes are better
+		// We'll stick to name_prefix based on res.Name for now as per best practice
+	}
+
+	if v, ok := getString(res.Metadata, "update_default_version"); ok && v != "" {
+		// defaults to true usually
+	} else {
+		attrs["update_default_version"] = tfBool(true)
+	}
+
+	if v, ok := getString(res.Metadata, "key_name"); ok && v != "" {
+		attrs["key_name"] = tfStringOrVar(res.Metadata, "key_name", v)
+	}
+
+	if v, ok := getString(res.Metadata, "user_data"); ok && v != "" {
+		attrs["user_data"] = tfString(v)
+	}
+
+	// IAM Instance Profile
+	if v, ok := getString(res.Metadata, "iam_instance_profile"); ok && v != "" {
+		attrs["iam_instance_profile"] = tfmapper.TerraformValue{
+			Map: map[string]tfmapper.TerraformValue{
+				"name": tfString(v),
+			},
+		}
+	}
+
+	// Security Groups
+	var sgIDs []string
+	if list, ok := getArray(res.Metadata, "vpc_security_group_ids"); ok {
+		for _, item := range list {
+			if s, ok := item.(string); ok {
+				sgIDs = append(sgIDs, s)
+			}
+		}
+	}
+	// Also check securityGroups (object array)
+	if len(sgIDs) == 0 {
+		if list, ok := getArray(res.Metadata, "securityGroups"); ok {
+			for _, item := range list {
+				if m, ok := item.(map[string]interface{}); ok {
+					if id, ok := m["id"].(string); ok {
+						sgIDs = append(sgIDs, id)
+					}
+				}
+			}
+		}
+	}
+	// Fallback to securityGroupIds
+	if len(sgIDs) == 0 {
+		if list, ok := getStringSlice(res.Metadata, "securityGroupIds"); ok {
+			sgIDs = list
+		}
+	}
+
+	if len(sgIDs) > 0 {
+		sgVals := make([]tfmapper.TerraformValue, 0, len(sgIDs))
+		for _, id := range sgIDs {
+			// Check if we have a name for this SG (provided by generator)
+			sgName := resolveRef(id, res.Metadata)
 
 			sgVals = append(sgVals, tfExpr(tfmapper.Reference{
 				ResourceType: "aws_security_group",
-				ResourceName: refName,
+				ResourceName: sgName,
 				Attribute:    "id",
 			}.Expr()))
 		}
@@ -1084,7 +1444,7 @@ func (m *AWSMapper) mapRDS(res *resource.Resource) ([]tfmapper.TerraformBlock, e
 	return []tfmapper.TerraformBlock{
 		{
 			Kind:       "resource",
-			Labels:     []string{"aws_db_instance", tfBlockName(res)},
+			Labels:     []string{"aws_launch_template", tfBlockName(res)},
 			Attributes: attrs,
 		},
 	}, nil
@@ -1170,6 +1530,10 @@ func getTerraformType(domainType string) string {
 		return "aws_s3_bucket"
 	case "RDS":
 		return "aws_db_instance"
+	case "AutoScalingGroup":
+		return "aws_autoscaling_group"
+	case "LoadBalancer":
+		return "aws_lb"
 	case "Lambda":
 		return "aws_lambda_function"
 	default:
@@ -1211,4 +1575,51 @@ func getFloat(m map[string]interface{}, key string) (float64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+// tfBlockName returns the terraform local name for the resource.
+// We prioritize Name to match user request, falling back to ID.
+func tfBlockName(res *resource.Resource) string {
+	// Prefer Name
+	if res.Name != "" {
+		s := tfName(res.Name)
+		if s != "resource" {
+			return s
+		}
+	}
+	return tfName(res.ID)
+}
+
+// resolveRef resolves an ID to a Terraform reference name.
+// It checks multiple mappings in order:
+// 1. _resourceNames (domain ID -> name, injected by generator)
+// 2. _originalIDToName (frontend node ID -> name, injected by LoadArchitecture)
+// Falls back to tfName(id).
+func resolveRef(id string, metadata map[string]interface{}) string {
+	if metadata != nil {
+		// First, check _resourceNames (domain/DB ID -> name)
+		if mapRaw, ok := metadata["_resourceNames"]; ok {
+			if mapping, ok := mapRaw.(map[string]string); ok {
+				if name, found := mapping[id]; found {
+					s := tfName(name)
+					if s != "resource" {
+						return s
+					}
+				}
+			}
+		}
+		// Second, check _originalIDToName (frontend node ID -> name)
+		// This handles references that use the original frontend IDs like "subnet-5"
+		if mapRaw, ok := metadata["_originalIDToName"]; ok {
+			if mapping, ok := mapRaw.(map[string]string); ok {
+				if name, found := mapping[id]; found {
+					s := tfName(name)
+					if s != "resource" {
+						return s
+					}
+				}
+			}
+		}
+	}
+	return tfName(id)
 }

@@ -22,6 +22,12 @@ func GetAWSResourceClassifications() []ResourceClassification {
 		},
 		{
 			Category:     resource.CategoryNetworking,
+			ResourceName: "AvailabilityZone",
+			IRType:       "availability-zone",
+			Aliases:      []string{"availability-zone", "az"},
+		},
+		{
+			Category:     resource.CategoryNetworking,
 			ResourceName: "RouteTable",
 			IRType:       "route-table",
 			Aliases:      []string{"route-table", "route_table"},
@@ -73,8 +79,14 @@ func GetAWSResourceClassifications() []ResourceClassification {
 		{
 			Category:     resource.CategoryCompute,
 			ResourceName: "AutoScalingGroup",
-			IRType:       "auto-scaling-group",
-			Aliases:      []string{"auto-scaling-group", "auto_scaling_group", "asg"},
+			IRType:       "autoscaling-group",
+			Aliases:      []string{"autoscaling-group", "auto-scaling-group", "auto_scaling_group", "asg"},
+		},
+		{
+			Category:     resource.CategoryCompute,
+			ResourceName: "LaunchTemplate",
+			IRType:       "launch-template",
+			Aliases:      []string{"launch-template", "launch_template", "lt"},
 		},
 
 		// Storage Resources

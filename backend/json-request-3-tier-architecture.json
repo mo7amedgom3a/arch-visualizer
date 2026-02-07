@@ -1,0 +1,1476 @@
+{
+  "uiState": {
+    "zoom": 0.5166666666666667,
+    "viewportX": 202,
+    "viewportY": 142.66666666666666,
+    "selectedNodeIds": [],
+    "selectedEdgeIds": []
+  },
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "data": {
+        "label": "Region",
+        "resourceType": "region",
+        "config": {
+          "name": "us-east-1",
+          "label": "US East (N. Virginia)",
+          "availabilityZoneId": "us-east-1a",
+          "zoneName": "us-east-1a",
+          "connectivityType": "public"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": -180,
+          "y": -220
+        },
+        "width": 1260,
+        "height": 900,
+        "measured": {
+          "width": 1260,
+          "height": 900
+        },
+        "style": {
+          "width": 600,
+          "height": 400
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "vpc-2",
+      "type": "containerNode",
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "project-vpc",
+          "cidr": "10.0.0.0/16",
+          "regionId": "us-east-1",
+          "isDefault": false,
+          "dnsOptions": {
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true
+          },
+          "tenancy": "Default",
+          "tags": [
+            {
+              "key": "Name",
+              "value": "project-vpc"
+            }
+          ],
+          "enableDnsHostnames": true,
+          "enableDnsSupport": true,
+          "availabilityZoneId": "us-east-1a",
+          "instanceType": "t3.micro"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 40,
+          "y": 60
+        },
+        "width": 1210,
+        "height": 820,
+        "measured": {
+          "width": 1210,
+          "height": 820
+        },
+        "style": {
+          "width": 450,
+          "height": 300
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "route-table-3",
+      "type": "resourceNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Main Route Table",
+        "resourceType": "route-table",
+        "config": {
+          "isMain": true,
+          "vpcId": "vpc-2",
+          "routes": [
+            {
+              "destination": {
+                "id": "88843d87-731e-48d8-bd06-374975c49df5",
+                "name": "Local",
+                "cidr": "10.0.0.0/16",
+                "isLocal": true,
+                "tags": []
+              },
+              "target": {
+                "id": "39e833c3-1cda-4a6e-a6a7-b8b6c736d87f",
+                "name": "Local",
+                "type": "Local",
+                "resourceId": "local",
+                "tags": []
+              }
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 130,
+          "y": 90
+        },
+        "measured": {
+          "width": 16,
+          "height": 16
+        },
+        "focusable": true,
+        "selectable": true
+      }
+    },
+    {
+      "id": "igw-4",
+      "type": "resourceNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Internet Gateway",
+        "resourceType": "igw",
+        "config": {
+          "0": {
+            "id": "preview-igw-1234",
+            "name": "project-igw",
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-igw"
+              }
+            ]
+          },
+          "name": "us-east-1"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 520,
+          "y": 20
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-5",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "0": {
+            "id": "preview-subnet-private2-us-east-1b",
+            "name": "project-subnet-private2-us-east-1b",
+            "cidr": "10.0.144.0/16",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1b",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private2-us-east-1b"
+              }
+            ]
+          },
+          "1": {
+            "id": "preview-subnet-private-3",
+            "name": "project-subnet-private-3",
+            "cidr": "10.0.128.0/20",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1a",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private-3"
+              }
+            ]
+          },
+          "name": "public-1",
+          "cidr": "10.0.1.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "isPublic": true,
+          "zoneName": "us-east-1a",
+          "tenancy": "default"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 160,
+          "y": 100
+        },
+        "width": 260,
+        "height": 140,
+        "measured": {
+          "width": 260,
+          "height": 140
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-8",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "0": {
+            "id": "preview-subnet-private2-us-east-1b",
+            "name": "project-subnet-private2-us-east-1b",
+            "cidr": "10.0.144.0/16",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1b",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private2-us-east-1b"
+              }
+            ]
+          },
+          "1": {
+            "id": "preview-subnet-private-3",
+            "name": "project-subnet-private-3",
+            "cidr": "10.0.128.0/20",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1a",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private-3"
+              }
+            ]
+          },
+          "name": "public-2",
+          "cidr": "10.0.2.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "isPublic": true
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 740,
+          "y": 80
+        },
+        "width": 300,
+        "height": 140,
+        "measured": {
+          "width": 300,
+          "height": 140
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-9",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "0": {
+            "id": "preview-subnet-private2-us-east-1b",
+            "name": "project-subnet-private2-us-east-1b",
+            "cidr": "10.0.144.0/16",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1b",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private2-us-east-1b"
+              }
+            ]
+          },
+          "1": {
+            "id": "preview-subnet-private-3",
+            "name": "project-subnet-private-3",
+            "cidr": "10.0.128.0/20",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1a",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private-3"
+              }
+            ]
+          },
+          "name": "private-1",
+          "cidr": "10.0.3.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "isPublic": false
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 760,
+          "y": 360
+        },
+        "width": 280,
+        "height": 140,
+        "measured": {
+          "width": 280,
+          "height": 140
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "availability-zone-11",
+      "type": "containerNode",
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "AZ",
+        "resourceType": "availability-zone",
+        "config": {
+          "zoneName": "us-east-1a",
+          "name": "us-east-1",
+          "tenancy": "default",
+          "availabilityZoneId": "us-east-1a",
+          "instanceType": "t3.micro"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 180,
+          "y": 100
+        },
+        "width": 320,
+        "height": 740,
+        "measured": {
+          "width": 320,
+          "height": 740
+        },
+        "style": {
+          "width": 400,
+          "height": 300
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "availability-zone-12",
+      "type": "containerNode",
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "AZ",
+        "resourceType": "availability-zone",
+        "config": {
+          "zoneName": "us-east-1b",
+          "availabilityZoneId": "us-east-1a",
+          "tenancy": "default",
+          "name": "us-east-1"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 760,
+          "y": 100
+        },
+        "width": 340,
+        "height": 760,
+        "measured": {
+          "width": 340,
+          "height": 760
+        },
+        "style": {
+          "width": 400,
+          "height": 300
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-13",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "0": {
+            "id": "preview-subnet-private2-us-east-1b",
+            "name": "project-subnet-private2-us-east-1b",
+            "cidr": "10.0.144.0/16",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1b",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private2-us-east-1b"
+              }
+            ]
+          },
+          "1": {
+            "id": "preview-subnet-private-3",
+            "name": "project-subnet-private-3",
+            "cidr": "10.0.128.0/20",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1a",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private-3"
+              }
+            ]
+          },
+          "name": "private-2",
+          "cidr": "10.0.4.0/24",
+          "availabilityZoneId": "us-east-1b",
+          "isPublic": false,
+          "zoneName": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 140,
+          "y": 380
+        },
+        "width": 280,
+        "height": 140,
+        "measured": {
+          "width": 280,
+          "height": 140
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-14",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "0": {
+            "id": "preview-subnet-private2-us-east-1b",
+            "name": "project-subnet-private2-us-east-1b",
+            "cidr": "10.0.144.0/16",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1b",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private2-us-east-1b"
+              }
+            ]
+          },
+          "1": {
+            "id": "preview-subnet-private-3",
+            "name": "project-subnet-private-3",
+            "cidr": "10.0.128.0/20",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1a",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private-3"
+              }
+            ]
+          },
+          "name": "private-3",
+          "cidr": "10.0.5.0/24",
+          "availabilityZoneId": "us-east-1b",
+          "isPublic": false,
+          "zoneName": "us-east-1a",
+          "replicateSourceDb": "rds-19",
+          "engine": "mysql",
+          "instanceClass": "db.t3.micro"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 740,
+          "y": 640
+        },
+        "width": 280,
+        "height": 140,
+        "measured": {
+          "width": 280,
+          "height": 140
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-15",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "0": {
+            "id": "preview-subnet-private2-us-east-1b",
+            "name": "project-subnet-private2-us-east-1b",
+            "cidr": "10.0.144.0/16",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1b",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private2-us-east-1b"
+              }
+            ]
+          },
+          "1": {
+            "id": "preview-subnet-private-3",
+            "name": "project-subnet-private-3",
+            "cidr": "10.0.128.0/20",
+            "vpcId": "preview-vpc-1234",
+            "availabilityZoneId": "us-east-1a",
+            "enableDnsSupport": true,
+            "enableDnsHostnames": true,
+            "tags": [
+              {
+                "key": "Name",
+                "value": "project-subnet-private-3"
+              }
+            ]
+          },
+          "name": "private",
+          "cidr": "10.0.6.0/24",
+          "availabilityZoneId": "us-east-1b",
+          "isPublic": false
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 160,
+          "y": 620
+        },
+        "width": 280,
+        "height": 140,
+        "measured": {
+          "width": 280,
+          "height": 140
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "nat-gateway-16",
+      "type": "resourceNode",
+      "parentId": "subnet-8",
+      "extent": "parent",
+      "data": {
+        "label": "NAT Gateway",
+        "resourceType": "nat-gateway",
+        "config": {
+          "connectivityType": "public",
+          "name": "my-nat-gateway",
+          "subnetId": "subnet-8",
+          "allocationId": "",
+          "zoneName": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 100,
+          "y": 40
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "security-group-alb",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "zIndex": -1,
+      "data": {
+        "label": "Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "alb-sg",
+          "description": "alb-sg",
+          "ingressRules": [
+            {
+              "protocol": "tcp",
+              "fromPort": 80,
+              "toPort": 80,
+              "cidr": "0.0.0.0/0",
+              "description": "HTTP from Internet"
+            }
+          ],
+          "egressRules": [
+            {
+              "protocol": "-1",
+              "fromPort": 0,
+              "toPort": 0,
+              "cidr": "0.0.0.0/0"
+            }
+          ],
+          "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 60,
+          "y": 120
+        },
+        "width": 300,
+        "height": 200,
+        "measured": {
+            "width": 300,
+            "height": 200
+        },
+        "style": {
+            "width": 300,
+            "height": 200
+        },
+        "focusable": true,
+        "selectable": true
+      }
+    },
+    {
+      "id": "alb-17",
+      "type": "resourceNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Load Balancer",
+        "resourceType": "alb",
+        "config": {
+          "name": "my-alb",
+          "internal": false,
+          "type": "application",
+          "subnets": [
+            {"subnetId": "subnet-5"},
+            {"subnetId": "subnet-8"}
+          ],
+          "securityGroups": [
+            {"id": "security-group-alb"}
+          ],
+          "listeners": [
+            {
+              "port": 80,
+              "protocol": "HTTP",
+              "target": "autoscaling-group-21"
+            }
+          ],
+          "connectivityType": "public",
+          "tenancy": "default",
+          "instanceType": "t3.micro"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 540,
+          "y": 180
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "ec2-18",
+      "type": "resourceNode",
+      "parentId": "subnet-5",
+      "extent": "parent",
+      "data": {
+        "label": "EC2",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro",
+          "ami": "ami-0123456789",
+          "name": "web-server",
+          "securityGroups": [],
+          "zoneName": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 80,
+          "y": 60
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "rds-19",
+      "type": "resourceNode",
+      "parentId": "subnet-15",
+      "extent": "parent",
+      "data": {
+        "label": "RDS Instance",
+        "resourceType": "rds",
+        "config": {
+          "identifier": "my-db-instance",
+          "name": "my-db-instance-19",
+          "engine": "mysql",
+          "instanceClass": "db.t3.micro",
+          "allocatedStorage": 20,
+          "replicateSourceDb": "rds-28",
+          "engineVersion": "8.0",
+          "dbName": "test-db",
+          "username": "admin",
+          "password": "password",
+          "publiclyAccessible": false,
+          "subnetGroup": "default",
+          "securityGroups": [],
+          "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 80,
+          "y": 40
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "autoscaling-group-21",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Auto Scaling",
+        "resourceType": "autoscaling-group",
+        "config": {
+          "name": "my-asg",
+          "minSize": 1,
+          "maxSize": 3,
+          "desiredCapacity": 2,
+          "subnets": [
+            {
+              "subnetId": "subnet-5"
+            },
+            {
+              "subnetId": "subnet-8"
+            }
+          ],
+          "launchTemplateId": "launch-template-34",
+          "replicateSourceDb": "rds-19",
+          "engine": "mysql",
+          "instanceClass": "db.t3.micro"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 180,
+          "y": 400
+        },
+        "width": 820,
+        "height": 80,
+        "measured": {
+          "width": 820,
+          "height": 80
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "ec2-22",
+      "type": "resourceNode",
+      "parentId": "autoscaling-group-21",
+      "extent": "parent",
+      "data": {
+        "label": "EC2",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro",
+          "ami": "ami-0123456789",
+          "name": "web-server"
+        },
+        "status": "unconfigured"
+      },
+      "ui": {
+        "position": {
+          "x": 100,
+          "y": -80
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": true
+      }
+    },
+    {
+      "id": "ec2-23",
+      "type": "resourceNode",
+      "parentId": "autoscaling-group-21",
+      "extent": "parent",
+      "data": {
+        "label": "EC2",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro",
+          "ami": "ami-0123456789",
+          "name": "web-server"
+        },
+        "status": "unconfigured"
+      },
+      "ui": {
+        "position": {
+          "x": 720,
+          "y": 0
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": true
+      }
+    },
+    {
+      "id": "ec2-24",
+      "type": "resourceNode",
+      "parentId": "autoscaling-group-21",
+      "extent": "parent",
+      "data": {
+        "label": "EC2",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro",
+          "ami": "ami-0123456789",
+          "name": "web-server",
+          "securityGroups": []
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 620,
+          "y": 0
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": true
+      }
+    },
+    {
+      "id": "ec2-25",
+      "type": "resourceNode",
+      "parentId": "autoscaling-group-21",
+      "extent": "parent",
+      "data": {
+        "label": "EC2",
+        "resourceType": "ec2",
+        "config": {
+          "instanceType": "t3.micro",
+          "ami": "ami-0123456789",
+          "name": "web-server",
+          "securityGroups": []
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 20,
+          "y": 0
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": true
+      }
+    },
+    {
+      "id": "route-table-26",
+      "type": "resourceNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Route Table",
+        "resourceType": "route-table",
+        "config": {
+          "vpcId": "vpc-2",
+          "name": "public-rtb",
+          "routes": [
+            {
+              "destination": {
+                "id": "0d0d1851-13dd-4079-990a-a249935ba4b0",
+                "name": "Local",
+                "cidr": "10.0.0.0/16",
+                "isLocal": true,
+                "tags": []
+              },
+              "target": {
+                "id": "b2885830-a7ef-456e-934b-4574c47b298b",
+                "name": "Local",
+                "type": "Local",
+                "resourceId": "local",
+                "tags": []
+              }
+            },
+            {
+              "destination": {
+                "id": "8c30fca3-71af-474a-80c9-7f097adf7be2",
+                "name": "0.0.0.0/0",
+                "cidr": "0.0.0.0/0",
+                "isLocal": false,
+                "tags": []
+              },
+              "target": {
+                "id": "3becd5ce-7666-4835-ae71-cf4d5ee607cf",
+                "name": "Internet Gateway",
+                "type": "InternetGateway",
+                "resourceId": "igw-4",
+                "tags": []
+              }
+            }
+          ],
+          "associations": [
+            {
+              "id": "e217228b-3061-4a37-a945-d4e779422851",
+              "routeTableId": "route-table-26",
+              "associationType": "Subnet",
+              "associatedResourceId": "subnet-8",
+              "resourceName": "Subnet"
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 600,
+          "y": 100
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true
+      }
+    },
+    {
+      "id": "route-table-27",
+      "type": "resourceNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "data": {
+        "label": "Route Table",
+        "resourceType": "route-table",
+        "config": {
+          "vpcId": "vpc-2",
+          "name": "private-rtb",
+          "routes": [
+            {
+              "destination": {
+                "id": "30c44b39-731c-4b0e-92ec-6b0f28be563a",
+                "name": "Local",
+                "cidr": "10.0.0.0/16",
+                "isLocal": true,
+                "tags": []
+              },
+              "target": {
+                "id": "ec6a4379-103c-4dfe-99d8-6ecef8737296",
+                "name": "Local",
+                "type": "Local",
+                "resourceId": "local",
+                "tags": []
+              }
+            },
+            {
+              "destination": {
+                "id": "83dec87b-e7db-4a98-b228-50c1d5073a9a",
+                "name": "0.0.0.0/0",
+                "cidr": "0.0.0.0/0",
+                "isLocal": false,
+                "tags": []
+              },
+              "target": {
+                "id": "74cf1cf2-6191-4ef6-be4a-a97ad900e832",
+                "name": "NAT Gateway",
+                "type": "NATGateway",
+                "resourceId": "nat-gateway-16",
+                "tags": []
+              }
+            }
+          ],
+          "associations": [
+            {
+              "id": "4a11b96f-4a57-4ef5-a343-ce8b988dd60b",
+              "routeTableId": "route-table-27",
+              "associationType": "Subnet",
+              "associatedResourceId": "subnet-9",
+              "resourceName": "Subnet"
+            },
+            {
+              "id": "b0f65d81-03da-41bc-82f5-3e380f8f25a4",
+              "routeTableId": "route-table-27",
+              "associationType": "Subnet",
+              "associatedResourceId": "subnet-13",
+              "resourceName": "Subnet"
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 820,
+          "y": 240
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true
+      }
+    },
+    {
+      "id": "rds-29",
+      "type": "resourceNode",
+      "parentId": "subnet-14",
+      "extent": "parent",
+      "data": {
+        "label": "RDS Instance",
+        "resourceType": "rds",
+        "config": {
+          "identifier": "my-db-instance",
+          "name": "my-db-instance-29",
+          "engine": "mysql",
+          "instanceClass": "db.t3.micro",
+          "allocatedStorage": 20,
+          "replicateSourceDb": "rds-19",
+          "engineVersion": "8.0",
+          "dbName": "",
+          "username": "admin",
+          "password": "password",
+          "publiclyAccessible": false,
+          "subnetGroup": "default",
+          "securityGroups": [],
+          "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 80,
+          "y": 20
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "security-group-32",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "zIndex": -1,
+      "data": {
+        "label": "Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "app-sg",
+          "description": "app-sg",
+          "ingressRules": [
+            {
+              "protocol": "tcp",
+              "fromPort": 80,
+              "toPort": 80,
+              "useSourceSecurityGroup": true,
+              "sourceSecurityGroupId": "security-group-alb",
+              "description": "HTTP from ALB"
+            }
+          ],
+          "egressRules": [],
+          "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 60,
+          "y": 340
+        },
+        "width": 1080,
+        "height": 200,
+        "measured": {
+          "width": 1080,
+          "height": 200
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "security-group-33",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+      "zIndex": -1,
+      "data": {
+        "label": "Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "rds-sg",
+          "description": "rds-sg",
+          "ingressRules": [
+            {
+              "protocol": "tcp",
+              "fromPort": 3306,
+              "toPort": 3306,
+              "useSourceSecurityGroup": true,
+              "sourceSecurityGroupId": "security-group-32",
+              "description": "MySQL from App"
+            }
+          ],
+          "egressRules": [
+            {
+              "protocol": "tcp",
+              "fromPort": 0,
+              "toPort": 0,
+              "cidr": "0.0.0.0/0"
+            }
+          ],
+          "tenancy": "default"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 40,
+          "y": 580
+        },
+        "width": 1060,
+        "height": 220,
+        "measured": {
+          "width": 1060,
+          "height": 220
+        },
+        "style": {
+          "width": 300,
+          "height": 200
+        },
+        "resizing": false,
+        "dragHandle": ".container-node",
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "launch-template-34",
+      "type": "containerNode",
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "Launch Template",
+        "resourceType": "launch-template",
+        "config": {
+          "name": "web-server-lt",
+          "imageId": "ami-0123456789",
+          "instanceType": "t3.micro",
+          "keyName": "my-key-pair",
+          "userData": "#!/bin/bash\necho 'Hello World' > /index.html",
+          "vpcSecurityGroupIds": ["security-group-35"]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": -100,
+          "y": 450
+        },
+        "measured": {
+          "width": 80,
+          "height": 80
+        },
+        "style": {
+          "width": 80,
+          "height": 80
+        },
+        "focusable": true,
+        "selectable": true,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "security-group-35",
+      "type": "containerNode",
+      "parentId": "vpc-2",
+      "extent": "parent",
+       "zIndex": -1,
+      "data": {
+        "label": "Security Group (LT)",
+        "resourceType": "security-group",
+        "config": {
+          "name": "lt-sg",
+          "description": "Security Group for Launch Template",
+          "ingressRules": [
+             {
+              "protocol": "tcp",
+              "fromPort": 80,
+              "toPort": 80,
+              "cidr": "0.0.0.0/0",
+              "description": "HTTP"
+            }
+          ],
+          "egressRules": [
+            {
+              "protocol": "-1",
+              "fromPort": 0,
+              "toPort": 0,
+              "cidr": "0.0.0.0/0"
+            }
+          ],
+           "availabilityZoneId": "us-east-1a"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {
+          "x": 60,
+          "y": 500
+        },
+        "width": 300,
+        "height": 200,
+        "measured": {
+          "width": 300,
+          "height": 200
+        },
+        "style": {
+          "width": 300,
+           "height": 200
+        },
+        "focusable": true,
+        "selectable": true
+      }
+    }
+  ],
+  "edges": [],
+  "variables": [],
+  "policies": [],
+  "outputs": [],
+  "timestamp": 1770404512177
+}

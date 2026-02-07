@@ -17,18 +17,24 @@ type Node struct {
 
 // UIState represents the full UI state of a node
 type UIState struct {
-	X          float64
-	Y          float64
-	Width      *float64
-	Height     *float64
-	Style      map[string]interface{}
-	Measured   map[string]interface{}
-	Selected   bool
-	Dragging   bool
-	Resizing   bool
-	Focusable  bool
-	Selectable bool
-	ZIndex     int
+	Position     Position               `json:"position"`
+	Width        *float64               `json:"width,omitempty"`
+	Height       *float64               `json:"height,omitempty"`
+	Style        map[string]interface{} `json:"style,omitempty"`
+	Measured     map[string]interface{} `json:"measured,omitempty"`
+	Selected     bool                   `json:"selected"`
+	Dragging     bool                   `json:"dragging"`
+	Resizing     bool                   `json:"resizing"`
+	DragHandle   string                 `json:"dragHandle,omitempty"`
+	Focusable    bool                   `json:"focusable"`
+	Selectable   bool                   `json:"selectable"`
+	IsVisualOnly bool                   `json:"isVisualOnly"`
+	ZIndex       int                    `json:"zIndex"`
+}
+
+type Position struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 // IsContainer returns true if the node is a container node

@@ -274,8 +274,8 @@ func persistToDatabase(ctx context.Context, arch *architecture.Architecture, dia
 			measuredJSON, _ := json.Marshal(ui.Measured)
 
 			uiState = &models.ResourceUIState{
-				X:          ui.X,
-				Y:          ui.Y,
+				X:          ui.Position.X,
+				Y:          ui.Position.Y,
 				Width:      ui.Width,
 				Height:     ui.Height,
 				Style:      datatypes.JSON(styleJSON),

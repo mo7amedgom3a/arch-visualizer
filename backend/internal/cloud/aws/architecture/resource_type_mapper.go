@@ -58,6 +58,14 @@ func (m *AWSResourceTypeMapper) MapResourceNameToResourceType(resourceName strin
 			IsRegional: true,
 			IsGlobal:   false,
 		},
+		"AvailabilityZone": {
+			ID:         "availability-zone",
+			Name:       "AvailabilityZone",
+			Category:   string(resource.CategoryNetworking),
+			Kind:       "Zone",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
 		"EC2": {
 			ID:         "ec2",
 			Name:       "EC2",
@@ -154,8 +162,16 @@ func (m *AWSResourceTypeMapper) MapResourceNameToResourceType(resourceName strin
 			IsRegional: true,
 			IsGlobal:   false,
 		},
+		"LaunchTemplate": {
+			ID:         "launch-template",
+			Name:       "LaunchTemplate",
+			Category:   string(resource.CategoryCompute),
+			Kind:       "Configuration",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
 		"AutoScalingGroup": {
-			ID:         "auto-scaling-group",
+			ID:         "autoscaling-group",
 			Name:       "AutoScalingGroup",
 			Category:   string(resource.CategoryCompute),
 			Kind:       "VirtualMachine",

@@ -95,6 +95,14 @@ func (s *AWSRuleService) ValidateResource(
 	res *resource.Resource,
 	architecture *engine.Architecture,
 ) (*engine.EvaluationResult, error) {
+	// Check if resource is visual-only
+	if isVisualOnly, ok := res.Metadata["isVisualOnly"].(bool); ok && isVisualOnly {
+		return &engine.EvaluationResult{
+			Valid:   true,
+			Results: []*rules.RuleResult{},
+		}, nil
+	}
+
 	// Get rules for this resource type
 	resourceRules := s.registry.GetRules(res.Type.Name)
 	if len(resourceRules) == 0 {
