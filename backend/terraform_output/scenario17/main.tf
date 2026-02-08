@@ -2,6 +2,18 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_launch_template" "weblaunchtemplate" {
+  depends_on    = [aws_security_group.websg]
+  image_id      = "ami-0123456789"
+  instance_type = "t3.micro"
+  name_prefix   = "weblaunchtemplate-"
+  tags = {
+    Name  =  "WebLaunchTemplate"
+  }
+  update_default_version = true
+  vpc_security_group_ids = [aws_security_group.websg.id]
+}
+
 resource "aws_autoscaling_group" "webasg" {
   depends_on = [aws_subnet.publicsubnet,
   aws_lb_target_group.webtargetgroup]
@@ -42,18 +54,6 @@ resource "aws_vpc" "mainvpc" {
   tags = {
     Name  =  "MainVPC"
   }
-}
-
-resource "aws_launch_template" "weblaunchtemplate" {
-  depends_on    = [aws_security_group.websg]
-  image_id      = "ami-0123456789"
-  instance_type = "t3.micro"
-  name_prefix   = "weblaunchtemplate-"
-  tags = {
-    Name  =  "WebLaunchTemplate"
-  }
-  update_default_version = true
-  vpc_security_group_ids = [aws_security_group.websg.id]
 }
 
 resource "aws_lb_target_group" "webtargetgroup" {

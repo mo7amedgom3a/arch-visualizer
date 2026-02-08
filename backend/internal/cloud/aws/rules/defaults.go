@@ -132,20 +132,24 @@ func DefaultComputeRules() []ConstraintRecord {
 		{ResourceType: "LaunchTemplate", ConstraintType: "allowed_dependencies", ConstraintValue: "SecurityGroup,IAMRole,EBS,Snapshot,NetworkInterface"},
 
 		// LoadBalancer Rules (ALB/NLB)
-		// LoadBalancer requires Subnets
-		{ResourceType: "LoadBalancer", ConstraintType: "requires_parent", ConstraintValue: "VPC"}, // Or Subnet? Usually visualized in VPC
+		// LoadBalancer requires Subnets (Attached or Parent logic depending on visualization)
+		// In our schema, it's top-level usually or parented to VPC.
+		{ResourceType: "LoadBalancer", ConstraintType: "requires_parent", ConstraintValue: "VPC"},
+		// LoadBalancer depends on Subnets and SecurityGroups
+		{ResourceType: "LoadBalancer", ConstraintType: "requires_dependency", ConstraintValue: "Subnet,SecurityGroup"},
 		{ResourceType: "LoadBalancer", ConstraintType: "allowed_dependencies", ConstraintValue: "Subnet,SecurityGroup,LogGroup"},
 
 		// TargetGroup Rules
 		// TargetGroup requires VPC
 		{ResourceType: "TargetGroup", ConstraintType: "requires_parent", ConstraintValue: "VPC"},
-		// TargetGroup can depend on LoadBalancer
+		// TargetGroup can depend on LoadBalancer (implicit via listener)
 		{ResourceType: "TargetGroup", ConstraintType: "allowed_dependencies", ConstraintValue: "LoadBalancer,EC2,Lambda"},
 
 		// Listener Rules
 		// Listener requires LoadBalancer
 		{ResourceType: "Listener", ConstraintType: "requires_parent", ConstraintValue: "LoadBalancer"},
-		// Listener depends on TargetGroup (default action)
+		// Listener requires TargetGroup (default action)
+		{ResourceType: "Listener", ConstraintType: "requires_dependency", ConstraintValue: "TargetGroup"},
 		{ResourceType: "Listener", ConstraintType: "allowed_dependencies", ConstraintValue: "TargetGroup"},
 
 		// ScalingPolicy Rules
