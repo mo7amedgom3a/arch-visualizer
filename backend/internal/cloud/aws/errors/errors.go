@@ -67,6 +67,17 @@ const (
 	CodeRDSInstanceNotFound       = "RDS_INSTANCE_NOT_FOUND"
 	CodeRDSInstanceCreationFailed = "RDS_INSTANCE_CREATION_FAILED"
 
+	// ECS errors
+	CodeECSClusterNotFound                = "ECS_CLUSTER_NOT_FOUND"
+	CodeECSServiceNotFound                = "ECS_SERVICE_NOT_FOUND"
+	CodeECSTaskDefinitionNotFound         = "ECS_TASK_DEFINITION_NOT_FOUND"
+	CodeECSCapacityProviderNotFound       = "ECS_CAPACITY_PROVIDER_NOT_FOUND"
+	CodeECSInvalidLaunchType              = "ECS_INVALID_LAUNCH_TYPE"
+	CodeECSClusterCreationFailed          = "ECS_CLUSTER_CREATION_FAILED"
+	CodeECSServiceCreationFailed          = "ECS_SERVICE_CREATION_FAILED"
+	CodeECSTaskDefinitionCreationFailed   = "ECS_TASK_DEFINITION_CREATION_FAILED"
+	CodeECSCapacityProviderCreationFailed = "ECS_CAPACITY_PROVIDER_CREATION_FAILED"
+
 	// SDK/API errors
 	CodeAWSSDKError    = "AWS_SDK_ERROR"
 	CodeAWSAPIError    = "AWS_API_ERROR"
@@ -183,3 +194,49 @@ func NewAWSConfigError(reason string) *errors.AppError {
 		WithMeta("reason", reason)
 }
 
+// ECS Error Helpers
+
+// NewECSClusterNotFound creates an error for when an ECS cluster is not found
+func NewECSClusterNotFound(clusterName string) *errors.AppError {
+	return errors.New(CodeECSClusterNotFound, errors.KindNotFound, "ECS cluster not found").
+		WithMeta("cluster_name", clusterName)
+}
+
+// NewECSServiceNotFound creates an error for when an ECS service is not found
+func NewECSServiceNotFound(serviceName, clusterName string) *errors.AppError {
+	return errors.New(CodeECSServiceNotFound, errors.KindNotFound, "ECS service not found").
+		WithMeta("service_name", serviceName).
+		WithMeta("cluster_name", clusterName)
+}
+
+// NewECSTaskDefinitionNotFound creates an error for when an ECS task definition is not found
+func NewECSTaskDefinitionNotFound(family string) *errors.AppError {
+	return errors.New(CodeECSTaskDefinitionNotFound, errors.KindNotFound, "ECS task definition not found").
+		WithMeta("family", family)
+}
+
+// NewECSCapacityProviderNotFound creates an error for when an ECS capacity provider is not found
+func NewECSCapacityProviderNotFound(providerName string) *errors.AppError {
+	return errors.New(CodeECSCapacityProviderNotFound, errors.KindNotFound, "ECS capacity provider not found").
+		WithMeta("provider_name", providerName)
+}
+
+// NewECSInvalidLaunchType creates an error for invalid ECS launch type
+func NewECSInvalidLaunchType(launchType string) *errors.AppError {
+	return errors.New(CodeECSInvalidLaunchType, errors.KindValidation, "Invalid ECS launch type").
+		WithMeta("launch_type", launchType).
+		WithMeta("valid_types", "FARGATE, EC2")
+}
+
+// NewECSClusterCreationFailed creates an error for ECS cluster creation failure
+func NewECSClusterCreationFailed(clusterName string, cause error) *errors.AppError {
+	return errors.Wrap(cause, CodeECSClusterCreationFailed, errors.KindInternal, "ECS cluster creation failed").
+		WithMeta("cluster_name", clusterName)
+}
+
+// NewECSServiceCreationFailed creates an error for ECS service creation failure
+func NewECSServiceCreationFailed(serviceName, clusterName string, cause error) *errors.AppError {
+	return errors.Wrap(cause, CodeECSServiceCreationFailed, errors.KindInternal, "ECS service creation failed").
+		WithMeta("service_name", serviceName).
+		WithMeta("cluster_name", clusterName)
+}

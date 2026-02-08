@@ -1,0 +1,522 @@
+{
+  "uiState": {
+    "zoom": 0.6,
+    "viewportX": 100,
+    "viewportY": 100,
+    "selectedNodeIds": [],
+    "selectedEdgeIds": []
+  },
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "data": {
+        "label": "Region",
+        "resourceType": "region",
+        "config": {
+          "name": "us-east-1",
+          "label": "US East (N. Virginia)"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 0, "y": 0},
+        "width": 1200,
+        "height": 800,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "vpc-1",
+      "type": "containerNode",
+      "parentId": "region-1",
+      "extent": "parent",
+      "data": {
+        "label": "VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "ecs-vpc",
+          "cidr": "10.0.0.0/16",
+          "enableDnsHostnames": true,
+          "enableDnsSupport": true
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 40, "y": 40},
+        "width": 1100,
+        "height": 700,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "igw-1",
+      "type": "resourceNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Internet Gateway",
+        "resourceType": "igw",
+        "config": {
+          "name": "ecs-igw"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 500, "y": 20},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-public-1",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Public Subnet 1",
+        "resourceType": "subnet",
+        "config": {
+          "name": "public-subnet-1",
+          "cidr": "10.0.1.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "isPublic": true
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 60, "y": 100},
+        "width": 460,
+        "height": 180,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-public-2",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Public Subnet 2",
+        "resourceType": "subnet",
+        "config": {
+          "name": "public-subnet-2",
+          "cidr": "10.0.2.0/24",
+          "availabilityZoneId": "us-east-1b",
+          "isPublic": true
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 580, "y": 100},
+        "width": 460,
+        "height": 180,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-private-1",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Private Subnet 1",
+        "resourceType": "subnet",
+        "config": {
+          "name": "private-subnet-1",
+          "cidr": "10.0.3.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "isPublic": false
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 60, "y": 320},
+        "width": 460,
+        "height": 320,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-private-2",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Private Subnet 2",
+        "resourceType": "subnet",
+        "config": {
+          "name": "private-subnet-2",
+          "cidr": "10.0.4.0/24",
+          "availabilityZoneId": "us-east-1b",
+          "isPublic": false
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 580, "y": 320},
+        "width": 460,
+        "height": 320,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "sg-alb",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "ALB Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "alb-sg",
+          "description": "Security group for Application Load Balancer",
+          "ingressRules": [
+            {
+              "protocol": "tcp",
+              "fromPort": 80,
+              "toPort": 80,
+              "cidr": "0.0.0.0/0",
+              "description": "HTTP from Internet"
+            }
+          ],
+          "egressRules": [
+            {"protocol": "-1", "fromPort": 0, "toPort": 0, "cidr": "0.0.0.0/0"}
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 200, "y": 110},
+        "width": 200,
+        "height": 150,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "sg-ecs",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "ECS Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "ecs-tasks-sg",
+          "description": "Security group for ECS tasks",
+          "ingressRules": [
+            {
+              "protocol": "tcp",
+              "fromPort": 80,
+              "toPort": 80,
+              "sourceSecurityGroupId": "sg-alb",
+              "description": "HTTP from ALB"
+            }
+          ],
+          "egressRules": [
+            {"protocol": "-1", "fromPort": 0, "toPort": 0, "cidr": "0.0.0.0/0"}
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 200, "y": 340},
+        "width": 200,
+        "height": 150,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "alb-1",
+      "type": "resourceNode",
+      "parentId": "sg-alb",
+      "extent": "parent",
+      "data": {
+        "label": "Application Load Balancer",
+        "resourceType": "alb",
+        "config": {
+          "name": "ecs-alb",
+          "internal": false,
+          "type": "application",
+          "subnets": [
+            {"subnetId": "subnet-public-1"},
+            {"subnetId": "subnet-public-2"}
+          ],
+          "securityGroups": [{"id": "sg-alb"}],
+          "listeners": [
+            {
+              "port": 80,
+              "protocol": "HTTP",
+              "target": "tg-ecs"
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 60, "y": 40},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "tg-ecs",
+      "type": "resourceNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Target Group",
+        "resourceType": "target-group",
+        "config": {
+          "name": "ecs-tg",
+          "port": 80,
+          "protocol": "HTTP",
+          "targetType": "ip",
+          "healthCheck": {
+            "path": "/health",
+            "protocol": "HTTP",
+            "interval": 30,
+            "timeout": 5,
+            "healthyThreshold": 2,
+            "unhealthyThreshold": 3
+          }
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 480, "y": 130},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "ecs-cluster-1",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "ECS Cluster",
+        "resourceType": "ecs-cluster",
+        "config": {
+          "name": "main-cluster",
+          "containerInsightsEnabled": true,
+          "executeCommandEnabled": true
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 100, "y": 350},
+        "width": 400,
+        "height": 250,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "ecs-task-def-1",
+      "type": "resourceNode",
+      "parentId": "ecs-cluster-1",
+      "extent": "parent",
+      "data": {
+        "label": "Task Definition",
+        "resourceType": "ecs-task-definition",
+        "config": {
+          "family": "web-app",
+          "networkMode": "awsvpc",
+          "requiresCompatibilities": ["FARGATE"],
+          "cpu": "256",
+          "memory": "512",
+          "containerDefinitions": [
+            {
+              "name": "web-container",
+              "image": "nginx:latest",
+              "cpu": 256,
+              "memory": 512,
+              "essential": true,
+              "portMappings": [
+                {"containerPort": 80, "hostPort": 80, "protocol": "tcp"}
+              ],
+              "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                  "awslogs-group": "/ecs/web-app",
+                  "awslogs-region": "us-east-1",
+                  "awslogs-stream-prefix": "ecs"
+                }
+              }
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 40, "y": 40},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "ecs-service-1",
+      "type": "resourceNode",
+      "parentId": "ecs-cluster-1",
+      "extent": "parent",
+      "data": {
+        "label": "ECS Service",
+        "resourceType": "ecs-service",
+        "config": {
+          "name": "web-service",
+          "clusterName": "main-cluster",
+          "taskDefinition": "ecs-task-def-1",
+          "desiredCount": 2,
+          "launchType": "FARGATE",
+          "networkConfiguration": {
+            "subnets": ["subnet-private-1", "subnet-private-2"],
+            "securityGroups": ["sg-ecs"],
+            "assignPublicIp": false
+          },
+          "loadBalancer": {
+            "targetGroupArn": "tg-ecs",
+            "containerName": "web-container",
+            "containerPort": 80
+          },
+          "deploymentCircuitBreaker": {
+            "enable": true,
+            "rollback": true
+          }
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 200, "y": 40},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "nat-gateway-1",
+      "type": "resourceNode",
+      "parentId": "subnet-public-1",
+      "extent": "parent",
+      "data": {
+        "label": "NAT Gateway",
+        "resourceType": "nat-gateway",
+        "config": {
+          "name": "ecs-nat-gw",
+          "connectivityType": "public"
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 60, "y": 60},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "route-table-public",
+      "type": "resourceNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Public Route Table",
+        "resourceType": "route-table",
+        "config": {
+          "name": "public-rt",
+          "routes": [
+            {
+              "destination": {"cidr": "0.0.0.0/0"},
+              "target": {"type": "InternetGateway", "resourceId": "igw-1"}
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 40, "y": 50},
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "route-table-private",
+      "type": "resourceNode",
+      "parentId": "vpc-1",
+      "extent": "parent",
+      "data": {
+        "label": "Private Route Table",
+        "resourceType": "route-table",
+        "config": {
+          "name": "private-rt",
+          "routes": [
+            {
+              "destination": {"cidr": "0.0.0.0/0"},
+              "target": {"type": "NATGateway", "resourceId": "nat-gateway-1"}
+            }
+          ]
+        },
+        "status": "valid"
+      },
+      "ui": {
+        "position": {"x": 40, "y": 290},
+        "isVisualOnly": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-igw-vpc",
+      "source": "igw-1",
+      "target": "vpc-1",
+      "type": "default",
+      "data": {"label": "attached to"}
+    },
+    {
+      "id": "e-alb-tg",
+      "source": "alb-1",
+      "target": "tg-ecs",
+      "type": "default",
+      "data": {"label": "forwards to"}
+    },
+    {
+      "id": "e-tg-service",
+      "source": "tg-ecs",
+      "target": "ecs-service-1",
+      "type": "default",
+      "data": {"label": "targets"}
+    },
+    {
+      "id": "e-service-taskdef",
+      "source": "ecs-service-1",
+      "target": "ecs-task-def-1",
+      "type": "default",
+      "data": {"label": "runs"}
+    },
+    {
+      "id": "e-nat-private",
+      "source": "subnet-private-1",
+      "target": "nat-gateway-1",
+      "type": "default",
+      "data": {"label": "routes through"}
+    },
+    {
+      "id": "e-rt-public-subnet1",
+      "source": "route-table-public",
+      "target": "subnet-public-1",
+      "type": "default",
+      "data": {"label": "associated"}
+    },
+    {
+      "id": "e-rt-public-subnet2",
+      "source": "route-table-public",
+      "target": "subnet-public-2",
+      "type": "default",
+      "data": {"label": "associated"}
+    },
+    {
+      "id": "e-rt-private-subnet1",
+      "source": "route-table-private",
+      "target": "subnet-private-1",
+      "type": "default",
+      "data": {"label": "associated"}
+    },
+    {
+      "id": "e-rt-private-subnet2",
+      "source": "route-table-private",
+      "target": "subnet-private-2",
+      "type": "default",
+      "data": {"label": "associated"}
+    }
+  ]
+}

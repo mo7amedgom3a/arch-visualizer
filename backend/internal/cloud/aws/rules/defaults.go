@@ -233,3 +233,36 @@ func DefaultIAMRules() []ConstraintRecord {
 		{ResourceType: "IAMInstanceProfile", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole"},
 	}
 }
+
+// DefaultContainerRules returns the default AWS container (ECS) rules
+func DefaultContainerRules() []ConstraintRecord {
+	return []ConstraintRecord{
+		// ECS Cluster Rules
+		// ECS Cluster is a top-level regional resource
+		{ResourceType: "ECSCluster", ConstraintType: "requires_region", ConstraintValue: "true"},
+
+		// ECS Task Definition Rules
+		// Task Definition is regional, has IAM dependencies for execution/task roles
+		{ResourceType: "ECSTaskDefinition", ConstraintType: "requires_region", ConstraintValue: "true"},
+		{ResourceType: "ECSTaskDefinition", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole"},
+
+		// ECS Service Rules
+		// Service requires ECS Cluster as parent
+		{ResourceType: "ECSService", ConstraintType: "requires_parent", ConstraintValue: "ECSCluster"},
+		// Service requires Task Definition
+		{ResourceType: "ECSService", ConstraintType: "requires_dependency", ConstraintValue: "ECSTaskDefinition"},
+		// Service allowed dependencies
+		{ResourceType: "ECSService", ConstraintType: "allowed_dependencies", ConstraintValue: "ECSTaskDefinition,Subnet,SecurityGroup,TargetGroup,LoadBalancer"},
+
+		// ECS Capacity Provider Rules
+		// Capacity Provider is regional, links to ASG
+		{ResourceType: "ECSCapacityProvider", ConstraintType: "requires_region", ConstraintValue: "true"},
+		{ResourceType: "ECSCapacityProvider", ConstraintType: "requires_dependency", ConstraintValue: "AutoScalingGroup"},
+		{ResourceType: "ECSCapacityProvider", ConstraintType: "allowed_dependencies", ConstraintValue: "AutoScalingGroup"},
+
+		// ECS Cluster Capacity Providers Rules
+		// Attaches capacity providers to a cluster
+		{ResourceType: "ECSClusterCapacityProviders", ConstraintType: "requires_dependency", ConstraintValue: "ECSCluster"},
+		{ResourceType: "ECSClusterCapacityProviders", ConstraintType: "allowed_dependencies", ConstraintValue: "ECSCluster,ECSCapacityProvider"},
+	}
+}

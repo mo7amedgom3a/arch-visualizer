@@ -2,14 +2,15 @@ package resource
 
 // Resource categories for cloud-agnostic classification
 const (
-	CategoryNetworking = "Networking"
-	CategoryCompute    = "Compute"
-	CategoryStorage    = "Storage"
-	CategoryDatabase   = "Database"
-	CategoryIAM        = "IAM"
-	CategoryMonitoring = "Monitoring"
-	CategorySecurity   = "Security"
-	CategoryAnalytics  = "Analytics"
+	CategoryNetworking  = "Networking"
+	CategoryCompute     = "Compute"
+	CategoryStorage     = "Storage"
+	CategoryDatabase    = "Database"
+	CategoryContainers  = "Containers"
+	CategoryIAM         = "IAM"
+	CategoryMonitoring  = "Monitoring"
+	CategorySecurity    = "Security"
+	CategoryAnalytics   = "Analytics"
 	CategoryApplication = "Application"
 )
 
@@ -20,6 +21,7 @@ func ValidCategories() []string {
 		CategoryCompute,
 		CategoryStorage,
 		CategoryDatabase,
+		CategoryContainers,
 		CategoryIAM,
 		CategoryMonitoring,
 		CategorySecurity,

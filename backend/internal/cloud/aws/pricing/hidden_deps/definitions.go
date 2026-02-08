@@ -70,6 +70,34 @@ func GetHiddenDependenciesForResourceType(resourceType string) []*domainpricing.
 	case "auto_scaling_group", "AutoScalingGroup":
 		// ASG costs are derived from EC2 instances, not hidden dependencies
 		return []*domainpricing.HiddenDependency{}
+	case "ecs_service", "ECSService":
+		// ECS Service Fargate has vCPU and memory costs (already in pricing layer)
+		// Service may also use CloudWatch for logging
+		return []*domainpricing.HiddenDependency{
+			{
+				ParentResourceType:  resourceType,
+				ChildResourceType:   "cloudwatch_log_group",
+				QuantityExpression:  "1",
+				ConditionExpression: "",
+				IsAttached:          true,
+				Description:         "ECS Service sends container logs to CloudWatch Logs. Costs depend on log volume.",
+			},
+		}
+	case "ecs_cluster", "ECSCluster":
+		// ECS Cluster with Container Insights enabled uses CloudWatch
+		return []*domainpricing.HiddenDependency{
+			{
+				ParentResourceType:  resourceType,
+				ChildResourceType:   "cloudwatch_container_insights",
+				QuantityExpression:  "1",
+				ConditionExpression: "metadata.container_insights_enabled == true",
+				IsAttached:          true,
+				Description:         "ECS Cluster with Container Insights enabled incurs CloudWatch metrics costs.",
+			},
+		}
+	case "ecs_task_definition", "ECSTaskDefinition":
+		// Task definitions don't have hidden costs, costs are in Service execution
+		return []*domainpricing.HiddenDependency{}
 	default:
 		return []*domainpricing.HiddenDependency{}
 	}

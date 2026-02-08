@@ -154,5 +154,37 @@ func GetAWSResourceClassifications() []ResourceClassification {
 			IRType:       "iam-role-policy-attachment",
 			Aliases:      []string{"iam-role-policy-attachment", "aws_iam_role_policy_attachment"},
 		},
+
+		// Container Resources (ECS)
+		{
+			Category:     resource.CategoryContainers,
+			ResourceName: "ECSCluster",
+			IRType:       "ecs-cluster",
+			Aliases:      []string{"ecs-cluster", "ecs_cluster"},
+		},
+		{
+			Category:     resource.CategoryContainers,
+			ResourceName: "ECSTaskDefinition",
+			IRType:       "ecs-task-definition",
+			Aliases:      []string{"ecs-task-definition", "task-definition", "ecs_task_definition"},
+		},
+		{
+			Category:     resource.CategoryContainers,
+			ResourceName: "ECSService",
+			IRType:       "ecs-service",
+			Aliases:      []string{"ecs-service", "ecs_service"},
+		},
+		{
+			Category:     resource.CategoryContainers,
+			ResourceName: "ECSCapacityProvider",
+			IRType:       "ecs-capacity-provider",
+			Aliases:      []string{"ecs-capacity-provider", "capacity-provider", "ecs_capacity_provider"},
+		},
+		{
+			Category:     resource.CategoryContainers,
+			ResourceName: "ECSClusterCapacityProviders",
+			IRType:       "ecs-cluster-capacity-providers",
+			Aliases:      []string{"ecs-cluster-capacity-providers", "ecs_cluster_capacity_providers"},
+		},
 	}
 }

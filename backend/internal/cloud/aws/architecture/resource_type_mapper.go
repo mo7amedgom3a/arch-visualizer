@@ -210,6 +210,47 @@ func (m *AWSResourceTypeMapper) MapResourceNameToResourceType(resourceName strin
 			IsRegional: false,
 			IsGlobal:   true,
 		},
+		// ECS Container Resources
+		"ECSCluster": {
+			ID:         "ecs-cluster",
+			Name:       "ECSCluster",
+			Category:   string(resource.CategoryContainers),
+			Kind:       "Container",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"ECSTaskDefinition": {
+			ID:         "ecs-task-definition",
+			Name:       "ECSTaskDefinition",
+			Category:   string(resource.CategoryContainers),
+			Kind:       "Container",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"ECSService": {
+			ID:         "ecs-service",
+			Name:       "ECSService",
+			Category:   string(resource.CategoryContainers),
+			Kind:       "Container",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"ECSCapacityProvider": {
+			ID:         "ecs-capacity-provider",
+			Name:       "ECSCapacityProvider",
+			Category:   string(resource.CategoryContainers),
+			Kind:       "Container",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
+		"ECSClusterCapacityProviders": {
+			ID:         "ecs-cluster-capacity-providers",
+			Name:       "ECSClusterCapacityProviders",
+			Category:   string(resource.CategoryContainers),
+			Kind:       "Container",
+			IsRegional: true,
+			IsGlobal:   false,
+		},
 	}
 
 	rt, exists := resourceTypeMap[resourceName]
