@@ -18,6 +18,7 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/seeder"
 )
 
 // SeedDatabaseWithAdapters seeds the database using adapters and strong types
@@ -35,6 +36,21 @@ func SeedDatabaseWithAdapters() error {
 	// Ensure reference data exists
 	if err := seedReferenceData(ctx); err != nil {
 		return fmt.Errorf("failed to seed reference data: %w", err)
+	}
+
+	// Seed Resource Constraints
+	fmt.Println("🔒 Seeding resource constraints...")
+	constraintRepo, err := repository.NewResourceConstraintRepository()
+	if err != nil {
+		return fmt.Errorf("failed to create constraint repository: %w", err)
+	}
+	resourceTypeRepo, err := repository.NewResourceTypeRepository()
+	if err != nil {
+		return fmt.Errorf("failed to create resource type repository: %w", err)
+	}
+
+	if err := seeder.SeedResourceConstraints(ctx, constraintRepo, resourceTypeRepo); err != nil {
+		return fmt.Errorf("failed to seed resource constraints: %w", err)
 	}
 
 	// Seed users

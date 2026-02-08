@@ -54,6 +54,7 @@ func (s *AWSRuleService) LoadRulesWithDefaults(ctx context.Context, dbConstraint
 	defaultRules = append(defaultRules, DefaultComputeRules()...)
 	defaultRules = append(defaultRules, DefaultStorageRules()...)
 	defaultRules = append(defaultRules, DefaultDatabaseRules()...)
+	defaultRules = append(defaultRules, DefaultIAMRules()...)
 
 	// Create a map to track which default rules should be overridden
 	overrideMap := make(map[string]bool)

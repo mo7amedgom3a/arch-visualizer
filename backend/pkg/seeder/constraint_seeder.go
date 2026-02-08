@@ -21,6 +21,7 @@ func SeedResourceConstraints(
 	defaultRules := append(rules.DefaultNetworkingRules(), rules.DefaultComputeRules()...)
 	defaultRules = append(defaultRules, rules.DefaultStorageRules()...)
 	defaultRules = append(defaultRules, rules.DefaultDatabaseRules()...)
+	defaultRules = append(defaultRules, rules.DefaultIAMRules()...)
 
 	count := 0
 	skipped := 0

@@ -91,6 +91,8 @@ func seedReferenceData(ctx context.Context) error {
 		{Name: "Database"},
 		{Name: "Storage"},
 		{Name: "Gateway"},
+		{Name: "Identity"},
+		{Name: "Configuration"},
 	}
 	for _, kind := range kinds {
 		if err := db.WithContext(ctx).FirstOrCreate(&kind, models.ResourceKind{Name: kind.Name}).Error; err != nil {
@@ -115,7 +117,12 @@ func seedReferenceData(ctx context.Context) error {
 	db.WithContext(ctx).Where("name = ?", "LoadBalancer").First(&lbKind)
 	db.WithContext(ctx).Where("name = ?", "Database").First(&dbKind)
 	db.WithContext(ctx).Where("name = ?", "Storage").First(&storageKind)
+	db.WithContext(ctx).Where("name = ?", "Storage").First(&storageKind)
 	db.WithContext(ctx).Where("name = ?", "Gateway").First(&gatewayKind)
+
+	var identityKind, configKind models.ResourceKind
+	db.WithContext(ctx).Where("name = ?", "Identity").First(&identityKind)
+	db.WithContext(ctx).Where("name = ?", "Configuration").First(&configKind)
 
 	// Seed Resource Types (AWS)
 	resourceTypes := []models.ResourceType{
@@ -140,6 +147,20 @@ func seedReferenceData(ctx context.Context) error {
 		// Database
 		{Name: "RDS", CloudProvider: "aws", CategoryID: &dbCat.ID, KindID: &dbKind.ID, IsRegional: true, IsGlobal: false},
 		{Name: "DynamoDB", CloudProvider: "aws", CategoryID: &dbCat.ID, KindID: &dbKind.ID, IsRegional: true, IsGlobal: false},
+		// IAM
+		{Name: "IAMRole", CloudProvider: "aws", CategoryID: &securityCat.ID, KindID: &identityKind.ID, IsRegional: false, IsGlobal: true},
+		{Name: "IAMPolicy", CloudProvider: "aws", CategoryID: &securityCat.ID, KindID: &configKind.ID, IsRegional: false, IsGlobal: true},
+		{Name: "IAMUser", CloudProvider: "aws", CategoryID: &securityCat.ID, KindID: &identityKind.ID, IsRegional: false, IsGlobal: true},
+		{Name: "IAMGroup", CloudProvider: "aws", CategoryID: &securityCat.ID, KindID: &identityKind.ID, IsRegional: false, IsGlobal: true},
+		{Name: "IAMInstanceProfile", CloudProvider: "aws", CategoryID: &securityCat.ID, KindID: &identityKind.ID, IsRegional: true, IsGlobal: false}, // Regional usage
+		// Additional Compute
+		{Name: "LaunchTemplate", CloudProvider: "aws", CategoryID: &computeCat.ID, KindID: &configKind.ID, IsRegional: true, IsGlobal: false},
+		{Name: "TargetGroup", CloudProvider: "aws", CategoryID: &computeCat.ID, KindID: &configKind.ID, IsRegional: true, IsGlobal: false},
+		{Name: "Listener", CloudProvider: "aws", CategoryID: &computeCat.ID, KindID: &configKind.ID, IsRegional: true, IsGlobal: false},
+		{Name: "ScalingPolicy", CloudProvider: "aws", CategoryID: &computeCat.ID, KindID: &configKind.ID, IsRegional: true, IsGlobal: false},
+		// Additional Networking
+		{Name: "NetworkInterface", CloudProvider: "aws", CategoryID: &networkCat.ID, KindID: &networkKind.ID, IsRegional: true, IsGlobal: false},
+		{Name: "NetworkACL", CloudProvider: "aws", CategoryID: &networkCat.ID, KindID: &configKind.ID, IsRegional: true, IsGlobal: false},
 	}
 	for _, rt := range resourceTypes {
 		if err := db.WithContext(ctx).FirstOrCreate(&rt, models.ResourceType{Name: rt.Name, CloudProvider: rt.CloudProvider}).Error; err != nil {
@@ -190,9 +211,9 @@ func seedUsers(ctx context.Context) ([]*models.User, error) {
 	fmt.Println("\n👥 Seeding users...")
 
 	users := []*models.User{
-		{Name: "Alice Johnson", Avatar: stringPtr("https://example.com/avatars/alice.png"), IsVerified: true},
-		{Name: "Bob Smith", Avatar: stringPtr("https://example.com/avatars/bob.png"), IsVerified: false},
-		{Name: "Charlie Brown", Avatar: stringPtr("https://example.com/avatars/charlie.png"), IsVerified: true},
+		{Name: "Alice Johnson", Avatar: stringPtr("https://example.com/avatars/alice.png"), IsVerified: true, Auth0ID: "auth0|alice", Email: "alice@example.com"},
+		{Name: "Bob Smith", Avatar: stringPtr("https://example.com/avatars/bob.png"), IsVerified: false, Auth0ID: "auth0|bob", Email: "bob@example.com"},
+		{Name: "Charlie Brown", Avatar: stringPtr("https://example.com/avatars/charlie.png"), IsVerified: true, Auth0ID: "auth0|charlie", Email: "charlie@example.com"},
 	}
 
 	var createdUsers []*models.User

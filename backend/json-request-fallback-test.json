@@ -1,0 +1,142 @@
+{
+  "uiState": {
+    "zoom": 1,
+    "viewportX": 0,
+    "viewportY": 0,
+    "selectedNodeIds": [],
+    "selectedEdgeIds": []
+  },
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "data": {
+        "label": "Region",
+        "resourceType": "region",
+        "config": {
+          "name": "us-east-1"
+        }
+      },
+      "ui": {
+        "position": { "x": 0, "y": 0 },
+        "width": 1000,
+        "height": 1000,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "vpc-1",
+      "type": "containerNode",
+      "parentId": "region-1",
+      "data": {
+        "label": "VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "fallback-test-vpc",
+          "cidr": "10.0.0.0/16"
+        }
+      },
+      "ui": {
+        "position": { "x": 20, "y": 20 },
+        "width": 960,
+        "height": 960,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-public",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "data": {
+        "label": "Public Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "name": "public-subnet",
+          "cidr": "10.0.1.0/24",
+          "isPublic": true
+        }
+      },
+      "ui": {
+        "position": { "x": 40, "y": 40 },
+        "width": 400,
+        "height": 400,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "subnet-private",
+      "type": "containerNode",
+      "parentId": "vpc-1",
+      "data": {
+        "label": "Private Subnet",
+        "resourceType": "subnet",
+        "config": {
+          "name": "private-subnet",
+          "cidr": "10.0.2.0/24",
+          "isPublic": false
+        }
+      },
+      "ui": {
+        "position": { "x": 460, "y": 40 },
+        "width": 400,
+        "height": 400,
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "ec2-missing-sg",
+      "type": "resourceNode",
+      "parentId": "subnet-public",
+      "data": {
+        "label": "EC2 No SG",
+        "resourceType": "ec2",
+        "config": {
+          "name": "ec2-fallback-test",
+          "instanceType": "t2.micro",
+           "ami": "ami-12345678"
+        }
+      },
+      "ui": {
+        "position": { "x": 10, "y": 10 },
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "nat-missing-eip",
+      "type": "resourceNode",
+      "parentId": "subnet-public",
+      "data": {
+        "label": "NAT No EIP",
+        "resourceType": "nat-gateway",
+        "config": {
+          "name": "nat-fallback-test",
+          "connectivityType": "public"
+        }
+      },
+      "ui": {
+        "position": { "x": 100, "y": 10 },
+        "isVisualOnly": false
+      }
+    },
+    {
+      "id": "asg-missing-lt",
+      "type": "resourceNode",
+      "parentId": "subnet-private",
+      "data": {
+        "label": "ASG No LT",
+        "resourceType": "autoscaling-group",
+        "config": {
+          "name": "asg-fallback-test",
+          "minSize": 1,
+          "maxSize": 2,
+          "desiredCapacity": 1
+        }
+      },
+      "ui": {
+        "position": { "x": 10, "y": 10 },
+        "isVisualOnly": false
+      }
+    }
+  ],
+  "edges": []
+}

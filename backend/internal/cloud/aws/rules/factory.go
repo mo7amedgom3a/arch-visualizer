@@ -3,7 +3,7 @@ package rules
 import (
 	"strconv"
 	"strings"
-	
+
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/constraints"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/registry"
@@ -26,7 +26,7 @@ func NewAWSRuleFactory() *AWSRuleFactory {
 // AWS can override default behavior or add AWS-specific rules
 func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, constraintValue string) (rules.Rule, error) {
 	ruleType := rules.RuleType(constraintType)
-	
+
 	// AWS-specific rule handling
 	switch ruleType {
 	case rules.RuleTypeRequiresParent:
@@ -44,6 +44,8 @@ func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, 
 		return f.createAllowedDependenciesRule(resourceType, constraintValue)
 	case rules.RuleTypeForbiddenDependencies:
 		return f.createForbiddenDependenciesRule(resourceType, constraintValue)
+	case rules.RuleTypeRequiresDependency:
+		return f.createRequiresDependencyRule(resourceType, constraintValue)
 	default:
 		// Fall back to default factory for unknown types
 		return f.RuleFactory.CreateRule(resourceType, constraintType, constraintValue)
@@ -94,26 +96,32 @@ func (f *AWSRuleFactory) createForbiddenDependenciesRule(resourceType, constrain
 	return constraints.NewForbiddenDependenciesRule(resourceType, forbiddenTypes), nil
 }
 
+func (f *AWSRuleFactory) createRequiresDependencyRule(resourceType, constraintValue string) (rules.Rule, error) {
+	requiredType := constraintValue
+	// Use domain type names
+	return constraints.NewRequiresDependencyRule(resourceType, requiredType), nil
+}
+
 // mapResourceTypeToAWS maps domain resource types to AWS-specific types
 // This allows AWS to implement rules using its own naming conventions
 func (f *AWSRuleFactory) mapResourceTypeToAWS(domainType string) string {
 	// Mapping from domain types to AWS types
 	mapping := map[string]string{
-		"VPC":              "aws_vpc",
-		"Subnet":           "aws_subnet",
+		"VPC":             "aws_vpc",
+		"Subnet":          "aws_subnet",
 		"InternetGateway": "aws_internet_gateway",
-		"RouteTable":       "aws_route_table",
-		"SecurityGroup":    "aws_security_group",
-		"NATGateway":       "aws_nat_gateway",
-		"EC2":              "aws_instance",
-		"EC2Instance":      "aws_instance",
-		"VirtualMachine":   "aws_instance",
+		"RouteTable":      "aws_route_table",
+		"SecurityGroup":   "aws_security_group",
+		"NATGateway":      "aws_nat_gateway",
+		"EC2":             "aws_instance",
+		"EC2Instance":     "aws_instance",
+		"VirtualMachine":  "aws_instance",
 	}
-	
+
 	if awsType, ok := mapping[domainType]; ok {
 		return awsType
 	}
-	
+
 	// Default: assume it's already an AWS type or return as-is
 	return domainType
 }

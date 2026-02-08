@@ -3,14 +3,15 @@ package constraints
 import (
 	"context"
 	"fmt"
+
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
 )
 
 // AllowedDependenciesRule validates that dependencies are of allowed or forbidden types.
 type AllowedDependenciesRule struct {
-	ResourceType      string
-	AllowedTypes      []string // Allowed dependency types
-	ForbiddenTypes    []string // Forbidden dependency types
+	ResourceType   string
+	AllowedTypes   []string // Allowed dependency types
+	ForbiddenTypes []string // Forbidden dependency types
 }
 
 func (r *AllowedDependenciesRule) GetType() rules.RuleType {
@@ -42,7 +43,7 @@ func (r *AllowedDependenciesRule) Evaluate(ctx context.Context, evalCtx *rules.E
 	if evalCtx.Resource == nil {
 		return fmt.Errorf("resource is required for evaluation")
 	}
-	
+
 	// Check forbidden types first
 	for _, dep := range evalCtx.Dependencies {
 		for _, forbiddenType := range r.ForbiddenTypes {
@@ -58,7 +59,7 @@ func (r *AllowedDependenciesRule) Evaluate(ctx context.Context, evalCtx *rules.E
 			}
 		}
 	}
-	
+
 	// Check allowed types (if specified)
 	if len(r.AllowedTypes) > 0 {
 		for _, dep := range evalCtx.Dependencies {
@@ -69,7 +70,7 @@ func (r *AllowedDependenciesRule) Evaluate(ctx context.Context, evalCtx *rules.E
 					break
 				}
 			}
-			
+
 			if !allowed {
 				return &rules.RuleError{
 					RuleType:     rules.RuleTypeAllowedDependencies,
@@ -82,7 +83,7 @@ func (r *AllowedDependenciesRule) Evaluate(ctx context.Context, evalCtx *rules.E
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -101,5 +102,58 @@ func NewForbiddenDependenciesRule(resourceType string, forbiddenTypes []string) 
 		ResourceType:   resourceType,
 		AllowedTypes:   []string{},
 		ForbiddenTypes: forbiddenTypes,
+	}
+}
+
+// RequiresDependencyRule validates that a resource has a required dependency.
+type RequiresDependencyRule struct {
+	ResourceType string
+	RequiredType string
+}
+
+func (r *RequiresDependencyRule) GetType() rules.RuleType {
+	return rules.RuleTypeRequiresDependency
+}
+
+func (r *RequiresDependencyRule) GetResourceType() string {
+	return r.ResourceType
+}
+
+func (r *RequiresDependencyRule) GetValue() string {
+	return r.RequiredType
+}
+
+func (r *RequiresDependencyRule) Evaluate(ctx context.Context, evalCtx *rules.EvaluationContext) error {
+	if evalCtx.Resource == nil {
+		return fmt.Errorf("resource is required for evaluation")
+	}
+
+	found := false
+	for _, dep := range evalCtx.Dependencies {
+		if dep.Type.Name == r.RequiredType {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return &rules.RuleError{
+			RuleType:     rules.RuleTypeRequiresDependency,
+			ResourceID:   evalCtx.Resource.ID,
+			ResourceName: evalCtx.Resource.Name,
+			ResourceType: r.ResourceType,
+			Message:      fmt.Sprintf("resource requires dependency of type '%s'", r.RequiredType),
+			Value:        r.RequiredType,
+		}
+	}
+
+	return nil
+}
+
+// NewRequiresDependencyRule creates a new RequiresDependencyRule
+func NewRequiresDependencyRule(resourceType string, requiredType string) *RequiresDependencyRule {
+	return &RequiresDependencyRule{
+		ResourceType: resourceType,
+		RequiredType: requiredType,
 	}
 }

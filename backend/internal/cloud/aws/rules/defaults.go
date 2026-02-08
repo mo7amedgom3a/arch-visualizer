@@ -72,6 +72,24 @@ func DefaultNetworkingRules() []ConstraintRecord {
 		{ResourceType: "NATGateway", ConstraintType: "allowed_dependencies", ConstraintValue: "RouteTable"},
 		// NATGateway cannot depend on InternetGateway or VPC directly
 		{ResourceType: "NATGateway", ConstraintType: "forbidden_dependencies", ConstraintValue: "InternetGateway,VPC"},
+
+		// ElasticIP Rules
+		// ElasticIP is regional
+		{ResourceType: "ElasticIP", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// ElasticIP can depend on EC2, NetworkInterface, NATGateway
+		{ResourceType: "ElasticIP", ConstraintType: "allowed_dependencies", ConstraintValue: "EC2,NetworkInterface,NATGateway"},
+
+		// NetworkInterface Rules
+		// NetworkInterface requires Subnet
+		{ResourceType: "NetworkInterface", ConstraintType: "requires_parent", ConstraintValue: "Subnet"},
+		// NetworkInterface allowed dependencies
+		{ResourceType: "NetworkInterface", ConstraintType: "allowed_dependencies", ConstraintValue: "SecurityGroup,EC2"},
+
+		// NetworkACL Rules
+		// NetworkACL requires VPC
+		{ResourceType: "NetworkACL", ConstraintType: "requires_parent", ConstraintValue: "VPC"},
+		// NetworkACL allowed dependencies
+		{ResourceType: "NetworkACL", ConstraintType: "allowed_dependencies", ConstraintValue: "Subnet"},
 	}
 }
 
@@ -98,6 +116,41 @@ func DefaultComputeRules() []ConstraintRecord {
 		{ResourceType: "Lambda", ConstraintType: "requires_region", ConstraintValue: "true"},
 		// Lambda can depend on IAMRole, S3, DynamoDB, etc.
 		{ResourceType: "Lambda", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole,S3,DynamoDB,SQS,SNS"},
+
+		// AutoScalingGroup Rules
+		// ASG requires LaunchTemplate
+		{ResourceType: "AutoScalingGroup", ConstraintType: "requires_dependency", ConstraintValue: "LaunchTemplate"},
+		// ASG requires Subnets (which implies VPC)
+		{ResourceType: "AutoScalingGroup", ConstraintType: "allowed_dependencies", ConstraintValue: "LaunchTemplate,TargetGroup,LoadBalancer,SNS,Subnet"},
+		// ASG forbids forbidden dependencies - checking logical consistency
+		{ResourceType: "AutoScalingGroup", ConstraintType: "forbidden_dependencies", ConstraintValue: "EC2"}, // ASG manages EC2s, doesn't depend on specific ones
+
+		// LaunchTemplate Rules
+		// LaunchTemplate is regional
+		{ResourceType: "LaunchTemplate", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// LaunchTemplate can depend on SecurityGroup, IAMRole, KeyPair, Snapshot
+		{ResourceType: "LaunchTemplate", ConstraintType: "allowed_dependencies", ConstraintValue: "SecurityGroup,IAMRole,EBS,Snapshot,NetworkInterface"},
+
+		// LoadBalancer Rules (ALB/NLB)
+		// LoadBalancer requires Subnets
+		{ResourceType: "LoadBalancer", ConstraintType: "requires_parent", ConstraintValue: "VPC"}, // Or Subnet? Usually visualized in VPC
+		{ResourceType: "LoadBalancer", ConstraintType: "allowed_dependencies", ConstraintValue: "Subnet,SecurityGroup,LogGroup"},
+
+		// TargetGroup Rules
+		// TargetGroup requires VPC
+		{ResourceType: "TargetGroup", ConstraintType: "requires_parent", ConstraintValue: "VPC"},
+		// TargetGroup can depend on LoadBalancer
+		{ResourceType: "TargetGroup", ConstraintType: "allowed_dependencies", ConstraintValue: "LoadBalancer,EC2,Lambda"},
+
+		// Listener Rules
+		// Listener requires LoadBalancer
+		{ResourceType: "Listener", ConstraintType: "requires_parent", ConstraintValue: "LoadBalancer"},
+		// Listener depends on TargetGroup (default action)
+		{ResourceType: "Listener", ConstraintType: "allowed_dependencies", ConstraintValue: "TargetGroup"},
+
+		// ScalingPolicy Rules
+		// ScalingPolicy requires AutoScalingGroup
+		{ResourceType: "ScalingPolicy", ConstraintType: "requires_parent", ConstraintValue: "AutoScalingGroup"},
 	}
 }
 
@@ -137,5 +190,42 @@ func DefaultDatabaseRules() []ConstraintRecord {
 		{ResourceType: "DynamoDB", ConstraintType: "requires_region", ConstraintValue: "true"},
 		// DynamoDB can depend on IAMRole, KMS
 		{ResourceType: "DynamoDB", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole,KMSKey"},
+	}
+}
+
+// DefaultIAMRules returns the default AWS IAM rules
+func DefaultIAMRules() []ConstraintRecord {
+	return []ConstraintRecord{
+		// IAMRole Rules
+		// IAMRole is global
+		{ResourceType: "IAMRole", ConstraintType: "requires_region", ConstraintValue: "false"},
+		// IAMRole can depend on IAMPolicy
+		{ResourceType: "IAMRole", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMPolicy"},
+
+		// IAMPolicy Rules
+		// IAMPolicy is global
+		{ResourceType: "IAMPolicy", ConstraintType: "requires_region", ConstraintValue: "false"},
+		// IAMPolicy can depend on nothing (it's a definition)
+		{ResourceType: "IAMPolicy", ConstraintType: "allowed_dependencies", ConstraintValue: ""},
+
+		// IAMUser Rules
+		// IAMUser is global
+		{ResourceType: "IAMUser", ConstraintType: "requires_region", ConstraintValue: "false"},
+		// IAMUser can depend on IAMGroup, IAMPolicy
+		{ResourceType: "IAMUser", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMGroup,IAMPolicy"},
+
+		// IAMGroup Rules
+		// IAMGroup is global
+		{ResourceType: "IAMGroup", ConstraintType: "requires_region", ConstraintValue: "false"},
+		// IAMGroup can depend on IAMPolicy
+		{ResourceType: "IAMGroup", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMPolicy"},
+
+		// IAMInstanceProfile Rules
+		// IAMInstanceProfile is global/regional? (Global namespace, but used regionally)
+		{ResourceType: "IAMInstanceProfile", ConstraintType: "requires_region", ConstraintValue: "true"},
+		// IAMInstanceProfile requires IAMRole
+		{ResourceType: "IAMInstanceProfile", ConstraintType: "requires_dependency", ConstraintValue: "IAMRole"},
+		// IAMInstanceProfile allowed dependencies
+		{ResourceType: "IAMInstanceProfile", ConstraintType: "allowed_dependencies", ConstraintValue: "IAMRole"},
 	}
 }

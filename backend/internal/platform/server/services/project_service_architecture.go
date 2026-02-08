@@ -103,11 +103,22 @@ func (s *ProjectServiceImpl) GetArchitecture(ctx context.Context, projectID uuid
 		})
 	}
 
+	warnings := make([]dto.ValidationIssue, 0)
+	for _, w := range arch.Warnings {
+		warnings = append(warnings, dto.ValidationIssue{
+			Type:     "auto-correction",
+			Message:  w.Message,
+			NodeID:   w.ResourceID,
+			Severity: "warning",
+		})
+	}
+
 	return &dto.ArchitectureResponse{
 		Nodes:     nodes,
 		Edges:     edges,
 		Variables: variables,
 		Outputs:   outputs,
+		Warnings:  warnings,
 	}, nil
 }
 

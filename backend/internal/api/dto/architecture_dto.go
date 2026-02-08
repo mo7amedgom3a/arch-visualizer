@@ -8,6 +8,7 @@ type ArchitectureResponse struct {
 	Edges     []ArchitectureEdge     `json:"edges"`
 	Variables []ArchitectureVariable `json:"variables"`
 	Outputs   []ArchitectureOutput   `json:"outputs"`
+	Warnings  []ValidationIssue      `json:"warnings,omitempty"`
 }
 
 // ArchitectureNode represents a node in the diagram/architecture

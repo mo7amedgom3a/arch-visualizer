@@ -28,6 +28,15 @@ type Architecture struct {
 
 	// Outputs for Terraform output values
 	Outputs []Output
+
+	// Warnings encountered during architecture generation/validation
+	Warnings []Warning
+}
+
+// Warning represents a non-fatal issue or auto-correction
+type Warning struct {
+	Message    string
+	ResourceID string
 }
 
 // Variable represents a Terraform input variable in the architecture

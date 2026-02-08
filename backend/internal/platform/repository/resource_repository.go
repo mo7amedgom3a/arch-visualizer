@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -63,8 +62,6 @@ func (r *ResourceRepository) FindByProjectID(ctx context.Context, projectID uuid
 		Preload("ResourceType.Kind").
 		Preload("UIState").
 		Find(&resources).Error
-	fmt.Println("Resource name", resources[0].Name)
-	fmt.Println("config ", resources[0].Config)
 
 	return resources, err
 }
