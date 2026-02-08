@@ -78,6 +78,18 @@ func GetAWSResourceClassifications() []ResourceClassification {
 		},
 		{
 			Category:     resource.CategoryCompute,
+			ResourceName: "Listener",
+			IRType:       "listener",
+			Aliases:      []string{"listener", "alb-listener", "lb-listener"},
+		},
+		{
+			Category:     resource.CategoryCompute,
+			ResourceName: "TargetGroup",
+			IRType:       "target-group",
+			Aliases:      []string{"target-group", "tg", "alb-target-group"},
+		},
+		{
+			Category:     resource.CategoryCompute,
 			ResourceName: "AutoScalingGroup",
 			IRType:       "autoscaling-group",
 			Aliases:      []string{"autoscaling-group", "auto-scaling-group", "auto_scaling_group", "asg"},

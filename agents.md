@@ -57,7 +57,7 @@ You are an expert **Backend System Architect** and **Go Developer** specializing
 └─────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────┐
-│           internal/server/ (Service Layer)              │
+│      internal/platform/server/ (Service Layer)          │
 │      Orchestration, Business Logic Coordination         │
 │         interfaces/ + services/ + orchestrator/         │
 └─────────────────────────────────────────────────────────┘
@@ -75,7 +75,7 @@ You are an expert **Backend System Architect** and **Go Developer** specializing
 └───────────────────┴─────────────────┴──────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────┐
-│        internal/persistence/ (Repositories)             │
+│    internal/platform/repository/ (Repositories)         │
 │      SQL implementations of domain interfaces           │
 └─────────────────────────────────────────────────────────┘
                             ↓
@@ -87,47 +87,59 @@ You are an expert **Backend System Architect** and **Go Developer** specializing
 
 ### Directory Responsibilities
 
-| Directory | Role | Key Rules |
-|-----------|------|-----------|
-| **`cmd/`** | Application Entrypoints | ❌ **No business logic**<br>✅ Bootstrap, dependency injection, app startup only<br>✅ Wire up components and start servers |
-| **`cmd/api/`** | Main HTTP server | Bootstrap API server with all dependencies |
-| **`cmd/run_migration/`** | Database migrations | Execute SQL migrations |
-| **`cmd/seed/`** | Database seeding | Populate initial data |
-| **`cmd/import_pricing/`** | Pricing data import | Import cloud provider pricing data |
-| **`configs/`** | Configuration Files | YAML/JSON configuration files (app.yaml) |
-| **`docs/`** | Documentation | Architecture flow, migration guides |
-| **`migrations/`** | Database Migrations | Versioned SQL migration files |
-| **`internal/api/`** | HTTP/REST Layer | ❌ **No business logic**<br>✅ Request validation, DTO mapping<br>✅ HTTP concerns only<br>✅ Call service layer |
-| **`internal/api/controllers/`** | API Controllers | Handle HTTP requests, delegate to services |
-| **`internal/api/dto/`** | Data Transfer Objects | Request/Response structures for API |
-| **`internal/api/middleware/`** | HTTP Middleware | Auth, CORS, logging, error handling |
-| **`internal/api/routes/`** | Route Definitions | API endpoint routing configuration |
-| **`internal/api/validators/`** | Input Validation | Validate incoming API requests |
-| **`internal/domain/`** | Core Business Logic | ❌ **Pure Go only**<br>❌ No cloud SDKs (AWS/GCP/Azure)<br>❌ No SQL queries<br>❌ No HTTP handling<br>✅ Interfaces ONLY for external dependencies<br>✅ Business rules and entities |
-| **`internal/domain/architecture/`** | Architecture Entities | Core architecture aggregates and entities |
-| **`internal/domain/models/`** | Domain Models | Value objects, entities, aggregates |
-| **`internal/domain/interfaces/`** | Domain Interfaces | Contracts for external dependencies |
-| **`internal/server/`** | Service Layer | ❌ No HTTP details<br>❌ No SQL queries<br>✅ Orchestrate domain logic<br>✅ Coordinate multiple repositories<br>✅ Business workflows |
-| **`internal/server/interfaces/`** | Service Interfaces | Contracts for services |
-| **`internal/server/services/`** | Service Implementations | Business logic orchestration |
-| **`internal/server/orchestrator/`** | Pipeline Orchestration | Code generation pipeline coordination |
-| **`internal/diagram/`** | Diagram Processing | ✅ Parse canvas JSON from frontend<br>✅ Validate diagram structure<br>✅ Normalize to graph representation<br>❌ No cloud-specific logic |
-| **`internal/codegen/`** | Code Generation | ✅ Orchestrate entire generation pipeline<br>✅ Coordinate: Parse → Validate → Generate |
-| **`internal/cloud/`** | Cloud Provider Adapters | ✅ Provider-specific implementations<br>✅ Implement domain interfaces<br>✅ AWS/GCP/Azure isolated modules<br>❌ No cross-provider dependencies |
-| **`internal/cloud/aws/architecture/`** | AWS Architecture Gen | AWS-specific architecture generation |
-| **`internal/cloud/aws/inventory/`** | AWS Resource Inventory | Resource registry and classification |
-| **`internal/cloud/aws/mapper/`** | AWS Resource Mappers | Map domain → Terraform/Pulumi resources |
-| **`internal/cloud/aws/models/`** | AWS Models | Provider-specific data structures |
-| **`internal/cloud/aws/adapters/`** | AWS Adapters | Category-based adapters (compute, networking, storage, IAM) |
-| **`internal/iac/`** | IaC Engines | ✅ Implement `iac.Engine` interface<br>✅ Terraform, Pulumi, CDK generators<br>✅ Pluggable architecture |
-| **`internal/rules/`** | Validation Engine | ✅ Data-driven rule evaluation<br>✅ Load constraints from database<br>✅ Validate architecture against rules<br>❌ Never hardcode validation logic |
-| **`internal/persistence/`** | Data Access | ✅ SQL implementations of domain repositories<br>✅ Database queries<br>❌ No business logic |
-| **`internal/persistence/postgres/`** | PostgreSQL Repos | Concrete repository implementations |
-| **`internal/platform/`** | Infrastructure | ✅ Database connections<br>✅ Logging utilities<br>✅ Configuration loading<br>❌ No business logic |
-| **`internal/services/`** | Utility Services | Helper services (pricing importer, etc.) |
-| **`pkg/`** | Shared/Public Packages | Reusable packages (AWS utils, use cases, common helpers) |
-| **`pkg/usecases/`** | Example Scenarios | Test scenarios and example implementations |
-| **`scripts/`** | DevOps Scripts | Database scripts, API testing, scrapers |
+| Directory                                    | Role                    | Key Rules                                                                                                                                                                             |
+| -------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`cmd/`**                                   | Application Entrypoints | ❌ **No business logic**<br>✅ Bootstrap, dependency injection, app startup only<br>✅ Wire up components and start servers                                                           |
+| **`cmd/api/`**                               | Main HTTP server        | Bootstrap API server with all dependencies                                                                                                                                            |
+| **`cmd/run_migration/`**                     | Database migrations     | Execute SQL migrations                                                                                                                                                                |
+| **`cmd/seed/`**                              | Database seeding        | Populate initial data                                                                                                                                                                 |
+| **`cmd/import_pricing/`**                    | Pricing data import     | Import cloud provider pricing data                                                                                                                                                    |
+| **`configs/`**                               | Configuration Files     | YAML/JSON configuration files (app.yaml)                                                                                                                                              |
+| **`docs/`**                                  | Documentation           | Architecture flow, migration guides                                                                                                                                                   |
+| **`migrations/`**                            | Database Migrations     | Versioned SQL migration files                                                                                                                                                         |
+| **`internal/api/`**                          | HTTP/REST Layer         | ❌ **No business logic**<br>✅ Request validation, DTO mapping<br>✅ HTTP concerns only<br>✅ Call service layer                                                                      |
+| **`internal/api/controllers/`**              | API Controllers         | Handle HTTP requests, delegate to services                                                                                                                                            |
+| **`internal/api/dto/`**                      | Data Transfer Objects   | Request/Response structures for API                                                                                                                                                   |
+| **`internal/api/middleware/`**               | HTTP Middleware         | Auth, CORS, logging, error handling                                                                                                                                                   |
+| **`internal/api/routes/`**                   | Route Definitions       | API endpoint routing configuration                                                                                                                                                    |
+| **`internal/api/validators/`**               | Input Validation        | Validate incoming API requests                                                                                                                                                        |
+| **`internal/domain/`**                       | Core Business Logic     | ❌ **Pure Go only**<br>❌ No cloud SDKs (AWS/GCP/Azure)<br>❌ No SQL queries<br>❌ No HTTP handling<br>✅ Interfaces ONLY for external dependencies<br>✅ Business rules and entities |
+| **`internal/domain/architecture/`**          | Architecture Entities   | Core architecture aggregates and entities                                                                                                                                             |
+| **`internal/domain/models/`**                | Domain Models           | Value objects, entities, aggregates                                                                                                                                                   |
+| **`internal/domain/interfaces/`**            | Domain Interfaces       | Contracts for external dependencies                                                                                                                                                   |
+| **`internal/platform/server/`**              | Service Layer           | ❌ No HTTP details<br>❌ No SQL queries<br>✅ Orchestrate domain logic<br>✅ Coordinate multiple repositories<br>✅ Business workflows                                                |
+| **`internal/platform/server/interfaces/`**   | Service Interfaces      | Contracts for services                                                                                                                                                                |
+| **`internal/platform/server/services/`**     | Service Implementations | Implementation of business logic services                                                                                                                                             |
+| **`internal/platform/server/orchestrator/`** | Pipeline Orchestration  | Code generation pipeline coordination                                                                                                                                                 |
+| **`internal/diagram/`**                      | Diagram Processing      | ✅ Parse canvas JSON from frontend<br>✅ Validate diagram structure<br>✅ Normalize to graph representation<br>❌ No cloud-specific logic                                             |
+| **`internal/diagram/graph/`**                | Graph Theory            | Graph representation of architectures                                                                                                                                                 |
+| **`internal/diagram/parser/`**               | Diagram Parser          | Parses frontend JSON into internal structures                                                                                                                                         |
+| **`internal/diagram/validator/`**            | Structural Validator    | Validates diagram integrity and rules                                                                                                                                                 |
+| **`internal/codegen/`**                      | Code Generation         | ✅ Orchestrate entire generation pipeline<br>✅ Coordinate: Parse → Validate → Generate                                                                                               |
+| **`internal/cloud/`**                        | Cloud Provider Adapters | ✅ Provider-specific implementations<br>✅ Implement domain interfaces<br>✅ AWS/GCP/Azure isolated modules<br>❌ No cross-provider dependencies                                      |
+| **`internal/cloud/aws/adapters/`**           | AWS Adapters            | Category-based adapters (compute, networking, storage, IAM)                                                                                                                           |
+| **`internal/cloud/aws/architecture/`**       | AWS Architecture Gen    | AWS-specific architecture generation                                                                                                                                                  |
+| **`internal/cloud/aws/configs/`**            | AWS Configurations      | Configuration files and constants                                                                                                                                                     |
+| **`internal/cloud/aws/errors/`**             | AWS Errors              | Custom error definitions for AWS provider                                                                                                                                             |
+| **`internal/cloud/aws/global/`**             | AWS Global              | Global constants and shared utilities                                                                                                                                                 |
+| **`internal/cloud/aws/inventory/`**          | AWS Resource Inventory  | Resource registry and classification                                                                                                                                                  |
+| **`internal/cloud/aws/mapper/`**             | AWS Resource Mappers    | Domain to IaC resource mapping logic (by category)                                                                                                                                    |
+| **`internal/cloud/aws/models/`**             | AWS Models              | Provider-specific data structures                                                                                                                                                     |
+| **`internal/cloud/aws/pricing/`**            | AWS Pricing             | Pricing data integration and estimation                                                                                                                                               |
+| **`internal/cloud/aws/rules/`**              | AWS Rules               | AWS-specific validation rules and constraints                                                                                                                                         |
+| **`internal/cloud/aws/sdk/`**                | AWS SDK                 | Wrappers and interfaces for AWS SDK                                                                                                                                                   |
+| **`internal/cloud/aws/services/`**           | AWS Services            | Service implementations for AWS operations                                                                                                                                            |
+| **`internal/iac/`**                          | IaC Engines             | ✅ Implement `iac.Engine` interface<br>✅ Terraform, Pulumi, CDK generators<br>✅ Pluggable architecture                                                                              |
+| **`internal/iac/registry/`**                 | IaC Registry            | Registry for different IaC engines                                                                                                                                                    |
+| **`internal/iac/terraform/`**                | Terraform Engine        | Terraform specific generation logic                                                                                                                                                   |
+| **`internal/iac/pulumi/`**                   | Pulumi Engine           | Pulumi specific generation logic                                                                                                                                                      |
+| **`internal/rules/`**                        | Validation Engine       | ✅ Data-driven rule evaluation<br>✅ Load constraints from database<br>✅ Validate architecture against rules<br>❌ Never hardcode validation logic                                   |
+| **`internal/platform/repository/`**          | Data Access             | ✅ SQL implementations of domain repositories<br>✅ Database queries<br>❌ No business logic (replaces persistence)                                                                   |
+| **`internal/platform/`**                     | Infrastructure          | ✅ Database connections<br>✅ Logging utilities<br>✅ Configuration loading<br>❌ No business logic                                                                                   |
+| **`internal/services/`**                     | Utility Services        | Helper services (pricing importer, etc.)                                                                                                                                              |
+| **`pkg/`**                                   | Shared/Public Packages  | Reusable packages (AWS utils, use cases, common helpers)                                                                                                                              |
+| **`pkg/usecases/`**                          | Example Scenarios       | Test scenarios and example implementations                                                                                                                                            |
+| **`scripts/`**                               | DevOps Scripts          | Database scripts, API testing, scrapers                                                                                                                                               |
 
 ---
 
@@ -136,6 +148,7 @@ You are an expert **Backend System Architect** and **Go Developer** specializing
 ### 1. Domain-Driven Design (DDD)
 
 #### Aggregates & Entities
+
 ```go
 // Domain layer defines entities and aggregates
 type Architecture struct {
@@ -158,6 +171,7 @@ func (a *Architecture) AddResource(r *Resource) error {
 ```
 
 #### Interfaces in Domain
+
 ```go
 // internal/domain/interfaces/repository.go
 type ArchitectureRepository interface {
@@ -173,14 +187,16 @@ type CloudProvider interface {
 ```
 
 #### Implementation in Adapters
+
 ```go
-// internal/persistence/postgres/architecture_repository.go
-type PostgresArchitectureRepository struct {
-    db *sql.DB
+// internal/platform/repository/project_repository.go
+type ProjectRepository struct {
+    *BaseRepository
 }
 
-func (r *PostgresArchitectureRepository) Save(ctx context.Context, arch *Architecture) error {
-    // SQL implementation
+func (r *ProjectRepository) Save(ctx context.Context, project *Project) error {
+    // GORM implementation (simplified)
+    return r.GetDB(ctx).Save(project).Error
 }
 
 // internal/cloud/aws/architecture/generator.go
@@ -196,6 +212,7 @@ func (g *AWSGenerator) GenerateArchitecture(ctx context.Context, diagram *Diagra
 ### 2. Strategy Pattern (Plugins)
 
 #### Registry Pattern
+
 ```go
 // internal/cloud/aws/architecture/registry.go
 func init() {
@@ -210,6 +227,7 @@ arch, err := generator.GenerateArchitecture(ctx, diagram)
 ```
 
 #### IaC Engine Strategy
+
 ```go
 // internal/iac/registry/registry.go
 var engines = make(map[string]Engine)
@@ -240,6 +258,7 @@ func init() {
 ### 3. Repository Pattern
 
 #### Interface Definition (Domain)
+
 ```go
 // internal/domain/interfaces/repository.go
 type ProjectRepository interface {
@@ -252,25 +271,23 @@ type ProjectRepository interface {
 ```
 
 #### Implementation (Persistence)
+
 ```go
-// internal/persistence/postgres/project_repository.go
-type PostgresProjectRepository struct {
-    db *sql.DB
+// internal/platform/repository/project_repository.go
+type ProjectRepository struct {
+    *BaseRepository
 }
 
-func (r *PostgresProjectRepository) Create(ctx context.Context, project *Project) error {
-    query := `
-        INSERT INTO projects (id, name, user_id, cloud_provider, region, created_at)
-        VALUES ($1, $2, $3, $4, $5, $6)
-    `
-    _, err := r.db.ExecContext(ctx, query, project.ID, project.Name, /* ... */)
-    return err
+func (r *ProjectRepository) Create(ctx context.Context, project *Project) error {
+    // GORM implementation
+    return r.GetDB(ctx).Create(project).Error
 }
 ```
 
 ### 4. Inventory Pattern (Dynamic Dispatch)
 
 #### Avoid Switch Statements
+
 ```go
 // ❌ BAD: Hardcoded switch statements
 func MapResource(resourceType string) TerraformBlock {
@@ -302,6 +319,7 @@ func MapResource(resourceType string, resource *Resource) (*TerraformBlock, erro
 ```
 
 #### AWS Inventory System
+
 ```go
 // internal/cloud/aws/inventory/registry.go
 type Inventory struct {
@@ -326,6 +344,7 @@ func (inv *Inventory) GetTerraformMapper(resourceType string) (TerraformMapperFu
 ### 5. Rule-Engine Pattern
 
 #### Never Hardcode Validation Rules
+
 ```go
 // ❌ BAD: Hardcoded validation
 func ValidateSubnet(subnet *Subnet) error {
@@ -345,14 +364,14 @@ type RuleEngine struct {
 
 func (e *RuleEngine) Validate(ctx context.Context, arch *Architecture) ([]ValidationError, error) {
     var errors []ValidationError
-    
+
     for _, resource := range arch.Resources {
         // Load rules from database
         rules, err := e.repository.GetRulesForResource(ctx, resource.Type)
         if err != nil {
             return nil, err
         }
-        
+
         // Evaluate each rule
         for _, rule := range rules {
             if err := e.evaluateRule(resource, rule, arch); err != nil {
@@ -364,12 +383,13 @@ func (e *RuleEngine) Validate(ctx context.Context, arch *Architecture) ([]Valida
             }
         }
     }
-    
+
     return errors, nil
 }
 ```
 
 #### Database-Driven Constraints
+
 ```sql
 -- migrations/00001_init_schema.sql
 CREATE TABLE resource_constraints (
@@ -383,7 +403,7 @@ CREATE TABLE resource_constraints (
 
 -- Example data
 INSERT INTO resource_constraints (resource_type, constraint_type, constraint_value, cloud_provider)
-VALUES 
+VALUES
     ('subnet', 'requires_parent', '{"parent_type": "vpc", "min_count": 1}', 'aws'),
     ('igw', 'max_children', '{"max": 1}', 'aws'),
     ('ec2', 'allowed_parent', '{"parent_types": ["subnet"]}', 'aws');
@@ -528,132 +548,208 @@ VALUES
 
 ## 🎯 Use Cases & Implementation Patterns
 
-### Use Case 1: Adding a New Cloud Resource (e.g., AWS RDS)
+### 🚀 Guide: Adding a New Cloud Service (e.g., AWS RDS)
 
-#### Step 1: Database Schema
-```sql
--- migrations/00009_add_rds_support.sql
-INSERT INTO resource_types (name, category, cloud_provider, display_name)
-VALUES ('rds_instance', 'database', 'aws', 'RDS Database Instance');
+This guide details the complete process of adding a new cloud resource to the system, covering all layers from database seeding to IaC generation.
 
-INSERT INTO resource_constraints (resource_type, constraint_type, constraint_value, cloud_provider)
-VALUES 
-    ('rds_instance', 'requires_parent', '{"parent_type": "subnet", "min_count": 2}', 'aws'),
-    ('rds_instance', 'requires_security_group', '{"min_count": 1}', 'aws');
+#### Phase 1: Database & Domain Configuration (Seeding)
+
+First, register the new resource type in the system. This ensures the frontend and backend recognize the resource.
+
+**File:** `backend/pkg/usecases/seed/seed.go`
+
+```go
+// Add to resourceTypes slice in seedReferenceData function
+{
+    Name:          "RDS",
+    CloudProvider: "aws",
+    CategoryID:    &dbCat.ID,    // Ensure Category exists
+    KindID:        &dbKind.ID,   // Ensure Kind exists
+    IsRegional:    true,
+    IsGlobal:      false,
+},
 ```
 
-#### Step 2: Domain Model (Generic)
-```go
-// internal/domain/models/resource.go
-const (
-    ResourceTypeRDSInstance = "rds_instance"
-)
+#### Phase 2: Validation Rules (Defaults)
 
-// No RDS-specific logic in domain - it's just a resource type
+Define the validation rules that govern how this resource interacts with others (parents, children, dependencies). These defaults are seeded into the `resource_constraints` table.
+
+**File:** `backend/internal/cloud/aws/rules/defaults.go`
+
+```go
+// Add to DefaultDatabaseRules (or appropriate category function)
+{
+    ResourceType: "RDS",
+    ConstraintType: "requires_parent",
+    ConstraintValue: "Subnet", // Must be placed in a Subnet
+},
+{
+    ResourceType: "RDS",
+    ConstraintType: "allowed_dependencies",
+    ConstraintValue: "SecurityGroup,S3,IAMRole,KMSKey",
+},
+{
+    ResourceType: "RDS",
+    ConstraintType: "forbidden_dependencies",
+    ConstraintValue: "VPC", // Cannot depend directly on VPC
+},
 ```
 
-#### Step 3: AWS-Specific Models
+#### Phase 3: Domain Model Definition
+
+Create the Go struct that represents the AWS-specific configuration of the resource. This struct maps the generic `Resource.Config` (JSON) to concrete types.
+
+**File:** `backend/internal/cloud/aws/models/database/rds_instance.go`
+
 ```go
-// internal/cloud/aws/models/database/rds_instance.go
 package database
 
 type RDSInstance struct {
-    Name              string
-    Engine            string  // postgres, mysql, etc.
-    EngineVersion     string
-    InstanceClass     string
-    AllocatedStorage  int
-    SubnetGroupName   string
-    SecurityGroupIDs  []string
-    MultiAZ           bool
-    // AWS-specific fields
-}
-
-type RDSInstanceOutput struct {
-    ID          string
-    Endpoint    string
-    Port        int
-    ARN         string
+	Name                  string        `json:"name"`
+	Engine                string        `json:"engine"` // mysql, postgres, mariadb, oracle-ee, sqlserver-ex, etc.
+	EngineVersion         string        `json:"engine_version"`
+	InstanceClass         string        `json:"instance_class"`         // db.t3.micro, db.m5.large, etc.
+	AllocatedStorage      int           `json:"allocated_storage"`      // In GiB
+	ReplicateSourceDB     string        `json:"replicate_source_db,omitempty"`
+	StorageType           string        `json:"storage_type,omitempty"` // gp2, gp3, io1, standard
+	Username              string        `json:"username,omitempty"`
+	Password              string        `json:"password,omitempty"`
+	DBName                string        `json:"db_name,omitempty"`
+	SubnetGroupName       string        `json:"subnet_group_name,omitempty"`
+	VpcSecurityGroupIds   []string      `json:"vpc_security_group_ids,omitempty"`
+	SkipFinalSnapshot     bool          `json:"skip_final_snapshot,omitempty"`
+	PubliclyAccessible    bool          `json:"publicly_accessible,omitempty"`
+	MultiAZ               bool          `json:"multi_az,omitempty"`
+	BackupRetentionPeriod int           `json:"backup_retention_period,omitempty"` // In days
+	Tags                  []configs.Tag `json:"tags,omitempty"`
 }
 ```
+create Output struct for rds_instance.go
 
-#### Step 4: Terraform Mapper
 ```go
-// internal/cloud/aws/mapper/database/rds_instance_mapper.go
+// RDSInstanceOutput represents the output attributes of an AWS RDS Instance
+type RDSInstanceOutput struct {
+	ID       string `json:"id"`
+	Address  string `json:"address"`
+	Port     int    `json:"port"`
+	Endpoint string `json:"endpoint"`
+	ARN      string `json:"arn"`
+}
+```
+#### Phase 4: Inventory Registration
+
+Register the resource classification to map the internal "IR Type" (used by the diagram parser) to the "Resource Name" (used by the domain).
+
+**File:** `backend/internal/cloud/aws/inventory/resources.go`
+
+```go
+// Add to GetAWSResourceClassifications
+{
+    Category:     resource.CategoryDatabase,
+    ResourceName: "RDS",
+    IRType:       "rds",
+    Aliases:      []string{"rds", "rds-instance"}, // Variations found in frontend JSON
+},
+```
+
+#### Phase 5: IaC Mapping (Terraform)
+
+Implement the logic to convert the Domain Resource into a Terraform Block.
+
+**Step 5a: Mapper Logic**
+**File:** `backend/internal/cloud/aws/mapper/database/rds_mapper.go`
+
+```go
 package database
 
 import (
-    "github.com/your-org/arch-visualizer/internal/cloud/aws/models/database"
-    "github.com/your-org/arch-visualizer/internal/iac/terraform/blocks"
+    tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+    // ... imports
 )
 
-func MapRDSInstance(rds *database.RDSInstance) (*blocks.TerraformBlock, error) {
-    return &blocks.TerraformBlock{
-        Type: "resource",
-        Labels: []string{"aws_db_instance", rds.Name},
-        Attributes: map[string]interface{}{
-            "engine":               rds.Engine,
-            "engine_version":       rds.EngineVersion,
-            "instance_class":       rds.InstanceClass,
-            "allocated_storage":    rds.AllocatedStorage,
-            "db_subnet_group_name": rds.SubnetGroupName,
-            "vpc_security_group_ids": rds.SecurityGroupIDs,
-            "multi_az":             rds.MultiAZ,
-            "tags": map[string]string{
-                "Name": rds.Name,
-            },
-        },
+// 1. Convert Generic Resource -> AWS Model
+func FromResource(res *resource.Resource) (*database.RDSInstance, error) {
+    rds := &database.RDSInstance{ Name: res.Name }
+    // Extract metadata safely
+    rds.Engine = getString(res.Metadata, "engine")
+    // ... mapping logic
+    return rds, nil
+}
+
+// 2. Convert AWS Model -> Terraform Block
+func MapRDSInstance(rds *database.RDSInstance) (*tfmapper.TerraformBlock, error) {
+    attributes := make(map[string]tfmapper.TerraformValue)
+    attributes["engine"] = strVal(rds.Engine)
+    // ... populate attributes
+
+    return &tfmapper.TerraformBlock{
+        Kind:       "resource",
+        Labels:     []string{"aws_db_instance", rds.Name},
+        Attributes: attributes,
     }, nil
 }
 ```
 
-#### Step 5: Register in Inventory
+**Step 5b: Registration**
+**File:** `backend/internal/cloud/aws/mapper/database/init.go`
+
 ```go
-// internal/cloud/aws/inventory/registry.go
 func init() {
-    inventory := GetGlobalInventory()
-    
-    // Register Terraform mapper
-    inventory.RegisterTerraformMapper("rds_instance", func(resource interface{}) (*blocks.TerraformBlock, error) {
-        rds, ok := resource.(*database.RDSInstance)
-        if !ok {
-            return nil, fmt.Errorf("expected *database.RDSInstance")
-        }
-        return database.MapRDSInstance(rds)
+    inv := inventory.GetDefaultInventory()
+
+    // Register the mapper function
+    inv.SetTerraformMapper("RDS", func(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+        // Convert to model
+        model, err := FromResource(res)
+        if err != nil { return nil, err }
+
+        // Map to Terraform
+        block, err := MapRDSInstance(model)
+        if err != nil { return nil, err }
+
+        return []tfmapper.TerraformBlock{*block}, nil
     })
-    
-    // Register category
-    inventory.RegisterCategory("rds_instance", "database")
 }
 ```
 
-#### Step 6: Adapter
+#### Phase 6: Pricing Layer (Optional)
+
+If cost estimation is required, implement the pricing calculator.
+
+**File:** `backend/internal/cloud/aws/pricing/database/rds_pricing.go`
+
 ```go
-// internal/cloud/aws/adapters/database/adapter.go
-package database
-
-type Adapter struct {
-    // Dependencies
+// Implement pricing logic querying the Pricing Repository
+func CalculateRDSCost(res *resource.Resource, usage time.Duration) (*pricing.CostEstimate, error) {
+    // ...
 }
 
-func (a *Adapter) GenerateRDSInstance(resource *domain.Resource) (*database.RDSInstance, error) {
-    // Extract configuration from domain resource
-    configs := resource.Configurations
-    
-    return &database.RDSInstance{
-        Name:             resource.Name,
-        Engine:           configs["engine"].(string),
-        EngineVersion:    configs["engine_version"].(string),
-        InstanceClass:    configs["instance_class"].(string),
-        AllocatedStorage: configs["allocated_storage"].(int),
-        // Map other fields
-    }, nil
+// Register in init()
+inv.SetPricingCalculator("RDS", CalculateRDSCost)
+```
+
+#### Phase 7: Adapters (Optional)
+
+If the system needs to communicate with the live AWS environment (e.g., for importing existing resources or verifying credentials), implement an adapter.
+
+**File:** `backend/internal/cloud/aws/adapters/database/rds_adapter.go`
+
+```go
+type RDSAdapter struct {
+    client *rds.Client
+}
+
+func (a *RDSAdapter) GetInstance(ctx context.Context, id string) (*database.RDSInstance, error) {
+    // Use AWS SDK to fetch details
 }
 ```
+
+---
 
 ### Use Case 2: Adding a New IaC Engine (e.g., CDK)
 
 #### Step 1: Define Engine Interface Implementation
+
 ```go
 // internal/iac/cdk/engine.go
 package cdk
@@ -675,19 +771,19 @@ func NewCDKEngine(language string) *CDKEngine {
 func (e *CDKEngine) Generate(ctx context.Context, arch *domain.Architecture) (*iac.Output, error) {
     // 1. Build dependency graph
     graph := e.buildDependencyGraph(arch)
-    
+
     // 2. Sort resources
     sorted, err := graph.TopologicalSort()
     if err != nil {
         return nil, err
     }
-    
+
     // 3. Generate CDK code
     files, err := e.generateCode(sorted)
     if err != nil {
         return nil, err
     }
-    
+
     return &iac.Output{
         Engine: "cdk",
         Files:  files,
@@ -696,7 +792,7 @@ func (e *CDKEngine) Generate(ctx context.Context, arch *domain.Architecture) (*i
 
 func (e *CDKEngine) generateCode(resources []*domain.Resource) ([]iac.File, error) {
     var files []iac.File
-    
+
     switch e.language {
     case "typescript":
         files = append(files, e.generateTypescriptStack(resources))
@@ -705,12 +801,13 @@ func (e *CDKEngine) generateCode(resources []*domain.Resource) ([]iac.File, erro
         files = append(files, e.generatePythonStack(resources))
         files = append(files, e.generateRequirementsTxt())
     }
-    
+
     return files, nil
 }
 ```
 
 #### Step 2: Register Engine
+
 ```go
 // internal/iac/cdk/init.go
 package cdk
@@ -725,6 +822,7 @@ func init() {
 ```
 
 #### Step 3: Use in Service Layer
+
 ```go
 // internal/server/services/codegen_service.go
 func (s *CodegenService) GenerateCode(ctx context.Context, projectID string, engineName string) (*Result, error) {
@@ -733,19 +831,19 @@ func (s *CodegenService) GenerateCode(ctx context.Context, projectID string, eng
     if err != nil {
         return nil, err
     }
-    
+
     // Get engine dynamically
     engine, err := iac.GetEngine(engineName)
     if err != nil {
         return nil, err
     }
-    
+
     // Generate code
     output, err := engine.Generate(ctx, arch)
     if err != nil {
         return nil, err
     }
-    
+
     return &Result{
         Status: "success",
         Engine: engineName,
@@ -757,12 +855,13 @@ func (s *CodegenService) GenerateCode(ctx context.Context, projectID string, eng
 ### Use Case 3: Modifying Validation Logic
 
 #### Scenario 1: Data Constraint (Database Change)
+
 ```sql
 -- Add new constraint: RDS must be in private subnet
 INSERT INTO resource_constraints (
-    resource_type, 
-    constraint_type, 
-    constraint_value, 
+    resource_type,
+    constraint_type,
+    constraint_value,
     cloud_provider
 )
 VALUES (
@@ -774,6 +873,7 @@ VALUES (
 ```
 
 #### Scenario 2: Structural Rule (Code Change)
+
 ```go
 // internal/rules/evaluators/structural_evaluator.go
 type StructuralEvaluator struct{}
@@ -783,19 +883,19 @@ func (e *StructuralEvaluator) Evaluate(resource *domain.Resource, arch *domain.A
     if e.hasCircularDependency(resource, arch) {
         return fmt.Errorf("circular dependency detected for resource %s", resource.ID)
     }
-    
+
     // Existing rule: Check parent-child relationships
     if err := e.validateParentChild(resource, arch); err != nil {
         return err
     }
-    
+
     return nil
 }
 
 func (e *StructuralEvaluator) hasCircularDependency(resource *domain.Resource, arch *domain.Architecture) bool {
     visited := make(map[string]bool)
     stack := make(map[string]bool)
-    
+
     return e.detectCycle(resource.ID, visited, stack, arch)
 }
 ```
@@ -805,6 +905,7 @@ func (e *StructuralEvaluator) hasCircularDependency(resource *domain.Resource, a
 ## 🚫 Anti-Patterns (NEVER Do This)
 
 ### ❌ 1. Importing Cloud-Specific Code in Domain
+
 ```go
 // ❌ WRONG
 package domain
@@ -830,16 +931,17 @@ type Architecture struct {
 ```
 
 ### ❌ 2. SQL Queries in API Handlers
+
 ```go
 // ❌ WRONG
 func (c *ProjectController) GetProject(w http.ResponseWriter, r *http.Request) {
     id := mux.Vars(r)["id"]
-    
+
     // Direct SQL in controller - NO!
     row := c.db.QueryRow("SELECT * FROM projects WHERE id = $1", id)
     var project Project
     row.Scan(&project.ID, &project.Name)
-    
+
     json.NewEncoder(w).Encode(project)
 }
 ```
@@ -848,14 +950,14 @@ func (c *ProjectController) GetProject(w http.ResponseWriter, r *http.Request) {
 // ✅ CORRECT
 func (c *ProjectController) GetProject(w http.ResponseWriter, r *http.Request) {
     id := mux.Vars(r)["id"]
-    
+
     // Delegate to service
     project, err := c.projectService.GetProjectByID(r.Context(), id)
     if err != nil {
         c.handleError(w, err)
         return
     }
-    
+
     // Map to DTO and respond
     response := c.mapToResponse(project)
     json.NewEncoder(w).Encode(response)
@@ -863,6 +965,7 @@ func (c *ProjectController) GetProject(w http.ResponseWriter, r *http.Request) {
 ```
 
 ### ❌ 3. Hardcoding Resource Types
+
 ```go
 // ❌ WRONG
 func ProcessResource(resourceType string) error {
@@ -896,6 +999,7 @@ func ProcessResource(resourceType string, resource *Resource) error {
 ```
 
 ### ❌ 4. Ignoring Errors
+
 ```go
 // ❌ WRONG
 func SaveArchitecture(arch *Architecture) {
@@ -914,6 +1018,7 @@ func SaveArchitecture(arch *Architecture) error {
 ```
 
 ### ❌ 5. Business Logic in DTOs
+
 ```go
 // ❌ WRONG
 type ProjectDTO struct {
@@ -955,18 +1060,19 @@ func (p *Project) Validate() error {
 func (s *ProjectService) CreateProject(dto *ProjectDTO) error {
     // Map DTO → Domain
     project := s.mapper.ToDomain(dto)
-    
+
     // Validate domain entity
     if err := project.Validate(); err != nil {
         return err
     }
-    
+
     // Save
     return s.repo.Save(project)
 }
 ```
 
 ### ❌ 6. Circular Dependencies
+
 ```go
 // ❌ WRONG
 // internal/domain/architecture/architecture.go
@@ -1004,12 +1110,14 @@ func (g *AWSGenerator) Generate(diagram *DiagramGraph) (*Architecture, error) {
 ### Unit Tests
 
 #### What to Test
+
 - Domain logic (entities, value objects, business rules)
 - Service orchestration
 - Mappers and transformers
 - Validation logic
 
 #### Mock All Interfaces
+
 ```go
 // internal/domain/architecture/architecture_test.go
 type MockRepository struct {
@@ -1025,10 +1133,10 @@ func TestArchitecture_AddResource(t *testing.T) {
     // Arrange
     arch := NewArchitecture("test-arch")
     resource := NewResource("vpc", "main-vpc")
-    
+
     // Act
     err := arch.AddResource(resource)
-    
+
     // Assert
     assert.NoError(t, err)
     assert.Len(t, arch.Resources, 1)
@@ -1038,22 +1146,23 @@ func TestArchitecture_AddResource(t *testing.T) {
 ### Integration Tests
 
 #### Database Tests
+
 ```go
 // internal/persistence/postgres/project_repository_test.go
 func TestPostgresProjectRepository_Create(t *testing.T) {
     // Requires Docker container with Postgres
     db := setupTestDB(t)
     defer db.Close()
-    
+
     repo := NewPostgresProjectRepository(db)
     project := &Project{
         ID:   uuid.New().String(),
         Name: "Test Project",
     }
-    
+
     err := repo.Create(context.Background(), project)
     assert.NoError(t, err)
-    
+
     // Verify
     found, err := repo.FindByID(context.Background(), project.ID)
     assert.NoError(t, err)
@@ -1062,25 +1171,26 @@ func TestPostgresProjectRepository_Create(t *testing.T) {
 ```
 
 #### API Tests
+
 ```go
 // internal/api/controllers/project_controller_test.go
 func TestProjectController_CreateProject(t *testing.T) {
     // Setup
     mockService := new(MockProjectService)
     controller := NewProjectController(mockService)
-    
+
     // Mock expectations
     mockService.On("CreateProject", mock.Anything, mock.Anything).
         Return(&Project{ID: "123", Name: "test"}, nil)
-    
+
     // Create request
     body := `{"name": "test"}`
     req := httptest.NewRequest("POST", "/api/projects", strings.NewReader(body))
     w := httptest.NewRecorder()
-    
+
     // Execute
     controller.CreateProject(w, req)
-    
+
     // Assert
     assert.Equal(t, http.StatusCreated, w.Code)
     mockService.AssertExpectations(t)
@@ -1088,6 +1198,7 @@ func TestProjectController_CreateProject(t *testing.T) {
 ```
 
 ### Coverage Goals
+
 - **Domain Layer**: >90% coverage
 - **Service Layer**: >80% coverage
 - **API Layer**: >70% coverage
@@ -1100,6 +1211,7 @@ func TestProjectController_CreateProject(t *testing.T) {
 ### Before Submitting Code
 
 #### ✅ Architecture Compliance
+
 - [ ] No business logic in `cmd/` or `internal/api/`
 - [ ] No cloud SDKs imported in `internal/domain/`
 - [ ] No SQL queries outside `internal/persistence/`
@@ -1108,6 +1220,7 @@ func TestProjectController_CreateProject(t *testing.T) {
 - [ ] Validation rules in database, not hardcoded
 
 #### ✅ Code Quality
+
 - [ ] All errors properly handled and wrapped
 - [ ] Proper Go naming conventions
 - [ ] Comments on exported types and functions
@@ -1116,6 +1229,7 @@ func TestProjectController_CreateProject(t *testing.T) {
 - [ ] Proper context usage (context.Context)
 
 #### ✅ Testing
+
 - [ ] Unit tests for business logic
 - [ ] Integration tests for repositories
 - [ ] Mock all external dependencies
@@ -1123,6 +1237,7 @@ func TestProjectController_CreateProject(t *testing.T) {
 - [ ] Coverage meets minimum thresholds
 
 #### ✅ Database
+
 - [ ] New tables have migrations
 - [ ] Migration files are sequential
 - [ ] Rollback migrations included
@@ -1130,6 +1245,7 @@ func TestProjectController_CreateProject(t *testing.T) {
 - [ ] Foreign keys properly defined
 
 #### ✅ Documentation
+
 - [ ] README updated if needed
 - [ ] API docs updated
 - [ ] Code comments for complex logic
@@ -1147,10 +1263,11 @@ func TestProjectController_CreateProject(t *testing.T) {
    - Plan database changes
 
 2. **Database First** (if needed)
+
    ```bash
    # Create new migration
    touch migrations/0000X_add_feature.sql
-   
+
    # Write up/down migrations
    # Run migration
    go run cmd/run_migration/main.go
@@ -1182,10 +1299,11 @@ func TestProjectController_CreateProject(t *testing.T) {
    - Add API tests
 
 8. **Test End-to-End**
+
    ```bash
    # Run all tests
    go test ./...
-   
+
    # Test manually with curl/Postman
    # Verify database state
    ```
@@ -1219,12 +1337,14 @@ go run cmd/import_pricing/main.go
 ## 📊 Key Metrics & Monitoring
 
 ### Code Metrics to Track
+
 - **Cyclomatic Complexity**: Keep functions under 10
 - **Test Coverage**: Maintain >70% overall
 - **Dependency Depth**: Max 3 levels
 - **Package Coupling**: Minimize cross-package dependencies
 
 ### Performance Metrics
+
 - API response time < 200ms (p95)
 - Code generation < 5 seconds
 - Database query time < 50ms
@@ -1234,6 +1354,7 @@ go run cmd/import_pricing/main.go
 ## 💡 Quick Reference
 
 ### Common Commands
+
 ```bash
 # Run tests
 go test ./internal/...
@@ -1259,6 +1380,7 @@ go run cmd/api/main.go
 ```
 
 ### Important Files
+
 - **ERD**: `ERD-Diagram.png` - Database schema
 - **Workflow**: `workflow.md` - System flow
 - **Architecture**: `docs/ARCHITECTURE_FLOW.md`
@@ -1268,6 +1390,7 @@ go run cmd/api/main.go
 - **Config**: `configs/app.yaml`
 
 ### Key Interfaces
+
 ```go
 // Domain interfaces
 internal/domain/interfaces/repository.go
@@ -1287,17 +1410,20 @@ internal/iac/engine.go
 ## 🎓 Learning Resources
 
 ### Hexagonal Architecture
+
 - Clean separation of concerns
 - Dependency inversion principle
 - Ports and adapters pattern
 
 ### Domain-Driven Design
+
 - Ubiquitous language
 - Aggregates and entities
 - Bounded contexts
 - Repository pattern
 
 ### Go Best Practices
+
 - Effective Go: https://go.dev/doc/effective_go
 - Error handling patterns
 - Interface design
@@ -1308,6 +1434,7 @@ internal/iac/engine.go
 ## 🚀 Summary
 
 ### Core Principles
+
 1. **Domain is King** - Pure business logic, no external dependencies
 2. **Interfaces Over Implementations** - Depend on abstractions
 3. **Data-Driven Rules** - Store constraints in database
@@ -1317,6 +1444,7 @@ internal/iac/engine.go
 7. **Fail Fast** - Validate early, fail clearly
 
 ### When in Doubt
+
 1. Check if logic belongs in domain (universal) or cloud (specific)
 2. Use interfaces to decouple dependencies
 3. Store data-driven rules in database
@@ -1325,12 +1453,13 @@ internal/iac/engine.go
 6. Review this guide and workflow.md
 
 ### Success Criteria
+
 ✅ New features don't break existing functionality  
 ✅ Cloud providers are truly pluggable  
 ✅ IaC engines are interchangeable  
 ✅ Validation is centralized and data-driven  
 ✅ Code is testable and maintainable  
-✅ Architecture boundaries are respected  
+✅ Architecture boundaries are respected
 
 ---
 
