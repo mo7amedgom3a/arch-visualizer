@@ -113,6 +113,38 @@ func ServiceFromResource(res *resource.Resource) (*containers.ECSService, error)
 		}
 	}
 
+	// Capacity provider strategy
+	if strategiesRaw, ok := res.Metadata["capacity_provider_strategy"]; ok {
+		if strategies, ok := strategiesRaw.([]interface{}); ok {
+			for _, stratRaw := range strategies {
+				if stratMap, ok := stratRaw.(map[string]interface{}); ok {
+					getMapString := func(m map[string]interface{}, key string) string {
+						if v, ok := m[key].(string); ok {
+							return v
+						}
+						return ""
+					}
+					getMapInt := func(m map[string]interface{}, key string) int {
+						if v, ok := m[key].(int); ok {
+							return v
+						}
+						if v, ok := m[key].(float64); ok {
+							return int(v)
+						}
+						return 0
+					}
+
+					strat := containers.CapacityProviderStrategyItem{
+						CapacityProvider: getMapString(stratMap, "capacity_provider"),
+						Weight:           getMapInt(stratMap, "weight"),
+						Base:             getMapInt(stratMap, "base"),
+					}
+					service.CapacityProviderStrategy = append(service.CapacityProviderStrategy, strat)
+				}
+			}
+		}
+	}
+
 	return service, nil
 }
 
@@ -200,6 +232,22 @@ func MapECSService(service *containers.ECSService) (*mapper.TerraformBlock, erro
 		nestedBlocks["deployment_circuit_breaker"] = []mapper.NestedBlock{
 			{Attributes: cbAttrs},
 		}
+	}
+
+	// Capacity provider strategy
+	if len(service.CapacityProviderStrategy) > 0 {
+		stratBlocks := make([]mapper.NestedBlock, 0, len(service.CapacityProviderStrategy))
+		for _, strat := range service.CapacityProviderStrategy {
+			stratAttrs := map[string]mapper.TerraformValue{
+				"capacity_provider": strVal(strat.CapacityProvider),
+				"weight":            intVal(strat.Weight),
+			}
+			if strat.Base > 0 {
+				stratAttrs["base"] = intVal(strat.Base)
+			}
+			stratBlocks = append(stratBlocks, mapper.NestedBlock{Attributes: stratAttrs})
+		}
+		nestedBlocks["capacity_provider_strategy"] = stratBlocks
 	}
 
 	return &mapper.TerraformBlock{

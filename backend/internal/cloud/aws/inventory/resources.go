@@ -155,7 +155,20 @@ func GetAWSResourceClassifications() []ResourceClassification {
 			Aliases:      []string{"iam-role-policy-attachment", "aws_iam_role_policy_attachment"},
 		},
 
+		{
+			Category:     resource.CategoryIAM,
+			ResourceName: "IAMInstanceProfile",
+			IRType:       "iam-instance-profile",
+			Aliases:      []string{"iam-instance-profile", "aws_iam_instance_profile", "instance-profile"},
+		},
+
 		// Container Resources (ECS)
+		{
+			Category:     resource.CategoryContainers,
+			ResourceName: "ECRRepository",
+			IRType:       "ecr-repository",
+			Aliases:      []string{"ecr-repository", "ecr_repository", "ecr"},
+		},
 		{
 			Category:     resource.CategoryContainers,
 			ResourceName: "ECSCluster",

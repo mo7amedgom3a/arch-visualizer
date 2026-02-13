@@ -73,4 +73,17 @@ func init() {
 		}
 		return []tfmapper.TerraformBlock{*block}, nil
 	})
+
+	// Register Terraform Mapper for ECR Repository
+	inv.SetTerraformMapper("ECRRepository", func(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+		repo, err := ECRRepositoryFromResource(res)
+		if err != nil {
+			return nil, err
+		}
+		block, err := MapECRRepository(repo)
+		if err != nil {
+			return nil, err
+		}
+		return []tfmapper.TerraformBlock{*block}, nil
+	})
 }

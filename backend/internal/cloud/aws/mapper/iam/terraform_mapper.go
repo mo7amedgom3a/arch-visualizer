@@ -14,6 +14,7 @@ func init() {
 	inv.SetTerraformMapper("IAMRolePolicyAttachment", MapIAMRolePolicyAttachmentToTerraform)
 	inv.SetTerraformMapper("IAMUser", MapIAMUserToTerraform)
 	inv.SetTerraformMapper("IAMRole", MapIAMRoleToTerraform)
+	inv.SetTerraformMapper("IAMInstanceProfile", MapIAMInstanceProfileToTerraform)
 }
 
 // MapIAMPolicyToTerraform resources to Terraform blocks
@@ -74,6 +75,15 @@ func exprVal(s string) mapper.TerraformValue {
 	return mapper.TerraformValue{Expr: &e}
 }
 
+func listStrVal(strs []string) mapper.TerraformValue {
+	vals := make([]mapper.TerraformValue, len(strs))
+	for i, s := range strs {
+		str := s
+		vals[i] = mapper.TerraformValue{String: &str}
+	}
+	return mapper.TerraformValue{List: vals}
+}
+
 // MapIAMUserToTerraform resources to Terraform blocks
 func MapIAMUserToTerraform(res *resource.Resource) ([]mapper.TerraformBlock, error) {
 	name, ok := res.Metadata["name"].(string)
@@ -127,8 +137,46 @@ func MapIAMRoleToTerraform(res *resource.Resource) ([]mapper.TerraformBlock, err
 	if desc, ok := res.Metadata["description"].(string); ok && desc != "" {
 		block.Attributes["description"] = strVal(desc)
 	}
-	if p, ok := res.Metadata["permissions_boundary"].(string); ok && p != "" {
-		block.Attributes["permissions_boundary"] = strVal(p)
+	// Handle managed_policy_arns
+	if arns, ok := res.Metadata["managedPolicyArns"].([]string); ok && len(arns) > 0 {
+		block.Attributes["managed_policy_arns"] = listStrVal(arns)
+	} else if arnsInterface, ok := res.Metadata["managedPolicyArns"].([]interface{}); ok {
+		// Handle []interface{} (from JSON unmarshal)
+		var arns []string
+		for _, a := range arnsInterface {
+			if s, ok := a.(string); ok {
+				arns = append(arns, s)
+			}
+		}
+		if len(arns) > 0 {
+			block.Attributes["managed_policy_arns"] = listStrVal(arns)
+		}
+	}
+
+	return []mapper.TerraformBlock{block}, nil
+}
+
+// MapIAMInstanceProfileToTerraform resources to Terraform blocks
+func MapIAMInstanceProfileToTerraform(res *resource.Resource) ([]mapper.TerraformBlock, error) {
+	name, ok := res.Metadata["name"].(string)
+	if !ok || name == "" {
+		name = res.Name
+	}
+
+	block := mapper.TerraformBlock{
+		Kind:   "resource",
+		Labels: []string{"aws_iam_instance_profile", name},
+		Attributes: map[string]mapper.TerraformValue{
+			"name": strVal(name),
+		},
+	}
+
+	if role, ok := res.Metadata["role"].(string); ok && role != "" {
+		block.Attributes["role"] = strVal(role)
+	}
+
+	if path, ok := res.Metadata["path"].(string); ok && path != "" {
+		block.Attributes["path"] = strVal(path)
 	}
 
 	return []mapper.TerraformBlock{block}, nil

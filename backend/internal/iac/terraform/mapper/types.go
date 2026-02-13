@@ -31,7 +31,8 @@ type TerraformBlock struct {
 
 // NestedBlock represents a nested block within a Terraform resource (e.g., ingress, egress).
 type NestedBlock struct {
-	Attributes map[string]TerraformValue
+	Attributes   map[string]TerraformValue
+	NestedBlocks map[string][]NestedBlock
 }
 
 // Reference is a helper to express a reference like "aws_vpc.main.id".

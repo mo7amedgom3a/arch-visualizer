@@ -96,13 +96,8 @@ func MapECSCapacityProvider(provider *containers.ECSCapacityProvider) (*mapper.T
 			asgProviderAttrs["managed_draining"] = strVal(provider.AutoScalingGroupProvider.ManagedDraining)
 		}
 
-		nestedBlocks["auto_scaling_group_provider"] = []mapper.NestedBlock{
-			{Attributes: asgProviderAttrs},
-		}
-
+		var managedScalingBlock []mapper.NestedBlock
 		// Managed scaling block - nested within auto_scaling_group_provider
-		// Note: In Terraform, managed_scaling is nested inside auto_scaling_group_provider
-		// We'll add it as a separate nested block for simplicity; the HCL writer should handle nesting
 		if provider.AutoScalingGroupProvider.ManagedScaling != nil {
 			ms := provider.AutoScalingGroupProvider.ManagedScaling
 			msAttrs := make(map[string]mapper.TerraformValue)
@@ -123,9 +118,18 @@ func MapECSCapacityProvider(provider *containers.ECSCapacityProvider) (*mapper.T
 				msAttrs["instance_warmup_period"] = intVal(ms.InstanceWarmupPeriod)
 			}
 
-			nestedBlocks["managed_scaling"] = []mapper.NestedBlock{
+			managedScalingBlock = []mapper.NestedBlock{
 				{Attributes: msAttrs},
 			}
+		}
+
+		nestedBlocks["auto_scaling_group_provider"] = []mapper.NestedBlock{
+			{
+				Attributes: asgProviderAttrs,
+				NestedBlocks: map[string][]mapper.NestedBlock{
+					"managed_scaling": managedScalingBlock,
+				},
+			},
 		}
 	}
 

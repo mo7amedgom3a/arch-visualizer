@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/compute"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/containers"
+	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/iam"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
@@ -16,11 +18,16 @@ import (
 )
 
 func Run(ctx context.Context) error {
+	computeMode := os.Getenv("COMPUTE_MODE")
+	if computeMode == "" {
+		computeMode = "FARGATE"
+	}
+
 	fmt.Println("==================================================================================")
-	fmt.Println("SCENARIO 18: ECS Fargate with ALB")
+	fmt.Printf("SCENARIO 18: ECS %s with ALB\n", computeMode)
 	fmt.Println("==================================================================================")
 
-	// Construct an ECS Fargate architecture
+	// Construct an ECS architecture
 	arch := architecture.NewArchitecture()
 	arch.Region = "us-east-1"
 	arch.Provider = resource.AWS
@@ -40,6 +47,15 @@ func Run(ctx context.Context) error {
 	ecsTaskDefID := "ecs-task-def"
 	ecsServiceID := "ecs-service"
 	igwID := "igw-ecs"
+
+	// EC2 Mode specific IDs
+	ecrRepoID := "ecr-repo"
+	launchTemplateID := "ecs-lt"
+	asgID := "ecs-asg"
+	capacityProviderID := "ecs-cp"
+	clusterCapacityProvidersID := "ecs-cluster-cps"
+	iamRoleExecutionID := "ecs-execution-role"
+	iamInstanceProfileID := "ecs-instance-profile"
 
 	// 1. VPC
 	vpc := &resource.Resource{
@@ -189,6 +205,11 @@ func Run(ctx context.Context) error {
 	arch.Resources = append(arch.Resources, sgECS)
 
 	// 7. Target Group
+	targetType := "ip"
+	if computeMode == "EC2" {
+		targetType = "instance"
+	}
+
 	tg := &resource.Resource{
 		ID:       tgID,
 		Name:     "ecs-tg",
@@ -198,7 +219,7 @@ func Run(ctx context.Context) error {
 			"vpcId":      vpcID,
 			"port":       80,
 			"protocol":   "HTTP",
-			"targetType": "ip",
+			"targetType": targetType,
 			"healthCheck": map[string]interface{}{
 				"path":     "/health",
 				"protocol": "HTTP",
@@ -257,7 +278,172 @@ func Run(ctx context.Context) error {
 	}
 	arch.Resources = append(arch.Resources, ecsCluster)
 
+	if computeMode == "EC2" {
+		// IAM Role for EC2 Instances
+		roleEC2ID := "role-ec2"
+		roleEC2 := &resource.Resource{
+			ID:       roleEC2ID,
+			Name:     "ecs-instance-role",
+			Type:     resource.ResourceType{Name: "IAMRole", ID: "IAMRole", Category: "IAM", Kind: "Role"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"assumeRolePolicyDocument": `{
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Action": "sts:AssumeRole",
+							"Principal": {
+								"Service": "ec2.amazonaws.com"
+							},
+							"Effect": "Allow",
+							"Sid": ""
+						}
+					]
+				}`,
+				"managedPolicyArns": []string{
+					"arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+				},
+			},
+		}
+		arch.Resources = append(arch.Resources, roleEC2)
+
+		// IAM Instance Profile
+		instanceProfile := &resource.Resource{
+			ID:       iamInstanceProfileID,
+			Name:     "ecs-instance-profile",
+			Type:     resource.ResourceType{Name: "IAMInstanceProfile", ID: "IAMInstanceProfile", Category: "IAM", Kind: "InstanceProfile"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"role": "ecs-instance-role",
+			},
+			DependsOn: []string{roleEC2ID},
+		}
+		arch.Resources = append(arch.Resources, instanceProfile)
+
+		// IAM Role for ECS Task Execution
+		roleExecution := &resource.Resource{
+			ID:       iamRoleExecutionID,
+			Name:     "ecs-task-execution-role",
+			Type:     resource.ResourceType{Name: "IAMRole", ID: "IAMRole", Category: "IAM", Kind: "Role"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"assumeRolePolicyDocument": `{
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Action": "sts:AssumeRole",
+							"Principal": {
+								"Service": "ecs-tasks.amazonaws.com"
+							},
+							"Effect": "Allow",
+							"Sid": ""
+						}
+					]
+				}`,
+				"managedPolicyArns": []string{
+					"arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
+				},
+			},
+		}
+		arch.Resources = append(arch.Resources, roleExecution)
+
+		// ECR Repository
+		ecrRepo := &resource.Resource{
+			ID:       ecrRepoID,
+			Name:     "app-repo",
+			Type:     resource.ResourceType{Name: "ECRRepository", ID: "ECRRepository", Category: "Containers", Kind: "Container"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"image_tag_mutability": "MUTABLE",
+				"scan_on_push":         true,
+				"force_delete":         true,
+			},
+		}
+		arch.Resources = append(arch.Resources, ecrRepo)
+
+		// Launch Template
+		lt := &resource.Resource{
+			ID:       launchTemplateID,
+			Name:     "ecs-template",
+			Type:     resource.ResourceType{Name: "LaunchTemplate", ID: "LaunchTemplate", Category: "Compute", Kind: "LaunchTemplate"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"imageId":            "ami-ecs-optimized",
+				"instanceType":       "t3.micro",
+				"userData":           fmt.Sprintf("#!/bin/bash\necho ECS_CLUSTER=%s >> /etc/ecs/ecs.config", "main-cluster"),
+				"iamInstanceProfile": iamInstanceProfileID,
+				"securityGroupIds":   []string{sgECSID},
+			},
+		}
+		arch.Resources = append(arch.Resources, lt)
+
+		// Auto Scaling Group
+		asg := &resource.Resource{
+			ID:       asgID,
+			Name:     "ecs-asg",
+			Type:     resource.ResourceType{Name: "AutoScalingGroup", ID: "AutoScalingGroup", Category: "Compute", Kind: "AutoScalingGroup"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"minSize":           1,
+				"maxSize":           4,
+				"desiredCapacity":   2,
+				"vpcZoneIdentifier": []string{subnetPrivate1ID, subnetPrivate2ID},
+				"launchTemplateId":  launchTemplateID,
+				"tags": []interface{}{
+					map[string]interface{}{"key": "Name", "value": "ecs-node", "propagateAtLaunch": true},
+				},
+			},
+			DependsOn: []string{launchTemplateID, subnetPrivate1ID, subnetPrivate2ID},
+		}
+		arch.Resources = append(arch.Resources, asg)
+
+		// Capacity Provider
+		cp := &resource.Resource{
+			ID:       capacityProviderID,
+			Name:     "ecs-ec2-provider",
+			Type:     resource.ResourceType{Name: "ECSCapacityProvider", ID: "ECSCapacityProvider", Category: "Containers", Kind: "Container"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"auto_scaling_group_arn":         asgID, // Mapper should resolve this ID to ARN
+				"managed_termination_protection": "DISABLED",
+				"managed_scaling_enabled":        true,
+				"target_capacity":                80,
+			},
+			DependsOn: []string{asgID},
+		}
+		arch.Resources = append(arch.Resources, cp)
+
+		// Cluster Capacity Providers Attachment
+		clusterCP := &resource.Resource{
+			ID:       clusterCapacityProvidersID,
+			Name:     "main-cluster", // Same name as cluster to associate
+			Type:     resource.ResourceType{Name: "ECSClusterCapacityProviders", ID: "ECSClusterCapacityProviders", Category: "Containers", Kind: "Container"},
+			Provider: resource.AWS,
+			Metadata: map[string]interface{}{
+				"cluster_name":       "main-cluster",
+				"capacity_providers": []string{capacityProviderID}, // Helper will need to resolve name
+				"default_capacity_provider_strategy": []interface{}{
+					map[string]interface{}{
+						"capacity_provider": capacityProviderID,
+						"weight":            1,
+						"base":              1,
+					},
+				},
+			},
+			DependsOn: []string{ecsClusterID, capacityProviderID},
+		}
+		arch.Resources = append(arch.Resources, clusterCP)
+	}
+
 	// 11. ECS Task Definition
+	networkMode := "awsvpc"
+	requiresCompatibilities := []string{"FARGATE"}
+
+	if computeMode == "EC2" {
+		networkMode = "bridge"
+		requiresCompatibilities = []string{"EC2"}
+	}
+
 	ecsTaskDef := &resource.Resource{
 		ID:       ecsTaskDefID,
 		Name:     "web-app",
@@ -265,21 +451,22 @@ func Run(ctx context.Context) error {
 		Provider: resource.AWS,
 		Metadata: map[string]interface{}{
 			"family":                  "web-app",
-			"networkMode":             "awsvpc",
-			"requiresCompatibilities": []string{"FARGATE"},
+			"networkMode":             networkMode,
+			"requiresCompatibilities": requiresCompatibilities,
 			"cpu":                     "256",
 			"memory":                  "512",
+			"executionRoleArn":        iamRoleExecutionID,
 			"containerDefinitions": []interface{}{
 				map[string]interface{}{
 					"name":      "web-container",
-					"image":     "nginx:latest",
+					"image":     "nginx:latest", // Simplified, would use ECR URL in real scenario
 					"cpu":       256,
 					"memory":    512,
 					"essential": true,
 					"portMappings": []interface{}{
 						map[string]interface{}{
 							"containerPort": 80,
-							"hostPort":      80,
+							"hostPort":      80, // Dynamic port mapping for bridge mode? Or static 80 for logic simplicity
 							"protocol":      "tcp",
 						},
 					},
@@ -290,33 +477,61 @@ func Run(ctx context.Context) error {
 	arch.Resources = append(arch.Resources, ecsTaskDef)
 
 	// 12. ECS Service
-	ecsService := &resource.Resource{
-		ID:       ecsServiceID,
-		Name:     "web-service",
-		Type:     resource.ResourceType{Name: "ECSService", ID: "ECSService", Category: "Containers", Kind: "Container"},
-		Provider: resource.AWS,
-		Metadata: map[string]interface{}{
-			"clusterName":    "main-cluster",
-			"taskDefinition": ecsTaskDefID,
-			"desiredCount":   2,
-			"launchType":     "FARGATE",
-			"networkConfiguration": map[string]interface{}{
-				"subnets":        []string{subnetPrivate1ID, subnetPrivate2ID},
-				"securityGroups": []string{sgECSID},
-				"assignPublicIp": false,
+	serviceLaunchType := "FARGATE"
+	var capacityProviderStrategy []interface{}
+
+	if computeMode == "EC2" {
+		serviceLaunchType = "" // Launch type must be empty when using capacity provider strategy
+		capacityProviderStrategy = []interface{}{
+			map[string]interface{}{
+				"capacity_provider": "ecs-ec2-provider", // Name of the CP resource
+				"weight":            1,
 			},
-			"loadBalancer": map[string]interface{}{
-				"targetGroupArn": tgID,
-				"containerName":  "web-container",
-				"containerPort":  80,
-			},
-			"deploymentCircuitBreaker": map[string]interface{}{
-				"enable":   true,
-				"rollback": true,
-			},
-		},
-		DependsOn: []string{ecsClusterID, ecsTaskDefID, subnetPrivate1ID, subnetPrivate2ID, sgECSID, tgID, listenerID},
+		}
 	}
+
+	ecsServiceMetadata := map[string]interface{}{
+		"clusterName":    "main-cluster",
+		"taskDefinition": ecsTaskDefID,
+		"desiredCount":   2,
+		"loadBalancer": map[string]interface{}{
+			"targetGroupArn": tgID,
+			"containerName":  "web-container",
+			"containerPort":  80,
+		},
+		"deploymentCircuitBreaker": map[string]interface{}{
+			"enable":   true,
+			"rollback": true,
+		},
+	}
+
+	if computeMode == "FARGATE" {
+		ecsServiceMetadata["launchType"] = serviceLaunchType
+		ecsServiceMetadata["networkConfiguration"] = map[string]interface{}{
+			"subnets":        []string{subnetPrivate1ID, subnetPrivate2ID},
+			"securityGroups": []string{sgECSID},
+			"assignPublicIp": false,
+		}
+	} else {
+		// EC2 Mode
+		ecsServiceMetadata["capacity_provider_strategy"] = capacityProviderStrategy
+		// Network config is optional for bridge mode, but usually required for awsvpc
+		// With bridge mode, no network config needed or different
+	}
+
+	ecsService := &resource.Resource{
+		ID:        ecsServiceID,
+		Name:      "web-service",
+		Type:      resource.ResourceType{Name: "ECSService", ID: "ECSService", Category: "Containers", Kind: "Container"},
+		Provider:  resource.AWS,
+		Metadata:  ecsServiceMetadata,
+		DependsOn: []string{ecsClusterID, ecsTaskDefID, tgID, listenerID},
+	}
+
+	if computeMode == "EC2" {
+		ecsService.DependsOn = append(ecsService.DependsOn, clusterCapacityProvidersID)
+	}
+
 	arch.Resources = append(arch.Resources, ecsService)
 
 	// Sort resources
@@ -330,7 +545,8 @@ func Run(ctx context.Context) error {
 
 	// Generate Terraform
 	mapperRegistry := tfmapper.NewRegistry()
-	if err := mapperRegistry.Register(terraform.New()); err != nil {
+	awsMapper := terraform.New()
+	if err := mapperRegistry.Register(awsMapper); err != nil {
 		return fmt.Errorf("register aws terraform mapper: %w", err)
 	}
 

@@ -44,43 +44,56 @@ func RenderMainTF(blocks []mapper.TerraformBlock) (string, error) {
 		}
 
 		// Render nested blocks (e.g., ingress, egress for security groups)
-		if len(b.NestedBlocks) > 0 {
-			// Sort nested block types for stable output
-			nestedTypes := make([]string, 0, len(b.NestedBlocks))
-			for nestedType := range b.NestedBlocks {
-				nestedTypes = append(nestedTypes, nestedType)
-			}
-			sort.Strings(nestedTypes)
-
-			for _, nestedType := range nestedTypes {
-				nestedBlocks := b.NestedBlocks[nestedType]
-				for _, nested := range nestedBlocks {
-					nestedBlk := body.AppendNewBlock(nestedType, nil)
-					nestedBody := nestedBlk.Body()
-
-					// Sort nested block attribute keys
-					nestedKeys := make([]string, 0, len(nested.Attributes))
-					for k := range nested.Attributes {
-						nestedKeys = append(nestedKeys, k)
-					}
-					sort.Strings(nestedKeys)
-
-					for _, k := range nestedKeys {
-						v := nested.Attributes[k]
-						toks, err := tokensForTerraformValue(v)
-						if err != nil {
-							return "", fmt.Errorf("nested block %s in %s %v: attribute %q: %w", nestedType, b.Kind, b.Labels, k, err)
-						}
-						nestedBody.SetAttributeRaw(k, toks)
-					}
-				}
-			}
+		if err := renderNestedBlocks(body, b.NestedBlocks); err != nil {
+			return "", fmt.Errorf("block %s %v: %w", b.Kind, b.Labels, err)
 		}
 
 		root.AppendNewline()
 	}
 
 	return string(f.Bytes()), nil
+}
+
+// renderNestedBlocks recursively renders nested blocks
+func renderNestedBlocks(body *hclwrite.Body, blocks map[string][]mapper.NestedBlock) error {
+	if len(blocks) == 0 {
+		return nil
+	}
+
+	// Sort nested block types for stable output
+	nestedTypes := make([]string, 0, len(blocks))
+	for k := range blocks {
+		nestedTypes = append(nestedTypes, k)
+	}
+	sort.Strings(nestedTypes)
+
+	for _, nestedType := range nestedTypes {
+		for _, nested := range blocks[nestedType] {
+			nestedBlk := body.AppendNewBlock(nestedType, nil)
+			nestedBody := nestedBlk.Body()
+
+			// Render attributes
+			keys := make([]string, 0, len(nested.Attributes))
+			for k := range nested.Attributes {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+			for _, k := range keys {
+				v := nested.Attributes[k]
+				toks, err := tokensForTerraformValue(v)
+				if err != nil {
+					return fmt.Errorf("nested block %s attribute %q: %w", nestedType, k, err)
+				}
+				nestedBody.SetAttributeRaw(k, toks)
+			}
+
+			// Recursively render nested blocks
+			if err := renderNestedBlocks(nestedBody, nested.NestedBlocks); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // RenderVariablesTF renders a variables.tf as a string from the provided variable definitions.
