@@ -468,6 +468,26 @@ func (m *mockAWSNetworkingService) ListNetworkInterfaces(ctx context.Context, su
 	}, nil
 }
 
+func (m *mockAWSNetworkingService) CreateVPCEndpoint(ctx context.Context, vpce *awsnetworking.VPCEndpoint) (*awsoutputs.VPCOutput, error) {
+	return &awsoutputs.VPCOutput{
+		ID:    "vpce-mock-123",
+		Name:  vpce.Name,
+		State: "available",
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) GetVPCEndpoint(ctx context.Context, id string) (*awsoutputs.VPCOutput, error) {
+	return &awsoutputs.VPCOutput{
+		ID:    id,
+		Name:  "test-vpce",
+		State: "available",
+	}, nil
+}
+
+func (m *mockAWSNetworkingService) DeleteVPCEndpoint(ctx context.Context, id string) error {
+	return nil
+}
+
 func TestAWSNetworkingAdapter_CreateVPC(t *testing.T) {
 	mockService := &mockAWSNetworkingService{}
 	adapter := NewAWSNetworkingAdapter(mockService)

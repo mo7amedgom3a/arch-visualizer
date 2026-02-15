@@ -165,6 +165,25 @@ func AssociateRouteTable(ctx context.Context, service awsnetworkingservice.AWSNe
 	return service.AssociateRouteTable(ctx, rtID, subnetID)
 }
 
+func CreateVPCEndpointWithOutput(ctx context.Context, service awsnetworkingservice.AWSNetworkingService, vpce *domainnetworking.VPCEndpoint) (*domainnetworking.VPCEndpoint, *awsnetworkingoutputs.VPCOutput, error) {
+	if vpce == nil {
+		return nil, nil, fmt.Errorf("vpc endpoint is nil")
+	}
+	if err := vpce.Validate(); err != nil {
+		return nil, nil, fmt.Errorf("domain validation failed: %w", err)
+	}
+	awsVPCE := awsnetworkingmapper.FromDomainVPCEndpoint(vpce)
+	if err := awsVPCE.Validate(); err != nil {
+		return nil, nil, fmt.Errorf("aws validation failed: %w", err)
+	}
+	// Note: Currently returns VPCOutput as placeholder
+	output, err := service.CreateVPCEndpoint(ctx, awsVPCE)
+	if err != nil {
+		return nil, nil, err
+	}
+	return awsnetworkingmapper.ToDomainVPCEndpointFromOutput(output, vpce), output, nil
+}
+
 // Compute helpers using AWS output models
 
 func CreateInstanceWithOutput(ctx context.Context, service awscomputeservice.AWSComputeService, instance *domaincompute.Instance) (*domaincompute.Instance, *awsec2outputs.InstanceOutput, error) {

@@ -39,6 +39,7 @@ func New() *AWSMapper {
 	inv.SetTerraformMapper("LaunchTemplate", mapper.mapLaunchTemplate)
 	inv.SetTerraformMapper("Listener", mapper.mapListener)
 	inv.SetTerraformMapper("TargetGroup", mapper.mapTargetGroup)
+	inv.SetTerraformMapper("VPCEndpoint", mapper.mapVPCEndpoint)
 
 	return mapper
 }
@@ -105,6 +106,8 @@ func (m *AWSMapper) mapResourceFallback(res *resource.Resource) ([]tfmapper.Terr
 		return m.mapListener(res)
 	case "TargetGroup":
 		return m.mapTargetGroup(res)
+	case "VPCEndpoint":
+		return m.mapVPCEndpoint(res)
 	default:
 		return nil, fmt.Errorf("unsupported resource type %q", res.Type.Name)
 	}
@@ -1885,4 +1888,8 @@ func (m *AWSMapper) mapTargetGroup(res *resource.Resource) ([]tfmapper.Terraform
 			NestedBlocks: nestedBlocks,
 		},
 	}, nil
+}
+
+func (m *AWSMapper) mapVPCEndpoint(res *resource.Resource) ([]tfmapper.TerraformBlock, error) {
+	return MapVPCEndpoint(res)
 }

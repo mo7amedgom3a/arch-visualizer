@@ -612,3 +612,32 @@ func (s *NetworkingService) ListNetworkInterfaces(ctx context.Context, subnetID 
 		},
 	}, nil
 }
+
+// VPC Endpoint operations
+
+func (s *NetworkingService) CreateVPCEndpoint(ctx context.Context, vpce *awsnetworking.VPCEndpoint) (*awsoutputs.VPCOutput, error) {
+	if vpce == nil {
+		return nil, fmt.Errorf("vpc endpoint is nil")
+	}
+
+	vpceID := fmt.Sprintf("vpce-%s", services.GenerateDeterministicID(vpce.Name)[:15])
+	// Return a dummy VPC output for now as we don't have a specific VPCEndpointOutput yet
+	// In a real implementation, we would return a specific output struct
+	return &awsoutputs.VPCOutput{
+		ID:    vpceID,
+		Name:  vpce.Name,
+		State: "available",
+	}, nil
+}
+
+func (s *NetworkingService) GetVPCEndpoint(ctx context.Context, id string) (*awsoutputs.VPCOutput, error) {
+	return &awsoutputs.VPCOutput{
+		ID:    id,
+		Name:  "test-vpce",
+		State: "available",
+	}, nil
+}
+
+func (s *NetworkingService) DeleteVPCEndpoint(ctx context.Context, id string) error {
+	return nil
+}

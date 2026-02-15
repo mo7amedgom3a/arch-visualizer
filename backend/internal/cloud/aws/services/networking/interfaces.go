@@ -75,4 +75,9 @@ type AWSNetworkingService interface {
 	AssignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error
 	UnassignPrivateIPAddress(ctx context.Context, eniID, privateIP string) error
 	ListNetworkInterfaces(ctx context.Context, subnetID string) ([]*awsoutputs.NetworkInterfaceOutput, error)
+
+	// VPC Endpoint operations
+	CreateVPCEndpoint(ctx context.Context, vpce *awsnetworking.VPCEndpoint) (*awsoutputs.VPCOutput, error) // Using VPCOutput as placeholder if specific output not needed, or create new one
+	GetVPCEndpoint(ctx context.Context, id string) (*awsoutputs.VPCOutput, error)
+	DeleteVPCEndpoint(ctx context.Context, id string) error
 }

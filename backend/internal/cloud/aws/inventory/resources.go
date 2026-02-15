@@ -56,6 +56,12 @@ func GetAWSResourceClassifications() []ResourceClassification {
 			IRType:       "elastic-ip",
 			Aliases:      []string{"elastic-ip", "elastic_ip", "eip"},
 		},
+		{
+			Category:     resource.CategoryNetworking,
+			ResourceName: "VPCEndpoint",
+			IRType:       "vpc-endpoint",
+			Aliases:      []string{"vpc-endpoint", "vpc_endpoint", "vpce"},
+		},
 
 		// Compute Resources
 		{

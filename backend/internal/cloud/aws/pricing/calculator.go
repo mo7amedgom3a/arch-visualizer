@@ -291,6 +291,7 @@ func (c *AWSPricingCalculator) mapToPricingResourceType(domainType string) strin
 		"RDS":              "rds_instance",
 		"DynamoDB":         "dynamodb_table",
 		"NetworkInterface": "network_interface",
+		"VPCEndpoint":      "vpc_endpoint",
 	}
 
 	if mapped, ok := mapping[domainType]; ok {
@@ -787,6 +788,74 @@ func (c *AWSPricingCalculator) calculateResourceCostFallback(ctx context.Context
 					Quantity:      chargeableGB,
 					UnitRate:      dataTransferRate,
 					Subtotal:      dataTransferCost,
+					Currency:      domainpricing.USD,
+				})
+			}
+		}
+
+	case "vpc_endpoint":
+		// Extract endpoint type and usage from metadata
+		endpointType := "Interface" // Default to paid
+		dataProcessedGB := 0.0
+		numENIs := 1 // Default to 1 AZ/Subnet
+
+		if res.Metadata != nil {
+			if et, ok := res.Metadata["vpc_endpoint_type"].(string); ok && et != "" {
+				endpointType = et
+			}
+			if dp, ok := res.Metadata["data_processed_gb"].(float64); ok {
+				dataProcessedGB = dp
+			} else if dp, ok := res.Metadata["data_processed_gb"].(int); ok {
+				dataProcessedGB = float64(dp)
+			}
+			// Estimate num ENIs from subnet_ids list length if available
+			if subnets, ok := res.Metadata["subnet_ids"].([]interface{}); ok {
+				if len(subnets) > 0 {
+					numENIs = len(subnets)
+				}
+			}
+		}
+
+		// Get pricing info
+		endpointPricing := networking.GetVPCEndpointPricing(endpointType, res.Region)
+
+		cost := networking.CalculateVPCEndpointCost(duration, endpointType, dataProcessedGB, numENIs, res.Region)
+		totalCost = cost
+
+		if endpointType == "Gateway" {
+			breakdown = []domainpricing.CostComponent{
+				{
+					ComponentName: "Gateway Endpoint",
+					Model:         domainpricing.PerHour,
+					Quantity:      1,
+					UnitRate:      0,
+					Subtotal:      0,
+					Currency:      domainpricing.USD,
+				},
+			}
+		} else {
+			// Interface Endpoint Breakdown
+			hourlyRate := endpointPricing.Components[0].Rate
+			dataRate := endpointPricing.Components[1].Rate
+
+			breakdown = []domainpricing.CostComponent{
+				{
+					ComponentName: "Interface Endpoint Hourly",
+					Model:         domainpricing.PerHour,
+					Quantity:      duration.Hours() * float64(numENIs),
+					UnitRate:      hourlyRate,
+					Subtotal:      hourlyRate * duration.Hours() * float64(numENIs),
+					Currency:      domainpricing.USD,
+				},
+			}
+
+			if dataProcessedGB > 0 {
+				breakdown = append(breakdown, domainpricing.CostComponent{
+					ComponentName: "Interface Endpoint Data Processing",
+					Model:         domainpricing.PerGB,
+					Quantity:      dataProcessedGB,
+					UnitRate:      dataRate,
+					Subtotal:      dataRate * dataProcessedGB,
 					Currency:      domainpricing.USD,
 				})
 			}

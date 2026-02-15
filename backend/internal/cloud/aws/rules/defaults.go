@@ -25,6 +25,15 @@ func DefaultNetworkingRules() []ConstraintRecord {
 		// Subnet cannot depend on itself or VPC (circular)
 		{ResourceType: "Subnet", ConstraintType: "forbidden_dependencies", ConstraintValue: "Subnet,VPC"},
 
+		// VPCEndpoint Rules
+		// VPCEndpoint requires VPC
+		{ResourceType: "VPCEndpoint", ConstraintType: "requires_parent", ConstraintValue: "VPC"},
+		// VPCEndpoint requirements based on type (handled in code logic, but dependencies here)
+		// Interface endpoints need Subnets and SecurityGroups
+		{ResourceType: "VPCEndpoint", ConstraintType: "allowed_dependencies", ConstraintValue: "Subnet,SecurityGroup,RouteTable,Policy"},
+		// Gateway endpoints need RouteTables
+		{ResourceType: "VPCEndpoint", ConstraintType: "allowed_parent", ConstraintValue: "VPC"},
+
 		// InternetGateway Rules
 		// InternetGateway requires VPC as parent (attachment)
 		{ResourceType: "InternetGateway", ConstraintType: "requires_parent", ConstraintValue: "VPC"},

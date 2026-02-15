@@ -14,10 +14,11 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario7_service_layer"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario8_architecture_roundtrip"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario9_architecture_pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/scenario_vpc_endpoint"
 )
 
 func main() {
-	scenario := flag.Int("scenario", 0, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip, 9=Architecture Pricing, 10=Pricing with Hidden Costs, 12=API Controllers Simulation, 13=Resource Constraints Verification)")
+	scenario := flag.Int("scenario", 19, "Scenario to run (5=Terraform codegen, 6=Terraform with DB persistence, 7=Service Layer, 8=Architecture Roundtrip, 9=Architecture Pricing, 10=Pricing with Hidden Costs, 12=API Controllers Simulation, 13=Resource Constraints Verification)")
 	flag.Parse()
 
 	if *scenario == 0 {
@@ -44,6 +45,9 @@ func main() {
 		err = scenario12_api_controllers.Run(context.Background())
 	case 13:
 		err = scenario13_resource_constraints.Run(context.Background())
+	case 19:
+		scenario_vpc_endpoint.VPCEndpointRunner()
+		err = nil // Runner doesn't return error
 	default:
 		fmt.Printf("Unknown scenario: %d\n", *scenario)
 		os.Exit(1)

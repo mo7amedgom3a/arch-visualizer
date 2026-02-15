@@ -23,5 +23,10 @@ func main() {
 		log.Fatalf("ECS seeder failed: %v", err)
 	}
 
+	// Run Networking seeder
+	if err := seeder.SeedNetworkingData(ctx); err != nil {
+		log.Fatalf("Networking seeder failed: %v", err)
+	}
+
 	log.Println("✓ ECS data seeding complete!")
 }

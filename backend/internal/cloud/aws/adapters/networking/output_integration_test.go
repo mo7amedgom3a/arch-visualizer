@@ -496,6 +496,26 @@ func (s *realisticAWSNetworkingService) ListNetworkInterfaces(ctx context.Contex
 	}, nil
 }
 
+func (s *realisticAWSNetworkingService) CreateVPCEndpoint(ctx context.Context, vpce *awsnetworking.VPCEndpoint) (*awsoutputs.VPCOutput, error) {
+	return &awsoutputs.VPCOutput{
+		ID:    "vpce-0a1b2c3d4e5f6g7h8",
+		Name:  vpce.Name,
+		State: "available",
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) GetVPCEndpoint(ctx context.Context, id string) (*awsoutputs.VPCOutput, error) {
+	return &awsoutputs.VPCOutput{
+		ID:    id,
+		Name:  "test-vpce",
+		State: "available",
+	}, nil
+}
+
+func (s *realisticAWSNetworkingService) DeleteVPCEndpoint(ctx context.Context, id string) error {
+	return nil
+}
+
 // TestFullFlow_VPC_CreateToDomain tests the complete flow: domain input → AWS service → output → domain with ID/ARN
 func TestFullFlow_VPC_CreateToDomain(t *testing.T) {
 	fmt.Printf("\n=== Running Integration Test: Full Flow VPC Creation ===\n")
