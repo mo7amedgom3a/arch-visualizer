@@ -69,6 +69,10 @@ definitions:
         items:
           $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable'
         type: array
+      warnings:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue'
+        type: array
     type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable:
     properties:
@@ -482,6 +486,22 @@ definitions:
         description: UnitRate is the rate per unit
         type: number
     type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.FieldDescriptorDTO:
+    properties:
+      default: {}
+      description:
+        type: string
+      enum:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      required:
+        type: boolean
+      type:
+        type: string
+    type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationSuggestion:
     properties:
       description:
@@ -534,6 +554,19 @@ definitions:
         description: TotalCost is the total estimated cost for this resource
         type: number
     type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO:
+    properties:
+      fields:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.FieldDescriptorDTO'
+        type: array
+      label:
+        type: string
+      outputs:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
   time.Duration:
     enum:
     - -9223372036854775808
@@ -569,6 +602,136 @@ info:
   title: Arch Visualizer Backend API
   version: "1.0"
 paths:
+  /aws/{service}/schemas:
+    get:
+      description: Get structured schema definitions for all resources under a specific
+        AWS service (networking, compute, storage, database)
+      parameters:
+      - description: AWS service (networking, compute, storage, database)
+        in: path
+        name: service
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List resource schemas by service
+      tags:
+      - metadata
+  /aws/{service}/schemas/{resource}:
+    get:
+      description: Get the structured schema definition for a specific resource under
+        an AWS service
+      parameters:
+      - description: AWS service (networking, compute, storage, database)
+        in: path
+        name: service
+        required: true
+        type: string
+      - description: Resource label (e.g. ec2_instance, s3_bucket)
+        in: path
+        name: resource
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get resource schema by service
+      tags:
+      - metadata
+  /aws/networking/schemas:
+    get:
+      description: Get structured schema definitions for all resources under a provider/service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List resource schemas
+      tags:
+      - metadata
+  /aws/networking/schemas/{resource}:
+    get:
+      description: Get the structured schema definition for a specific networking
+        resource
+      parameters:
+      - description: Resource label (e.g. vpc, subnet)
+        in: path
+        name: resource
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get resource schema
+      tags:
+      - metadata
   /diagrams/process:
     post:
       consumes:

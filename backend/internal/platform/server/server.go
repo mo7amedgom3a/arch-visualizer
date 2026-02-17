@@ -7,7 +7,11 @@ import (
 	"log/slog"
 
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator
+	awscompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
+	awsdatabase "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
+	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
+	awsstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/storage"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/orchestrator"
@@ -18,15 +22,16 @@ import (
 // Server represents the service layer server with all dependencies wired
 type Server struct {
 	// Services
-	DiagramService      serverinterfaces.DiagramService
-	ArchitectureService serverinterfaces.ArchitectureService
-	CodegenService      serverinterfaces.CodegenService
-	ProjectService      serverinterfaces.ProjectService
-	PricingService      serverinterfaces.PricingService
-	OptimizationService serverinterfaces.OptimizationService
-	UserService         serverinterfaces.UserService
-	StaticDataService   serverinterfaces.StaticDataService
-	IAMService          iam.AWSIAMService
+	DiagramService          serverinterfaces.DiagramService
+	ArchitectureService     serverinterfaces.ArchitectureService
+	CodegenService          serverinterfaces.CodegenService
+	ProjectService          serverinterfaces.ProjectService
+	PricingService          serverinterfaces.PricingService
+	OptimizationService     serverinterfaces.OptimizationService
+	UserService             serverinterfaces.UserService
+	StaticDataService       serverinterfaces.StaticDataService
+	ResourceMetadataService serverinterfaces.ResourceMetadataService
+	IAMService              iam.AWSIAMService
 
 	// Orchestrator
 	PipelineOrchestrator serverinterfaces.PipelineOrchestrator
@@ -206,6 +211,21 @@ func NewServer(logger *slog.Logger) (*Server, error) {
 
 	userService := services.NewUserService(userRepoAdapter)
 	staticDataService := services.NewStaticDataService(resourceTypeRepoAdapter)
+
+	// Create resource metadata services for all service categories
+	networkingMetaSvc := awsnetworking.NewNetworkingMetadataService()
+	computeMetaSvc := awscompute.NewComputeMetadataService()
+	storageMetaSvc := awsstorage.NewStorageMetadataService()
+	databaseMetaSvc := awsdatabase.NewDatabaseMetadataService()
+	iamMetaSvc := iam.NewIAMMetadataService()
+	resourceMetadataService := services.NewResourceMetadataService(
+		networkingMetaSvc,
+		computeMetaSvc,
+		storageMetaSvc,
+		databaseMetaSvc,
+		iamMetaSvc,
+	)
+
 	iamService := iam.NewIAMService()
 
 	return &Server{
@@ -214,25 +234,26 @@ func NewServer(logger *slog.Logger) (*Server, error) {
 		CodegenService:      codegenService,
 		ProjectService:      projectService,
 
-		PricingService:       pricingService,
-		OptimizationService:  optimizationService,
-		UserService:          userService,
-		StaticDataService:    staticDataService,
-		IAMService:           iamService,
-		PipelineOrchestrator: pipelineOrchestrator,
-		projectRepo:          projectRepo,
-		resourceRepo:         resourceRepo,
-		resourceTypeRepo:     resourceTypeRepo,
-		containmentRepo:      containmentRepo,
-		dependencyRepo:       dependencyRepo,
-		dependencyTypeRepo:   dependencyTypeRepo,
-		userRepo:             userRepo,
-		iacTargetRepo:        iacTargetRepo,
-		variableRepo:         variableRepo,
-		outputRepo:           outputRepo,
-		pricingRepo:          pricingRepo,
-		pricingRateRepo:      pricingRateRepo,
-		hiddenDepRepo:        hiddenDepRepo,
-		constraintRepo:       constraintRepo,
+		PricingService:          pricingService,
+		OptimizationService:     optimizationService,
+		UserService:             userService,
+		StaticDataService:       staticDataService,
+		ResourceMetadataService: resourceMetadataService,
+		IAMService:              iamService,
+		PipelineOrchestrator:    pipelineOrchestrator,
+		projectRepo:             projectRepo,
+		resourceRepo:            resourceRepo,
+		resourceTypeRepo:        resourceTypeRepo,
+		containmentRepo:         containmentRepo,
+		dependencyRepo:          dependencyRepo,
+		dependencyTypeRepo:      dependencyTypeRepo,
+		userRepo:                userRepo,
+		iacTargetRepo:           iacTargetRepo,
+		variableRepo:            variableRepo,
+		outputRepo:              outputRepo,
+		pricingRepo:             pricingRepo,
+		pricingRateRepo:         pricingRateRepo,
+		hiddenDepRepo:           hiddenDepRepo,
+		constraintRepo:          constraintRepo,
 	}, nil
 }

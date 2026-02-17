@@ -2,3 +2,4 @@
 scraper/
 pricing_importer/
 log/
+.cursor/
