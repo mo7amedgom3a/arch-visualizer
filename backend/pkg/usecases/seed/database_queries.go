@@ -9,18 +9,18 @@ import (
 	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 // DatabaseQueryService provides functions to query database and convert to domain models
 type DatabaseQueryService struct {
-	resourceRepo *repository.ResourceRepository
+	resourceRepo *resourcerepo.ResourceRepository
 	mapper       *ResourceMapper
 }
 
 // NewDatabaseQueryService creates a new database query service
 func NewDatabaseQueryService() (*DatabaseQueryService, error) {
-	resourceRepo, err := repository.NewResourceRepository(slog.Default())
+	resourceRepo, err := resourcerepo.NewResourceRepository(slog.Default())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource repository: %w", err)
 	}

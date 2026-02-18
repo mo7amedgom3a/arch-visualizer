@@ -6,14 +6,14 @@ import (
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/rules"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 // SeedResourceConstraints seeds the database with default resource constraints
 func SeedResourceConstraints(
 	ctx context.Context,
-	constraintRepo *repository.ResourceConstraintRepository,
-	resourceTypeRepo *repository.ResourceTypeRepository,
+	constraintRepo *resourcerepo.ResourceConstraintRepository,
+	resourceTypeRepo *resourcerepo.ResourceTypeRepository,
 ) error {
 	log.Println("Seeding resource constraints...")
 

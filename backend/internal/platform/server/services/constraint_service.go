@@ -5,17 +5,17 @@ import (
 
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 )
 
 // ConstraintService handles logic for resource constraints
 type ConstraintService struct {
-	repo *repository.ResourceConstraintRepository
+	repo *resourcerepo.ResourceConstraintRepository
 }
 
 // NewConstraintService creates a new constraint service
-func NewConstraintService(repo *repository.ResourceConstraintRepository) *ConstraintService {
+func NewConstraintService(repo *resourcerepo.ResourceConstraintRepository) *ConstraintService {
 	return &ConstraintService{
 		repo: repo,
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/orchestrator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
@@ -22,12 +21,16 @@ import (
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/iam"
 
 	"gorm.io/gorm"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
 
 // -- Adapters to fix interface mismatches --
 
 type ProjectRepoAdapter struct {
-	*repository.ProjectRepository
+	*projectrepo.ProjectRepository
 }
 
 // BeginTransaction matches interface signature (returns interface{})
@@ -53,7 +56,7 @@ func (a *ProjectRepoAdapter) RollbackTransaction(tx interface{}) error {
 }
 
 type DependencyTypeRepoAdapter struct {
-	*repository.DependencyTypeRepository
+	*resourcerepo.DependencyTypeRepository
 }
 
 func (a *DependencyTypeRepoAdapter) Create(ctx context.Context, depType *models.DependencyType) error {
@@ -150,13 +153,13 @@ func run() error {
 
 	// 3. Initialize Repositories
 	logger := slog.Default()
-	projectRepoRaw, err := repository.NewProjectRepository(logger)
+	projectRepoRaw, err := projectrepo.NewProjectRepository(logger)
 	if err != nil {
 		return err
 	}
 	projectRepo := &ProjectRepoAdapter{projectRepoRaw}
 
-	versionRepoRaw, err := repository.NewProjectVersionRepository()
+	versionRepoRaw, err := projectrepo.NewProjectVersionRepository()
 	if err != nil {
 		return err
 	}
@@ -165,44 +168,44 @@ func run() error {
 	// But struct fields are not exported? No, "Repo" field is exported in services.ProjectVersionRepositoryAdapter
 	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
 
-	resourceRepo, err := repository.NewResourceRepository(logger)
+	resourceRepo, err := resourcerepo.NewResourceRepository(logger)
 	if err != nil {
 		return err
 	}
-	resourceTypeRepo, err := repository.NewResourceTypeRepository()
+	resourceTypeRepo, err := resourcerepo.NewResourceTypeRepository()
 	if err != nil {
 		return err
 	}
-	containmentRepo, err := repository.NewResourceContainmentRepository()
+	containmentRepo, err := resourcerepo.NewResourceContainmentRepository()
 	if err != nil {
 		return err
 	}
-	dependencyRepo, err := repository.NewResourceDependencyRepository()
+	dependencyRepo, err := resourcerepo.NewResourceDependencyRepository()
 	if err != nil {
 		return err
 	}
 
-	dependencyTypeRepoRaw, err := repository.NewDependencyTypeRepository()
+	dependencyTypeRepoRaw, err := resourcerepo.NewDependencyTypeRepository()
 	if err != nil {
 		return err
 	}
 	dependencyTypeRepo := &DependencyTypeRepoAdapter{dependencyTypeRepoRaw}
 
-	userRepo, err := repository.NewUserRepository()
+	userRepo, err := userrepo.NewUserRepository()
 	if err != nil {
 		return err
 	}
-	iacTargetRepo, err := repository.NewIACTargetRepository()
-	if err != nil {
-		return err
-	}
-
-	variableRepo, err := repository.NewProjectVariableRepository()
+	iacTargetRepo, err := infrastructurerepo.NewIACTargetRepository()
 	if err != nil {
 		return err
 	}
 
-	outputRepo, err := repository.NewProjectOutputRepository()
+	variableRepo, err := projectrepo.NewProjectVariableRepository()
+	if err != nil {
+		return err
+	}
+
+	outputRepo, err := projectrepo.NewProjectOutputRepository()
 	if err != nil {
 		return err
 	}

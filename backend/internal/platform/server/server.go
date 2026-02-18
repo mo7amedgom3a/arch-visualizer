@@ -12,7 +12,11 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
 	awsstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/storage"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/orchestrator"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
@@ -37,89 +41,89 @@ type Server struct {
 	PipelineOrchestrator serverinterfaces.PipelineOrchestrator
 
 	// Repositories (kept for reference, but services use interfaces)
-	projectRepo        *repository.ProjectRepository
-	resourceRepo       *repository.ResourceRepository
-	resourceTypeRepo   *repository.ResourceTypeRepository
-	containmentRepo    *repository.ResourceContainmentRepository
-	dependencyRepo     *repository.ResourceDependencyRepository
-	dependencyTypeRepo *repository.DependencyTypeRepository
-	userRepo           *repository.UserRepository
-	iacTargetRepo      *repository.IACTargetRepository
-	variableRepo       *repository.ProjectVariableRepository
-	outputRepo         *repository.ProjectOutputRepository
-	pricingRepo        *repository.PricingRepository
-	pricingRateRepo    *repository.PricingRateRepository
-	hiddenDepRepo      *repository.HiddenDependencyRepository
-	constraintRepo     *repository.ResourceConstraintRepository
+	projectRepo        *projectrepo.ProjectRepository
+	resourceRepo       *resourcerepo.ResourceRepository
+	resourceTypeRepo   *resourcerepo.ResourceTypeRepository
+	containmentRepo    *resourcerepo.ResourceContainmentRepository
+	dependencyRepo     *resourcerepo.ResourceDependencyRepository
+	dependencyTypeRepo *resourcerepo.DependencyTypeRepository
+	userRepo           *userrepo.UserRepository
+	iacTargetRepo      *infrastructurerepo.IACTargetRepository
+	variableRepo       *projectrepo.ProjectVariableRepository
+	outputRepo         *projectrepo.ProjectOutputRepository
+	pricingRepo        *pricingrepo.PricingRepository
+	pricingRateRepo    *pricingrepo.PricingRateRepository
+	hiddenDepRepo      *resourcerepo.HiddenDependencyRepository
+	constraintRepo     *resourcerepo.ResourceConstraintRepository
 }
 
 // NewServer creates a new server with all dependencies wired
 func NewServer(logger *slog.Logger) (*Server, error) {
 	// Initialize repositories
-	projectRepo, err := repository.NewProjectRepository(logger)
+	projectRepo, err := projectrepo.NewProjectRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create project repository: %w", err)
 	}
 
-	resourceRepo, err := repository.NewResourceRepository(logger)
+	resourceRepo, err := resourcerepo.NewResourceRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource repository: %w", err)
 	}
 
-	resourceTypeRepo, err := repository.NewResourceTypeRepository()
+	resourceTypeRepo, err := resourcerepo.NewResourceTypeRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource type repository: %w", err)
 	}
 
-	containmentRepo, err := repository.NewResourceContainmentRepository()
+	containmentRepo, err := resourcerepo.NewResourceContainmentRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create containment repository: %w", err)
 	}
 
-	dependencyRepo, err := repository.NewResourceDependencyRepository()
+	dependencyRepo, err := resourcerepo.NewResourceDependencyRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dependency repository: %w", err)
 	}
 
-	dependencyTypeRepo, err := repository.NewDependencyTypeRepository()
+	dependencyTypeRepo, err := resourcerepo.NewDependencyTypeRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dependency type repository: %w", err)
 	}
 
-	userRepo, err := repository.NewUserRepository()
+	userRepo, err := userrepo.NewUserRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user repository: %w", err)
 	}
 
-	iacTargetRepo, err := repository.NewIACTargetRepository()
+	iacTargetRepo, err := infrastructurerepo.NewIACTargetRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create iac target repository: %w", err)
 	}
 
-	pricingRepo, err := repository.NewPricingRepository()
+	pricingRepo, err := pricingrepo.NewPricingRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pricing repository: %w", err)
 	}
 
-	pricingRateRepo, err := repository.NewPricingRateRepository()
+	pricingRateRepo, err := pricingrepo.NewPricingRateRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pricing rate repository: %w", err)
 	}
 
-	hiddenDepRepo, err := repository.NewHiddenDependencyRepository()
+	hiddenDepRepo, err := resourcerepo.NewHiddenDependencyRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create hidden dependency repository: %w", err)
 	}
 
-	constraintRepo, err := repository.NewResourceConstraintRepository()
+	constraintRepo, err := resourcerepo.NewResourceConstraintRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create constraint repository: %w", err)
 	}
-	variableRepo, err := repository.NewProjectVariableRepository()
+	variableRepo, err := projectrepo.NewProjectVariableRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create variable repository: %w", err)
 	}
-	outputRepo, err := repository.NewProjectOutputRepository()
+	outputRepo, err := projectrepo.NewProjectOutputRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create output repository: %w", err)
 	}
@@ -128,7 +132,7 @@ func NewServer(logger *slog.Logger) (*Server, error) {
 	projectRepoAdapter := &services.ProjectRepositoryAdapter{Repo: projectRepo}
 
 	// Create project version repository
-	versionRepo, err := repository.NewProjectVersionRepository()
+	versionRepo, err := projectrepo.NewProjectVersionRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create project version repository: %w", err)
 	}

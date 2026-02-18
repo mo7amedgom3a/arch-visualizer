@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	templaterepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/template"
 )
 
 func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
@@ -25,7 +26,7 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 	base := repository.NewBaseRepositoryWithDB(db)
 
 	// CategoryRepository
-	catRepo := &repository.CategoryRepository{BaseRepository: base}
+	catRepo := &templaterepo.CategoryRepository{BaseRepository: base}
 	category := &models.Category{
 		ID:        uuid.New(),
 		Name:      "Security",
@@ -40,7 +41,7 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// IACFormatRepository
-	iacRepo := &repository.IACFormatRepository{BaseRepository: base}
+	iacRepo := &templaterepo.IACFormatRepository{BaseRepository: base}
 	format := &models.IACFormat{
 		ID:        uuid.New(),
 		Name:      "Terraform",
@@ -55,7 +56,7 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// TechnologyRepository
-	techRepo := &repository.TechnologyRepository{BaseRepository: base}
+	techRepo := &templaterepo.TechnologyRepository{BaseRepository: base}
 	tech := &models.Technology{
 		ID:        uuid.New(),
 		Name:      "Kubernetes",
@@ -70,7 +71,7 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// ComplianceStandardRepository
-	csRepo := &repository.ComplianceStandardRepository{BaseRepository: base}
+	csRepo := &templaterepo.ComplianceStandardRepository{BaseRepository: base}
 	cs := &models.ComplianceStandard{
 		ID:        uuid.New(),
 		Name:      "SOC2",
@@ -85,7 +86,7 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// TemplateRepository
-	tmplRepo := &repository.TemplateRepository{BaseRepository: base}
+	tmplRepo := &templaterepo.TemplateRepository{BaseRepository: base}
 	author := &models.User{
 		ID:        uuid.New(),
 		Name:      "Author",
@@ -121,7 +122,7 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// ReviewRepository
-	reviewRepo := &repository.ReviewRepository{BaseRepository: base}
+	reviewRepo := &templaterepo.ReviewRepository{BaseRepository: base}
 	review := &models.Review{
 		ID:         uuid.New(),
 		TemplateID: template.ID,
@@ -139,4 +140,3 @@ func TestMarketplaceRepositories_BasicOperations(t *testing.T) {
 		t.Fatalf("ReviewRepository.FindByTemplate error: %v", err)
 	}
 }
-

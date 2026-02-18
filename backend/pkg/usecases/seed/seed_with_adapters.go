@@ -17,7 +17,8 @@ import (
 	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/pkg/seeder"
 )
 
@@ -40,11 +41,11 @@ func SeedDatabaseWithAdapters() error {
 
 	// Seed Resource Constraints
 	fmt.Println("🔒 Seeding resource constraints...")
-	constraintRepo, err := repository.NewResourceConstraintRepository()
+	constraintRepo, err := resourcerepo.NewResourceConstraintRepository()
 	if err != nil {
 		return fmt.Errorf("failed to create constraint repository: %w", err)
 	}
-	resourceTypeRepo, err := repository.NewResourceTypeRepository()
+	resourceTypeRepo, err := resourcerepo.NewResourceTypeRepository()
 	if err != nil {
 		return fmt.Errorf("failed to create resource type repository: %w", err)
 	}
@@ -75,12 +76,12 @@ func seedScenariosWithAdapters(ctx context.Context, users []*models.User) error 
 		return err
 	}
 
-	projectRepo, err := repository.NewProjectRepository(slog.Default())
+	projectRepo, err := projectrepo.NewProjectRepository(slog.Default())
 	if err != nil {
 		return err
 	}
 
-	resourceRepo, err := repository.NewResourceRepository(slog.Default())
+	resourceRepo, err := resourcerepo.NewResourceRepository(slog.Default())
 	if err != nil {
 		return err
 	}

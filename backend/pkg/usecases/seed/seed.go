@@ -10,7 +10,8 @@ import (
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	"gorm.io/gorm"
 )
 
@@ -450,12 +451,12 @@ func seedMarketplaceData(ctx context.Context, users []*models.User) error {
 
 // seedScenarios creates projects and resources based on the use case scenarios
 func seedScenarios(ctx context.Context, users []*models.User) error {
-	projectRepo, err := repository.NewProjectRepository(slog.Default())
+	projectRepo, err := projectrepo.NewProjectRepository(slog.Default())
 	if err != nil {
 		return err
 	}
 
-	resourceRepo, err := repository.NewResourceRepository(slog.Default())
+	resourceRepo, err := resourcerepo.NewResourceRepository(slog.Default())
 	if err != nil {
 		return err
 	}

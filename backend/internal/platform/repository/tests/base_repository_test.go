@@ -46,4 +46,3 @@ func TestBaseRepository_CommitAndRollback(t *testing.T) {
 		t.Fatalf("expected 1 committed user and 0 rolled-back users, got %d total", count)
 	}
 }
-

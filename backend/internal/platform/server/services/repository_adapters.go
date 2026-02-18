@@ -5,7 +5,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +17,7 @@ import (
 
 // ProjectRepositoryAdapter adapts repository.ProjectRepository to serverinterfaces.ProjectRepository
 type ProjectRepositoryAdapter struct {
-	Repo *repository.ProjectRepository
+	Repo *projectrepo.ProjectRepository
 }
 
 func (a *ProjectRepositoryAdapter) Create(ctx context.Context, project *models.Project) error {
@@ -60,7 +64,7 @@ func (a *ProjectRepositoryAdapter) FindAll(ctx context.Context, userID uuid.UUID
 
 // ProjectVersionRepositoryAdapter adapts repository.ProjectVersionRepository to serverinterfaces.ProjectVersionRepository
 type ProjectVersionRepositoryAdapter struct {
-	Repo *repository.ProjectVersionRepository
+	Repo *projectrepo.ProjectVersionRepository
 }
 
 func (a *ProjectVersionRepositoryAdapter) Create(ctx context.Context, version *models.ProjectVersion) error {
@@ -81,7 +85,7 @@ func (a *ProjectVersionRepositoryAdapter) Delete(ctx context.Context, id uuid.UU
 
 // ResourceRepositoryAdapter adapts repository.ResourceRepository to serverinterfaces.ResourceRepository
 type ResourceRepositoryAdapter struct {
-	Repo *repository.ResourceRepository
+	Repo *resourcerepo.ResourceRepository
 }
 
 func (a *ResourceRepositoryAdapter) Create(ctx context.Context, resource *models.Resource) error {
@@ -106,7 +110,7 @@ func (a *ResourceRepositoryAdapter) CreateDependency(ctx context.Context, depend
 
 // ResourceTypeRepositoryAdapter adapts repository.ResourceTypeRepository to serverinterfaces.ResourceTypeRepository
 type ResourceTypeRepositoryAdapter struct {
-	Repo *repository.ResourceTypeRepository
+	Repo *resourcerepo.ResourceTypeRepository
 }
 
 func (a *ResourceTypeRepositoryAdapter) FindByNameAndProvider(ctx context.Context, name, provider string) (*models.ResourceType, error) {
@@ -119,7 +123,7 @@ func (a *ResourceTypeRepositoryAdapter) ListByProvider(ctx context.Context, prov
 
 // ResourceConstraintRepositoryAdapter adapts repository.ResourceConstraintRepository to serverinterfaces.ResourceConstraintRepository
 type ResourceConstraintRepositoryAdapter struct {
-	Repo *repository.ResourceConstraintRepository
+	Repo *resourcerepo.ResourceConstraintRepository
 }
 
 func (a *ResourceConstraintRepositoryAdapter) FindByResourceType(ctx context.Context, resourceTypeID uint) ([]*models.ResourceConstraint, error) {
@@ -128,7 +132,7 @@ func (a *ResourceConstraintRepositoryAdapter) FindByResourceType(ctx context.Con
 
 // DependencyTypeRepositoryAdapter adapts repository.DependencyTypeRepository to serverinterfaces.DependencyTypeRepository
 type DependencyTypeRepositoryAdapter struct {
-	Repo *repository.DependencyTypeRepository
+	Repo *resourcerepo.DependencyTypeRepository
 }
 
 func (a *DependencyTypeRepositoryAdapter) FindByName(ctx context.Context, name string) (*models.DependencyType, error) {
@@ -143,7 +147,7 @@ func (a *DependencyTypeRepositoryAdapter) Create(ctx context.Context, depType *m
 
 // UserRepositoryAdapter adapts repository.UserRepository to serverinterfaces.UserRepository
 type UserRepositoryAdapter struct {
-	Repo *repository.UserRepository
+	Repo *userrepo.UserRepository
 }
 
 func (a *UserRepositoryAdapter) FindByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
@@ -156,7 +160,7 @@ func (a *UserRepositoryAdapter) Create(ctx context.Context, user *models.User) e
 
 // IACTargetRepositoryAdapter adapts repository.IACTargetRepository to serverinterfaces.IACTargetRepository
 type IACTargetRepositoryAdapter struct {
-	Repo *repository.IACTargetRepository
+	Repo *infrastructurerepo.IACTargetRepository
 }
 
 func (a *IACTargetRepositoryAdapter) FindByName(ctx context.Context, name string) (*models.IACTarget, error) {
@@ -169,7 +173,7 @@ func (a *IACTargetRepositoryAdapter) Create(ctx context.Context, target *models.
 
 // ResourceContainmentRepositoryAdapter adapts repository.ResourceContainmentRepository to serverinterfaces.ResourceContainmentRepository
 type ResourceContainmentRepositoryAdapter struct {
-	Repo *repository.ResourceContainmentRepository
+	Repo *resourcerepo.ResourceContainmentRepository
 }
 
 func (a *ResourceContainmentRepositoryAdapter) Create(ctx context.Context, containment *models.ResourceContainment) error {
@@ -186,7 +190,7 @@ func (a *ResourceContainmentRepositoryAdapter) FindParents(ctx context.Context, 
 
 // ResourceDependencyRepositoryAdapter adapts repository.ResourceDependencyRepository to serverinterfaces.ResourceDependencyRepository
 type ResourceDependencyRepositoryAdapter struct {
-	Repo *repository.ResourceDependencyRepository
+	Repo *resourcerepo.ResourceDependencyRepository
 }
 
 func (a *ResourceDependencyRepositoryAdapter) Create(ctx context.Context, dependency *models.ResourceDependency) error {
@@ -203,7 +207,7 @@ func (a *ResourceDependencyRepositoryAdapter) FindByToResource(ctx context.Conte
 
 // PricingRepositoryAdapter adapts repository.PricingRepository to serverinterfaces.PricingRepository
 type PricingRepositoryAdapter struct {
-	Repo *repository.PricingRepository
+	Repo *pricingrepo.PricingRepository
 }
 
 func (a *PricingRepositoryAdapter) CreateProjectPricing(ctx context.Context, pricing *models.ProjectPricing) error {
@@ -232,7 +236,7 @@ func (a *PricingRepositoryAdapter) CreatePricingComponent(ctx context.Context, c
 
 // ProjectVariableRepositoryAdapter adapts repository.ProjectVariableRepository to serverinterfaces.ProjectVariableRepository
 type ProjectVariableRepositoryAdapter struct {
-	Repo *repository.ProjectVariableRepository
+	Repo *projectrepo.ProjectVariableRepository
 }
 
 func (a *ProjectVariableRepositoryAdapter) Create(ctx context.Context, variable *models.ProjectVariable) error {
@@ -249,7 +253,7 @@ func (a *ProjectVariableRepositoryAdapter) DeleteByProjectID(ctx context.Context
 
 // ProjectOutputRepositoryAdapter adapts repository.ProjectOutputRepository to serverinterfaces.ProjectOutputRepository
 type ProjectOutputRepositoryAdapter struct {
-	Repo *repository.ProjectOutputRepository
+	Repo *projectrepo.ProjectOutputRepository
 }
 
 func (a *ProjectOutputRepositoryAdapter) Create(ctx context.Context, output *models.ProjectOutput) error {

@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	"gorm.io/datatypes"
 )
 
@@ -30,7 +31,7 @@ func SeedPricingData(ctx context.Context) error {
 
 // seedPricingRates seeds pricing rates for AWS resources
 func seedPricingRates(ctx context.Context) error {
-	pricingRateRepo, err := repository.NewPricingRateRepository()
+	pricingRateRepo, err := pricingrepo.NewPricingRateRepository()
 	if err != nil {
 		return fmt.Errorf("failed to create pricing rate repository: %w", err)
 	}
@@ -325,7 +326,7 @@ func seedPricingRates(ctx context.Context) error {
 
 // seedHiddenDependencies seeds hidden dependency definitions
 func seedHiddenDependencies(ctx context.Context) error {
-	hiddenDepRepo, err := repository.NewHiddenDependencyRepository()
+	hiddenDepRepo, err := resourcerepo.NewHiddenDependencyRepository()
 	if err != nil {
 		return fmt.Errorf("failed to create hidden dependency repository: %w", err)
 	}

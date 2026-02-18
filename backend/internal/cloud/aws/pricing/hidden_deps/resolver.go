@@ -7,16 +7,16 @@ import (
 
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 // AWSHiddenDependencyResolver implements HiddenDependencyResolver for AWS
 type AWSHiddenDependencyResolver struct {
-	hiddenDepRepo *repository.HiddenDependencyRepository
+	hiddenDepRepo *resourcerepo.HiddenDependencyRepository
 }
 
 // NewAWSHiddenDependencyResolver creates a new AWS hidden dependency resolver
-func NewAWSHiddenDependencyResolver(hiddenDepRepo *repository.HiddenDependencyRepository) *AWSHiddenDependencyResolver {
+func NewAWSHiddenDependencyResolver(hiddenDepRepo *resourcerepo.HiddenDependencyRepository) *AWSHiddenDependencyResolver {
 	return &AWSHiddenDependencyResolver{
 		hiddenDepRepo: hiddenDepRepo,
 	}

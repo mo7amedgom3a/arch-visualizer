@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
 
 func main() {
@@ -40,17 +40,17 @@ func main() {
 	}
 
 	// Example: You can now use repositories here
-	userRepo, err := repository.NewUserRepository()
+	userRepo, err := userrepo.NewUserRepository()
 	if err != nil {
-	    log.Fatalf("Failed to create user repository: %v", err)
+		log.Fatalf("Failed to create user repository: %v", err)
 	}
-	
+
 	ctx := context.Background()
 	users, err := userRepo.List(ctx, 10, 0)
 	if err != nil {
-	    log.Printf("Error listing users: %v", err)
+		log.Printf("Error listing users: %v", err)
 	} else {
-	    fmt.Printf("Found %d users\n", len(users))
+		fmt.Printf("Found %d users\n", len(users))
 	}
 
 	fmt.Println("Application initialized successfully!")

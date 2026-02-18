@@ -12,15 +12,16 @@ import (
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 )
 
 // PricingServiceImpl implements PricingService interface
 type PricingServiceImpl struct {
 	pricingRepo     serverinterfaces.PricingRepository
-	pricingRateRepo *repository.PricingRateRepository
-	hiddenDepRepo   *repository.HiddenDependencyRepository
+	pricingRateRepo *pricingrepo.PricingRateRepository
+	hiddenDepRepo   *resourcerepo.HiddenDependencyRepository
 	awsCalculator   *awspricing.AWSPricingCalculator
 	useDBRates      bool
 }
@@ -41,8 +42,8 @@ func NewPricingService(pricingRepo serverinterfaces.PricingRepository) serverint
 // NewPricingServiceWithRepos creates a new pricing service with database-driven rates
 func NewPricingServiceWithRepos(
 	pricingRepo serverinterfaces.PricingRepository,
-	pricingRateRepo *repository.PricingRateRepository,
-	hiddenDepRepo *repository.HiddenDependencyRepository,
+	pricingRateRepo *pricingrepo.PricingRateRepository,
+	hiddenDepRepo *resourcerepo.HiddenDependencyRepository,
 ) serverinterfaces.PricingService {
 	// Create AWS pricing service with repositories
 	awsPricingService := awspricing.NewAWSPricingServiceWithRepos(pricingRateRepo, hiddenDepRepo)

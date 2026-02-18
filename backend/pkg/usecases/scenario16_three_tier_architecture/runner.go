@@ -12,19 +12,22 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
 	// Register mappers
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
 
 // -- Adapters --
 
 type ProjectRepoAdapter struct {
-	*repository.ProjectRepository
+	*projectrepo.ProjectRepository
 }
 
 func (a *ProjectRepoAdapter) BeginTransaction(ctx context.Context) (interface{}, context.Context) {
@@ -49,7 +52,7 @@ func (a *ProjectRepoAdapter) RollbackTransaction(tx interface{}) error {
 }
 
 type DependencyTypeRepoAdapter struct {
-	*repository.DependencyTypeRepository
+	*resourcerepo.DependencyTypeRepository
 }
 
 func (a *DependencyTypeRepoAdapter) Create(ctx context.Context, depType *models.DependencyType) error {
@@ -78,20 +81,20 @@ func run() error {
 	// For now, simpler to just create valid data.
 
 	// 2. Initialize Infrastructure (Repos & Services)
-	projectRepoRaw, _ := repository.NewProjectRepository(logger)
+	projectRepoRaw, _ := projectrepo.NewProjectRepository(logger)
 	projectRepo := &ProjectRepoAdapter{projectRepoRaw}
-	versionRepoRaw, _ := repository.NewProjectVersionRepository()
+	versionRepoRaw, _ := projectrepo.NewProjectVersionRepository()
 	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
-	resourceRepo, _ := repository.NewResourceRepository(logger)
-	resourceTypeRepo, _ := repository.NewResourceTypeRepository()
-	containmentRepo, _ := repository.NewResourceContainmentRepository()
-	dependencyRepo, _ := repository.NewResourceDependencyRepository()
-	dependencyTypeRepoRaw, _ := repository.NewDependencyTypeRepository()
+	resourceRepo, _ := resourcerepo.NewResourceRepository(logger)
+	resourceTypeRepo, _ := resourcerepo.NewResourceTypeRepository()
+	containmentRepo, _ := resourcerepo.NewResourceContainmentRepository()
+	dependencyRepo, _ := resourcerepo.NewResourceDependencyRepository()
+	dependencyTypeRepoRaw, _ := resourcerepo.NewDependencyTypeRepository()
 	dependencyTypeRepo := &DependencyTypeRepoAdapter{dependencyTypeRepoRaw}
-	userRepo, _ := repository.NewUserRepository()
-	iacTargetRepo, _ := repository.NewIACTargetRepository()
-	variableRepo, _ := repository.NewProjectVariableRepository()
-	outputRepo, _ := repository.NewProjectOutputRepository()
+	userRepo, _ := userrepo.NewUserRepository()
+	iacTargetRepo, _ := infrastructurerepo.NewIACTargetRepository()
+	variableRepo, _ := projectrepo.NewProjectVariableRepository()
+	outputRepo, _ := projectrepo.NewProjectOutputRepository()
 
 	codegenService := services.NewCodegenService(logger)
 	projectService := services.NewProjectService(

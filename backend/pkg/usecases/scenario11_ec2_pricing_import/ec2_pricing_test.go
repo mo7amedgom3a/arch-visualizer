@@ -15,7 +15,8 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/services/pricing_importer"
@@ -91,12 +92,12 @@ func EC2PricingImportTestRunner(ctx context.Context, scraperJSONPath string) err
 	}
 
 	// Create repositories
-	pricingRateRepo, err := repository.NewPricingRateRepository()
+	pricingRateRepo, err := pricingrepo.NewPricingRateRepository()
 	if err != nil {
 		return fmt.Errorf("failed to create pricing rate repository: %w", err)
 	}
 
-	hiddenDepRepo, err := repository.NewHiddenDependencyRepository()
+	hiddenDepRepo, err := resourcerepo.NewHiddenDependencyRepository()
 	if err != nil {
 		return fmt.Errorf("failed to create hidden dependency repository: %w", err)
 	}

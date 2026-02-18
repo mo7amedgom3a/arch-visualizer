@@ -16,37 +16,38 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	"gorm.io/datatypes"
 )
 
 // Service provides the main diagram processing service
 type Service struct {
-	projectRepo        *repository.ProjectRepository
-	resourceRepo       *repository.ResourceRepository
-	resourceTypeRepo   *repository.ResourceTypeRepository
-	dependencyTypeRepo *repository.DependencyTypeRepository
+	projectRepo        *projectrepo.ProjectRepository
+	resourceRepo       *resourcerepo.ResourceRepository
+	resourceTypeRepo   *resourcerepo.ResourceTypeRepository
+	dependencyTypeRepo *resourcerepo.DependencyTypeRepository
 	logger             *slog.Logger
 }
 
 // NewService creates a new diagram service
 func NewService(logger *slog.Logger) (*Service, error) {
-	projectRepo, err := repository.NewProjectRepository(logger)
+	projectRepo, err := projectrepo.NewProjectRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create project repository: %w", err)
 	}
 
-	resourceRepo, err := repository.NewResourceRepository(logger)
+	resourceRepo, err := resourcerepo.NewResourceRepository(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource repository: %w", err)
 	}
 
-	resourceTypeRepo, err := repository.NewResourceTypeRepository()
+	resourceTypeRepo, err := resourcerepo.NewResourceTypeRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resource type repository: %w", err)
 	}
 
-	dependencyTypeRepo, err := repository.NewDependencyTypeRepository()
+	dependencyTypeRepo, err := resourcerepo.NewDependencyTypeRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create dependency type repository: %w", err)
 	}

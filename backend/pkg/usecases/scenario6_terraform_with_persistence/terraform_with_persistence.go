@@ -23,8 +23,11 @@ import (
 	tfgen "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"gorm.io/datatypes"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
 
 // TerraformWithPersistenceRunner demonstrates the end-to-end pipeline from a diagram IR JSON
@@ -144,42 +147,42 @@ func TerraformWithPersistenceRunner(ctx context.Context) error {
 // persistToDatabase saves the project, resources, containments, and dependencies to the database
 func persistToDatabase(ctx context.Context, arch *architecture.Architecture, diagramGraph *graph.DiagramGraph) (uuid.UUID, error) {
 	// Initialize repositories
-	projectRepo, err := repository.NewProjectRepository(slog.Default())
+	projectRepo, err := projectrepo.NewProjectRepository(slog.Default())
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create project repository: %w", err)
 	}
 
-	resourceRepo, err := repository.NewResourceRepository(slog.Default())
+	resourceRepo, err := resourcerepo.NewResourceRepository(slog.Default())
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create resource repository: %w", err)
 	}
 
-	resourceTypeRepo, err := repository.NewResourceTypeRepository()
+	resourceTypeRepo, err := resourcerepo.NewResourceTypeRepository()
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create resource type repository: %w", err)
 	}
 
-	iacTargetRepo, err := repository.NewIACTargetRepository()
+	iacTargetRepo, err := infrastructurerepo.NewIACTargetRepository()
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create iac target repository: %w", err)
 	}
 
-	userRepo, err := repository.NewUserRepository()
+	userRepo, err := userrepo.NewUserRepository()
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create user repository: %w", err)
 	}
 
-	containmentRepo, err := repository.NewResourceContainmentRepository()
+	containmentRepo, err := resourcerepo.NewResourceContainmentRepository()
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create containment repository: %w", err)
 	}
 
-	dependencyRepo, err := repository.NewResourceDependencyRepository()
+	dependencyRepo, err := resourcerepo.NewResourceDependencyRepository()
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create dependency repository: %w", err)
 	}
 
-	dependencyTypeRepo, err := repository.NewDependencyTypeRepository()
+	dependencyTypeRepo, err := resourcerepo.NewDependencyTypeRepository()
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create dependency type repository: %w", err)
 	}

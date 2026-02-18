@@ -16,9 +16,12 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
 
 // Run executes the architecture pipeline test scenario
@@ -93,17 +96,17 @@ func persistProject(ctx context.Context, arch *architecture.Architecture, diagra
 	logger := slog.Default()
 
 	// Base repositories
-	projectBase, _ := repository.NewProjectRepository(logger)
-	resourceBase, _ := repository.NewResourceRepository(logger)
-	verBase, _ := repository.NewProjectVersionRepository()
-	resTypeBase, _ := repository.NewResourceTypeRepository()
-	contBase, _ := repository.NewResourceContainmentRepository()
-	depBase, _ := repository.NewResourceDependencyRepository()
-	depTypeBase, _ := repository.NewDependencyTypeRepository()
-	userBase, _ := repository.NewUserRepository()
-	iacBase, _ := repository.NewIACTargetRepository()
-	varBase, _ := repository.NewProjectVariableRepository()
-	outBase, _ := repository.NewProjectOutputRepository()
+	projectBase, _ := projectrepo.NewProjectRepository(logger)
+	resourceBase, _ := resourcerepo.NewResourceRepository(logger)
+	verBase, _ := projectrepo.NewProjectVersionRepository()
+	resTypeBase, _ := resourcerepo.NewResourceTypeRepository()
+	contBase, _ := resourcerepo.NewResourceContainmentRepository()
+	depBase, _ := resourcerepo.NewResourceDependencyRepository()
+	depTypeBase, _ := resourcerepo.NewDependencyTypeRepository()
+	userBase, _ := userrepo.NewUserRepository()
+	iacBase, _ := infrastructurerepo.NewIACTargetRepository()
+	varBase, _ := projectrepo.NewProjectVariableRepository()
+	outBase, _ := projectrepo.NewProjectOutputRepository()
 
 	// Adapters
 	projectRepo := &services.ProjectRepositoryAdapter{Repo: projectBase}

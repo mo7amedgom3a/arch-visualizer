@@ -11,7 +11,8 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/storage"
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 // AWSPricingService implements the PricingService interface for AWS
@@ -35,8 +36,8 @@ func NewAWSPricingService() *AWSPricingService {
 
 // NewAWSPricingServiceWithRepos creates a new AWS pricing service with repositories for DB-driven pricing
 func NewAWSPricingServiceWithRepos(
-	pricingRateRepo *repository.PricingRateRepository,
-	hiddenDepRepo *repository.HiddenDependencyRepository,
+	pricingRateRepo *pricingrepo.PricingRateRepository,
+	hiddenDepRepo *resourcerepo.HiddenDependencyRepository,
 ) *AWSPricingService {
 	service := &AWSPricingService{}
 	service.calculator = NewAWSPricingCalculatorWithRepos(service, pricingRateRepo, hiddenDepRepo)

@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
 )
 
 // Importer handles importing pricing data from scraper output
 type Importer struct {
-	pricingRateRepo *repository.PricingRateRepository
+	pricingRateRepo *pricingrepo.PricingRateRepository
 }
 
 // NewImporter creates a new pricing importer
 func NewImporter() (*Importer, error) {
-	repo, err := repository.NewPricingRateRepository()
+	repo, err := pricingrepo.NewPricingRateRepository()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pricing rate repository: %w", err)
 	}

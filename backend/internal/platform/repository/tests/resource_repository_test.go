@@ -2,18 +2,18 @@ package repository_test
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 func TestResourceRepository_CreateAndFindByProject(t *testing.T) {
 	db := newTestDB(t, &models.User{}, &models.Project{}, &models.ResourceType{}, &models.Resource{})
-	base := repository.NewBaseRepositoryWithDB(db)
-	repo := &repository.ResourceRepository{BaseRepository: base}
+	repo := resourcerepo.NewResourceRepositoryWithDB(db, slog.Default())
 
 	ctx := context.Background()
 
@@ -68,4 +68,3 @@ func TestResourceRepository_CreateAndFindByProject(t *testing.T) {
 		t.Fatalf("expected 1 resource for project, got %d", len(list))
 	}
 }
-

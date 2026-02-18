@@ -2,18 +2,20 @@ package repository_test
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 )
 
 func TestProjectRepository_CreateAndFind(t *testing.T) {
 	db := newTestDB(t, &models.User{}, &models.IACTarget{}, &models.Project{})
-	base := repository.NewBaseRepositoryWithDB(db)
-	repo := &repository.ProjectRepository{BaseRepository: base}
+	// base := repository.NewBaseRepositoryWithDB(db) // No longer needed directly if constructor handles it, but maybe needed for other things?
+	// Actually NewProjectRepositoryWithDB creates its own base from db.
+	repo := projectrepo.NewProjectRepositoryWithDB(db, slog.Default())
 
 	ctx := context.Background()
 
@@ -64,4 +66,3 @@ func TestProjectRepository_CreateAndFind(t *testing.T) {
 		t.Fatalf("expected 1 project for user, got %d", len(byUser))
 	}
 }
-

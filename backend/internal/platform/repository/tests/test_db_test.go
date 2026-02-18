@@ -26,6 +26,8 @@ func newTestDB(t *testing.T, modelsToMigrate ...interface{}) *gorm.DB {
 		`CREATE TABLE IF NOT EXISTS users (
 			id TEXT PRIMARY KEY,
 			name TEXT,
+			email TEXT,
+			auth0_id TEXT,
 			avatar TEXT,
 			is_verified INTEGER,
 			created_at DATETIME,
@@ -36,9 +38,13 @@ func newTestDB(t *testing.T, modelsToMigrate ...interface{}) *gorm.DB {
 			user_id TEXT,
 			infra_tool INTEGER,
 			name TEXT,
+			description TEXT,
 			cloud_provider TEXT,
 			region TEXT,
+			thumbnail TEXT,
+			tags TEXT,
 			created_at DATETIME,
+			updated_at DATETIME,
 			deleted_at DATETIME
 		);`,
 
@@ -78,6 +84,7 @@ func newTestDB(t *testing.T, modelsToMigrate ...interface{}) *gorm.DB {
 		// Resources & relationships
 		`CREATE TABLE IF NOT EXISTS resources (
 			id TEXT PRIMARY KEY,
+			original_id TEXT,
 			project_id TEXT,
 			resource_type_id INTEGER,
 			name TEXT,
@@ -98,6 +105,11 @@ func newTestDB(t *testing.T, modelsToMigrate ...interface{}) *gorm.DB {
 			to_resource_id TEXT,
 			dependency_type_id INTEGER,
 			PRIMARY KEY (from_resource_id, to_resource_id)
+		);`,
+		`CREATE TABLE IF NOT EXISTS resource_ui_states (
+			resource_id TEXT PRIMARY KEY,
+			selected INTEGER,
+			expanded INTEGER
 		);`,
 
 		// Marketplace

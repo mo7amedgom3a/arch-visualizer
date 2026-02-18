@@ -8,12 +8,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
 
 func TestUserRepository_CreateAndFind(t *testing.T) {
 	db := newTestDB(t, &models.User{})
 	base := repository.NewBaseRepositoryWithDB(db)
-	repo := &repository.UserRepository{BaseRepository: base}
+	repo := &userrepo.UserRepository{BaseRepository: base}
 
 	ctx := context.Background()
 

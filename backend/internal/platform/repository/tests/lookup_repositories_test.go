@@ -6,6 +6,8 @@ import (
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 func TestLookupRepositories_BasicOperations(t *testing.T) {
@@ -22,7 +24,7 @@ func TestLookupRepositories_BasicOperations(t *testing.T) {
 	base := repository.NewBaseRepositoryWithDB(db)
 
 	// IACTargetRepository
-	iaRepo := &repository.IACTargetRepository{BaseRepository: base}
+	iaRepo := &infrastructurerepo.IACTargetRepository{BaseRepository: base}
 	target := &models.IACTarget{Name: "terraform"}
 	if err := iaRepo.Create(ctx, target); err != nil {
 		t.Fatalf("IACTargetRepository.Create error: %v", err)
@@ -32,7 +34,7 @@ func TestLookupRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// ResourceCategoryRepository
-	rcRepo := &repository.ResourceCategoryRepository{BaseRepository: base}
+	rcRepo := &resourcerepo.ResourceCategoryRepository{BaseRepository: base}
 	cat := &models.ResourceCategory{Name: "Compute"}
 	if err := rcRepo.Create(ctx, cat); err != nil {
 		t.Fatalf("ResourceCategoryRepository.Create error: %v", err)
@@ -42,7 +44,7 @@ func TestLookupRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// ResourceKindRepository
-	rkRepo := &repository.ResourceKindRepository{BaseRepository: base}
+	rkRepo := &resourcerepo.ResourceKindRepository{BaseRepository: base}
 	kind := &models.ResourceKind{Name: "VirtualMachine"}
 	if err := rkRepo.Create(ctx, kind); err != nil {
 		t.Fatalf("ResourceKindRepository.Create error: %v", err)
@@ -52,7 +54,7 @@ func TestLookupRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// DependencyTypeRepository
-	dtRepo := &repository.DependencyTypeRepository{BaseRepository: base}
+	dtRepo := &resourcerepo.DependencyTypeRepository{BaseRepository: base}
 	depType := &models.DependencyType{Name: "uses"}
 	if err := db.Create(depType).Error; err != nil {
 		t.Fatalf("failed to create dependency type directly: %v", err)
@@ -62,7 +64,7 @@ func TestLookupRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// ResourceTypeRepository
-	rtRepo := &repository.ResourceTypeRepository{BaseRepository: base}
+	rtRepo := &resourcerepo.ResourceTypeRepository{BaseRepository: base}
 	rt := &models.ResourceType{Name: "S3", CloudProvider: "aws"}
 	if err := db.Create(rt).Error; err != nil {
 		t.Fatalf("failed to create resource type directly: %v", err)
@@ -72,7 +74,7 @@ func TestLookupRepositories_BasicOperations(t *testing.T) {
 	}
 
 	// ResourceConstraintRepository
-	rcnRepo := &repository.ResourceConstraintRepository{BaseRepository: base}
+	rcnRepo := &resourcerepo.ResourceConstraintRepository{BaseRepository: base}
 	constraint := &models.ResourceConstraint{
 		ResourceTypeID:  rt.ID,
 		ConstraintType:  "region",

@@ -15,13 +15,14 @@ import (
 	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
+	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 )
 
 // AWSPricingCalculator implements the PricingCalculator interface for AWS
 type AWSPricingCalculator struct {
 	service           *AWSPricingService
-	pricingRateRepo   *repository.PricingRateRepository
+	pricingRateRepo   *pricingrepo.PricingRateRepository
 	hiddenDepResolver domainpricing.HiddenDependencyResolver
 	useDBRates        bool // Flag to enable/disable DB rates (for backward compatibility)
 }
@@ -37,8 +38,8 @@ func NewAWSPricingCalculator(service *AWSPricingService) *AWSPricingCalculator {
 // NewAWSPricingCalculatorWithRepos creates a new AWS pricing calculator with repositories
 func NewAWSPricingCalculatorWithRepos(
 	service *AWSPricingService,
-	pricingRateRepo *repository.PricingRateRepository,
-	hiddenDepRepo *repository.HiddenDependencyRepository,
+	pricingRateRepo *pricingrepo.PricingRateRepository,
+	hiddenDepRepo *resourcerepo.HiddenDependencyRepository,
 ) *AWSPricingCalculator {
 	hiddenDepResolver := hiddendeps.NewAWSHiddenDependencyResolver(hiddenDepRepo)
 	return &AWSPricingCalculator{

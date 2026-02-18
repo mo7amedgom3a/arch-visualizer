@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
+	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
 )
 
 func TestPricingRepository_CreateAndQuery(t *testing.T) {
@@ -27,7 +28,7 @@ func TestPricingRepository_CreateAndQuery(t *testing.T) {
 		&models.ResourceCategory{},
 	)
 	base := repository.NewBaseRepositoryWithDB(db)
-	repo := &repository.PricingRepository{BaseRepository: base}
+	repo := &pricingrepo.PricingRepository{BaseRepository: base}
 
 	user := &models.User{ID: uuid.New(), Name: "Owner", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	target := &models.IACTarget{ID: 1, Name: "terraform"}
@@ -73,55 +74,55 @@ func TestPricingRepository_CreateAndQuery(t *testing.T) {
 	}
 
 	pp := &models.ProjectPricing{
-		ProjectID:      project.ID,
-		TotalCost:      10,
-		Currency:       "USD",
-		Period:         "monthly",
+		ProjectID:       project.ID,
+		TotalCost:       10,
+		Currency:        "USD",
+		Period:          "monthly",
 		DurationSeconds: 30 * 24 * 3600,
-		Provider:       "aws",
-		CalculatedAt:   time.Now(),
+		Provider:        "aws",
+		CalculatedAt:    time.Now(),
 	}
 	if err := repo.CreateProjectPricing(ctx, pp); err != nil {
 		t.Fatalf("CreateProjectPricing error: %v", err)
 	}
 
 	sp := &models.ServicePricing{
-		ProjectID:      project.ID,
-		CategoryID:     category.ID,
-		TotalCost:      5,
-		Currency:       "USD",
-		Period:         "monthly",
+		ProjectID:       project.ID,
+		CategoryID:      category.ID,
+		TotalCost:       5,
+		Currency:        "USD",
+		Period:          "monthly",
 		DurationSeconds: 30 * 24 * 3600,
-		Provider:       "aws",
-		CalculatedAt:   time.Now(),
+		Provider:        "aws",
+		CalculatedAt:    time.Now(),
 	}
 	if err := repo.CreateServicePricing(ctx, sp); err != nil {
 		t.Fatalf("CreateServicePricing error: %v", err)
 	}
 
 	stp := &models.ServiceTypePricing{
-		ProjectID:      project.ID,
-		ResourceTypeID: rt.ID,
-		TotalCost:      3,
-		Currency:       "USD",
-		Period:         "monthly",
+		ProjectID:       project.ID,
+		ResourceTypeID:  rt.ID,
+		TotalCost:       3,
+		Currency:        "USD",
+		Period:          "monthly",
 		DurationSeconds: 30 * 24 * 3600,
-		Provider:       "aws",
-		CalculatedAt:   time.Now(),
+		Provider:        "aws",
+		CalculatedAt:    time.Now(),
 	}
 	if err := repo.CreateServiceTypePricing(ctx, stp); err != nil {
 		t.Fatalf("CreateServiceTypePricing error: %v", err)
 	}
 
 	rp := &models.ResourcePricing{
-		ProjectID:      project.ID,
-		ResourceID:     resource.ID,
-		TotalCost:      2,
-		Currency:       "USD",
-		Period:         "monthly",
+		ProjectID:       project.ID,
+		ResourceID:      resource.ID,
+		TotalCost:       2,
+		Currency:        "USD",
+		Period:          "monthly",
 		DurationSeconds: 30 * 24 * 3600,
-		Provider:       "aws",
-		CalculatedAt:   time.Now(),
+		Provider:        "aws",
+		CalculatedAt:    time.Now(),
 	}
 	if err := repo.CreateResourcePricing(ctx, rp); err != nil {
 		t.Fatalf("CreateResourcePricing error: %v", err)
@@ -157,4 +158,3 @@ func TestPricingRepository_CreateAndQuery(t *testing.T) {
 		t.Fatalf("FindResourcePricingByResourceID error: %v", err)
 	}
 }
-
