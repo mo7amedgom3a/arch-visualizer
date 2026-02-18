@@ -88,6 +88,14 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 
 		// AWS Resource Metadata Routes
 		metadataCtrl := controllers.NewResourceMetadataController(srv.ResourceMetadataService)
+		rulesCtrl := controllers.NewRulesController()
+
+		// AWS Rules
+		awsRules := v1.Group("/aws/rules")
+		{
+			awsRules.GET("", rulesCtrl.List)
+			awsRules.GET("/:service", rulesCtrl.Get)
+		}
 
 		// Networking (backward-compatible)
 		awsNetworking := v1.Group("/aws/networking")

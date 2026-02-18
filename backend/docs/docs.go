@@ -40,7 +40,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO"
+                                "$ref": "#/definitions/interfaces.ResourceSchemaDTO"
                             }
                         }
                     },
@@ -88,7 +88,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO"
+                            "$ref": "#/definitions/interfaces.ResourceSchemaDTO"
                         }
                     },
                     "404": {
@@ -107,6 +107,79 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/aws/rules": {
+            "get": {
+                "description": "Get all AWS service rules and their constraints",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rules"
+                ],
+                "summary": "List all service rules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.ServiceRuleResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/aws/rules/{service}": {
+            "get": {
+                "description": "Get rules and constraints for a specific AWS service",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rules"
+                ],
+                "summary": "Get service rules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service Name (e.g. VPC, Subnet)",
+                        "name": "service",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ServiceRuleResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -137,7 +210,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO"
+                                "$ref": "#/definitions/interfaces.ResourceSchemaDTO"
                             }
                         }
                     },
@@ -192,7 +265,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO"
+                            "$ref": "#/definitions/interfaces.ResourceSchemaDTO"
                         }
                     },
                     "404": {
@@ -411,7 +484,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.PolicyOutput"
+                                "$ref": "#/definitions/outputs.PolicyOutput"
                             }
                         }
                     },
@@ -445,7 +518,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest"
+                            "$ref": "#/definitions/request.CreateIAMRoleRequest"
                         }
                     }
                 ],
@@ -453,7 +526,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.RoleOutput"
+                            "$ref": "#/definitions/outputs.RoleOutput"
                         }
                     },
                     "400": {
@@ -493,7 +566,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMUserRequest"
+                            "$ref": "#/definitions/request.CreateIAMUserRequest"
                         }
                     }
                 ],
@@ -501,7 +574,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.UserOutput"
+                            "$ref": "#/definitions/outputs.UserOutput"
                         }
                     },
                     "400": {
@@ -612,7 +685,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateProjectRequest"
+                            "$ref": "#/definitions/request.CreateProjectRequest"
                         }
                     }
                 ],
@@ -620,7 +693,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse"
+                            "$ref": "#/definitions/response.ProjectResponse"
                         }
                     },
                     "400": {
@@ -663,7 +736,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse"
+                            "$ref": "#/definitions/response.ProjectResponse"
                         }
                     },
                     "400": {
@@ -715,7 +788,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.UpdateProjectRequest"
+                            "$ref": "#/definitions/request.UpdateProjectRequest"
                         }
                     }
                 ],
@@ -723,7 +796,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse"
+                            "$ref": "#/definitions/response.ProjectResponse"
                         }
                     },
                     "400": {
@@ -808,7 +881,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse"
+                            "$ref": "#/definitions/dto.ArchitectureResponse"
                         }
                     },
                     "400": {
@@ -853,7 +926,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest"
+                            "$ref": "#/definitions/dto.UpdateArchitectureRequest"
                         }
                     }
                 ],
@@ -861,7 +934,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse"
+                            "$ref": "#/definitions/dto.ArchitectureResponse"
                         }
                     },
                     "400": {
@@ -964,7 +1037,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest"
+                            "$ref": "#/definitions/dto.UpdateNodeRequest"
                         }
                     }
                 ],
@@ -972,7 +1045,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
+                            "$ref": "#/definitions/dto.ArchitectureNode"
                         }
                     },
                     "400": {
@@ -1015,7 +1088,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse"
+                            "$ref": "#/definitions/dto.ValidationResponse"
                         }
                     },
                     "400": {
@@ -1058,7 +1131,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ArchitectureCostEstimate"
+                            "$ref": "#/definitions/interfaces.ArchitectureCostEstimate"
                         }
                     },
                     "400": {
@@ -1121,7 +1194,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate"
+                            "$ref": "#/definitions/interfaces.ResourceCostEstimate"
                         }
                     },
                     "400": {
@@ -1177,7 +1250,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationWithSavings"
+                            "$ref": "#/definitions/interfaces.OptimizationWithSavings"
                         }
                     },
                     "400": {
@@ -1350,7 +1423,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerateCodeRequest"
+                            "$ref": "#/definitions/dto.GenerateCodeRequest"
                         }
                     }
                 ],
@@ -1358,7 +1431,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationResponse"
+                            "$ref": "#/definitions/dto.GenerationResponse"
                         }
                     },
                     "400": {
@@ -1657,7 +1730,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateUserRequest"
+                            "$ref": "#/definitions/request.CreateUserRequest"
                         }
                     }
                 ],
@@ -1665,7 +1738,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.UserResponse"
+                            "$ref": "#/definitions/response.UserResponse"
                         }
                     },
                     "400": {
@@ -1708,7 +1781,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.UserResponse"
+                            "$ref": "#/definitions/response.UserResponse"
                         }
                     },
                     "400": {
@@ -1737,7 +1810,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge": {
+        "configs.Tag": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ArchitectureEdge": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1758,11 +1842,11 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode": {
+        "dto.ArchitectureNode": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData"
+                    "$ref": "#/definitions/dto.ArchitectureNodeData"
                 },
                 "id": {
                     "type": "string"
@@ -1771,14 +1855,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "position": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition"
+                    "$ref": "#/definitions/dto.NodePosition"
                 },
                 "type": {
                     "type": "string"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData": {
+        "dto.ArchitectureNodeData": {
             "type": "object",
             "properties": {
                 "config": {
@@ -1796,7 +1880,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput": {
+        "dto.ArchitectureOutput": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1814,42 +1898,42 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse": {
+        "dto.ArchitectureResponse": {
             "type": "object",
             "properties": {
                 "edges": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge"
+                        "$ref": "#/definitions/dto.ArchitectureEdge"
                     }
                 },
                 "nodes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
+                        "$ref": "#/definitions/dto.ArchitectureNode"
                     }
                 },
                 "outputs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput"
+                        "$ref": "#/definitions/dto.ArchitectureOutput"
                     }
                 },
                 "variables": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable"
+                        "$ref": "#/definitions/dto.ArchitectureVariable"
                     }
                 },
                 "warnings": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue"
+                        "$ref": "#/definitions/dto.ValidationIssue"
                     }
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable": {
+        "dto.ArchitectureVariable": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1869,14 +1953,14 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerateCodeRequest": {
+        "dto.GenerateCodeRequest": {
             "type": "object",
             "required": [
                 "tool"
             ],
             "properties": {
                 "options": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationOptions"
+                    "$ref": "#/definitions/dto.GenerationOptions"
                 },
                 "tool": {
                     "description": "terraform, pulumi, cdk",
@@ -1884,7 +1968,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GeneratedFileResponse": {
+        "dto.GeneratedFileResponse": {
             "type": "object",
             "properties": {
                 "content": {
@@ -1902,7 +1986,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationOptions": {
+        "dto.GenerationOptions": {
             "type": "object",
             "properties": {
                 "format": {
@@ -1921,7 +2005,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationResponse": {
+        "dto.GenerationResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1939,7 +2023,7 @@ const docTemplate = `{
                 "files": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GeneratedFileResponse"
+                        "$ref": "#/definitions/dto.GeneratedFileResponse"
                     }
                 },
                 "generationId": {
@@ -1960,7 +2044,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition": {
+        "dto.NodePosition": {
             "type": "object",
             "properties": {
                 "x": {
@@ -1971,47 +2055,47 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest": {
+        "dto.UpdateArchitectureRequest": {
             "type": "object",
             "properties": {
                 "edges": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge"
+                        "$ref": "#/definitions/dto.ArchitectureEdge"
                     }
                 },
                 "nodes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
+                        "$ref": "#/definitions/dto.ArchitectureNode"
                     }
                 },
                 "outputs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput"
+                        "$ref": "#/definitions/dto.ArchitectureOutput"
                     }
                 },
                 "variables": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable"
+                        "$ref": "#/definitions/dto.ArchitectureVariable"
                     }
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest": {
+        "dto.UpdateNodeRequest": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData"
+                    "$ref": "#/definitions/dto.ArchitectureNodeData"
                 },
                 "position": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition"
+                    "$ref": "#/definitions/dto.NodePosition"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue": {
+        "dto.ValidationIssue": {
             "type": "object",
             "properties": {
                 "message": {
@@ -2030,13 +2114,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse": {
+        "dto.ValidationResponse": {
             "type": "object",
             "properties": {
                 "errors": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue"
+                        "$ref": "#/definitions/dto.ValidationIssue"
                     }
                 },
                 "valid": {
@@ -2045,200 +2129,201 @@ const docTemplate = `{
                 "warnings": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue"
+                        "$ref": "#/definitions/dto.ValidationIssue"
                     }
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMRoleRequest": {
+        "interfaces.ArchitectureCostEstimate": {
             "type": "object",
-            "required": [
-                "assume_role_policy",
-                "name"
-            ],
             "properties": {
-                "assume_role_policy": {
+                "currency": {
+                    "description": "Currency is the currency used",
                     "type": "string"
                 },
+                "duration": {
+                    "description": "Duration is the duration used for the calculation",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/time.Duration"
+                        }
+                    ]
+                },
+                "period": {
+                    "description": "Period is the time period for the estimate",
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "Provider is the cloud provider",
+                    "type": "string"
+                },
+                "region": {
+                    "description": "Region is the region (if applicable)",
+                    "type": "string"
+                },
+                "resource_estimates": {
+                    "description": "ResourceEstimates contains individual resource cost estimates",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/interfaces.ResourceCostEstimate"
+                    }
+                },
+                "total_cost": {
+                    "description": "TotalCost is the total estimated cost for the architecture",
+                    "type": "number"
+                }
+            }
+        },
+        "interfaces.CostBreakdownComponent": {
+            "type": "object",
+            "properties": {
+                "component_name": {
+                    "description": "ComponentName is the name of the cost component",
+                    "type": "string"
+                },
+                "currency": {
+                    "description": "Currency is the currency used",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the pricing model used",
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "Quantity is the amount consumed",
+                    "type": "number"
+                },
+                "subtotal": {
+                    "description": "Subtotal is the calculated cost for this component",
+                    "type": "number"
+                },
+                "unit_rate": {
+                    "description": "UnitRate is the rate per unit",
+                    "type": "number"
+                }
+            }
+        },
+        "interfaces.FieldDescriptorDTO": {
+            "type": "object",
+            "properties": {
+                "default": {},
                 "description": {
                     "type": "string"
                 },
-                "is_virtual": {
+                "enum": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
                     "type": "boolean"
                 },
-                "name": {
-                    "type": "string"
-                },
-                "path": {
+                "type": {
                     "type": "string"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateIAMUserRequest": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "is_virtual": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateProjectRequest": {
-            "type": "object",
-            "required": [
-                "cloud_provider",
-                "iac_tool_id",
-                "name",
-                "region"
-            ],
-            "properties": {
-                "cloud_provider": {
-                    "type": "string",
-                    "enum": [
-                        "aws",
-                        "azure",
-                        "gcp"
-                    ]
-                },
-                "iac_tool_id": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 3
-                },
-                "region": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "description": "Temporary for testing without auth",
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "auth0_id",
-                "email",
-                "name"
-            ],
-            "properties": {
-                "auth0_id": {
-                    "type": "string"
-                },
-                "avatar_url": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 2
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_request.UpdateProjectRequest": {
+        "interfaces.OptimizationSuggestion": {
             "type": "object",
             "properties": {
-                "cloud_provider": {
-                    "type": "string",
-                    "enum": [
-                        "aws",
-                        "azure",
-                        "gcp"
-                    ]
-                },
-                "iac_tool_id": {
-                    "type": "integer",
-                    "minimum": 1
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 3
-                },
-                "region": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.ProjectResponse": {
-            "type": "object",
-            "properties": {
-                "cloud_provider": {
+                "description": {
                     "type": "string"
                 },
-                "created_at": {
-                    "type": "string"
-                },
-                "iac_tool_id": {
-                    "type": "integer"
+                "estimated_savings": {
+                    "type": "number"
                 },
                 "id": {
                     "type": "string"
                 },
-                "name": {
+                "resource_id": {
                     "type": "string"
                 },
-                "region": {
+                "resource_type": {
                     "type": "string"
                 },
-                "updated_at": {
+                "severity": {
+                    "description": "\"high\", \"medium\", \"low\"",
                     "type": "string"
                 },
-                "user_id": {
+                "title": {
                     "type": "string"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto_response.UserResponse": {
+        "interfaces.OptimizationWithSavings": {
             "type": "object",
             "properties": {
-                "avatar_url": {
+                "currency": {
                     "type": "string"
                 },
-                "created_at": {
-                    "type": "string"
+                "suggestions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/interfaces.OptimizationSuggestion"
+                    }
                 },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
+                "total_potential_savings": {
+                    "type": "number"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag": {
+        "interfaces.ResourceCostEstimate": {
             "type": "object",
             "properties": {
-                "key": {
+                "breakdown": {
+                    "description": "Breakdown contains the cost breakdown components",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/interfaces.CostBreakdownComponent"
+                    }
+                },
+                "currency": {
+                    "description": "Currency is the currency used",
                     "type": "string"
                 },
-                "value": {
+                "resource_id": {
+                    "description": "ResourceID is the domain resource ID",
                     "type": "string"
+                },
+                "resource_name": {
+                    "description": "ResourceName is the name of the resource",
+                    "type": "string"
+                },
+                "resource_type": {
+                    "description": "ResourceType is the type of resource",
+                    "type": "string"
+                },
+                "total_cost": {
+                    "description": "TotalCost is the total estimated cost for this resource",
+                    "type": "number"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.PolicyOutput": {
+        "interfaces.ResourceSchemaDTO": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/interfaces.FieldDescriptorDTO"
+                    }
+                },
+                "label": {
+                    "type": "string"
+                },
+                "outputs": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "outputs.PolicyOutput": {
             "type": "object",
             "properties": {
                 "arn": {
@@ -2283,7 +2368,7 @@ const docTemplate = `{
                 "tags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag"
+                        "$ref": "#/definitions/configs.Tag"
                     }
                 },
                 "update_date": {
@@ -2291,7 +2376,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.RoleOutput": {
+        "outputs.RoleOutput": {
             "type": "object",
             "properties": {
                 "arn": {
@@ -2332,7 +2417,7 @@ const docTemplate = `{
                 "tags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag"
+                        "$ref": "#/definitions/configs.Tag"
                     }
                 },
                 "unique_id": {
@@ -2341,7 +2426,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_models_iam_outputs.UserOutput": {
+        "outputs.UserOutput": {
             "type": "object",
             "properties": {
                 "arn": {
@@ -2375,7 +2460,7 @@ const docTemplate = `{
                 "tags": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_cloud_aws_configs.Tag"
+                        "$ref": "#/definitions/configs.Tag"
                     }
                 },
                 "unique_id": {
@@ -2384,192 +2469,223 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ArchitectureCostEstimate": {
+        "request.CreateIAMRoleRequest": {
             "type": "object",
+            "required": [
+                "assume_role_policy",
+                "name"
+            ],
             "properties": {
-                "currency": {
-                    "description": "Currency is the currency used",
+                "assume_role_policy": {
                     "type": "string"
                 },
-                "duration": {
-                    "description": "Duration is the duration used for the calculation",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/time.Duration"
-                        }
-                    ]
-                },
-                "period": {
-                    "description": "Period is the time period for the estimate",
-                    "type": "string"
-                },
-                "provider": {
-                    "description": "Provider is the cloud provider",
-                    "type": "string"
-                },
-                "region": {
-                    "description": "Region is the region (if applicable)",
-                    "type": "string"
-                },
-                "resource_estimates": {
-                    "description": "ResourceEstimates contains individual resource cost estimates",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate"
-                    }
-                },
-                "total_cost": {
-                    "description": "TotalCost is the total estimated cost for the architecture",
-                    "type": "number"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CostBreakdownComponent": {
-            "type": "object",
-            "properties": {
-                "component_name": {
-                    "description": "ComponentName is the name of the cost component",
-                    "type": "string"
-                },
-                "currency": {
-                    "description": "Currency is the currency used",
-                    "type": "string"
-                },
-                "model": {
-                    "description": "Model is the pricing model used",
-                    "type": "string"
-                },
-                "quantity": {
-                    "description": "Quantity is the amount consumed",
-                    "type": "number"
-                },
-                "subtotal": {
-                    "description": "Subtotal is the calculated cost for this component",
-                    "type": "number"
-                },
-                "unit_rate": {
-                    "description": "UnitRate is the rate per unit",
-                    "type": "number"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.FieldDescriptorDTO": {
-            "type": "object",
-            "properties": {
-                "default": {},
                 "description": {
                     "type": "string"
                 },
-                "enum": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "is_virtual": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
                 },
-                "required": {
-                    "type": "boolean"
-                },
-                "type": {
+                "path": {
                     "type": "string"
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationSuggestion": {
+        "request.CreateIAMUserRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "is_virtual": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateProjectRequest": {
+            "type": "object",
+            "required": [
+                "cloud_provider",
+                "iac_tool_id",
+                "name",
+                "region"
+            ],
+            "properties": {
+                "cloud_provider": {
+                    "type": "string",
+                    "enum": [
+                        "aws",
+                        "azure",
+                        "gcp"
+                    ]
+                },
+                "iac_tool_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "region": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "Temporary for testing without auth",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "auth0_id",
+                "email",
+                "name"
+            ],
+            "properties": {
+                "auth0_id": {
+                    "type": "string"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                }
+            }
+        },
+        "request.UpdateProjectRequest": {
+            "type": "object",
+            "properties": {
+                "cloud_provider": {
+                    "type": "string",
+                    "enum": [
+                        "aws",
+                        "azure",
+                        "gcp"
+                    ]
+                },
+                "iac_tool_id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "region": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ProjectResponse": {
+            "type": "object",
+            "properties": {
+                "cloud_provider": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "iac_tool_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RuleDetail": {
             "type": "object",
             "properties": {
                 "description": {
                     "type": "string"
                 },
-                "estimated_savings": {
-                    "type": "number"
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ServiceRuleResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RuleDetail"
+                    }
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "valid_children": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "valid_parents": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.UserResponse": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "resource_id": {
+                "name": {
                     "type": "string"
                 },
-                "resource_type": {
+                "updated_at": {
                     "type": "string"
-                },
-                "severity": {
-                    "description": "\"high\", \"medium\", \"low\"",
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationWithSavings": {
-            "type": "object",
-            "properties": {
-                "currency": {
-                    "type": "string"
-                },
-                "suggestions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.OptimizationSuggestion"
-                    }
-                },
-                "total_potential_savings": {
-                    "type": "number"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate": {
-            "type": "object",
-            "properties": {
-                "breakdown": {
-                    "description": "Breakdown contains the cost breakdown components",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CostBreakdownComponent"
-                    }
-                },
-                "currency": {
-                    "description": "Currency is the currency used",
-                    "type": "string"
-                },
-                "resource_id": {
-                    "description": "ResourceID is the domain resource ID",
-                    "type": "string"
-                },
-                "resource_name": {
-                    "description": "ResourceName is the name of the resource",
-                    "type": "string"
-                },
-                "resource_type": {
-                    "description": "ResourceType is the type of resource",
-                    "type": "string"
-                },
-                "total_cost": {
-                    "description": "TotalCost is the total estimated cost for this resource",
-                    "type": "number"
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceSchemaDTO": {
-            "type": "object",
-            "properties": {
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.FieldDescriptorDTO"
-                    }
-                },
-                "label": {
-                    "type": "string"
-                },
-                "outputs": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
                 }
             }
         },
