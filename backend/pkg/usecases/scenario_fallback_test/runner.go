@@ -30,7 +30,7 @@ func run() error {
 	fmt.Println(strings.Repeat("=", 100))
 
 	// 1. Load JSON file
-	jsonPath, _ := resolvePath("../../../json-request-fallback-test.json")
+	jsonPath, _ := resolvePath("../json-request-fallback-test.json")
 	fmt.Printf("Reading JSON from: %s\n", jsonPath)
 
 	data, err := os.ReadFile(jsonPath)

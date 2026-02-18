@@ -256,7 +256,7 @@ func resolveDiagramJSONPath(filename string) (string, error) {
 	// thisFile = .../backend/pkg/usecases/scenario5_terraform_codegen/terraform_codegen.go
 	// backend root = thisFile/../../../..
 	dir := filepath.Dir(thisFile)
-	root := filepath.Clean(filepath.Join(dir, "..", "..", ".."))
+	root := filepath.Clean(filepath.Join(dir, ".."))
 	jsonPath := filepath.Join(root, filename)
 
 	return jsonPath, nil

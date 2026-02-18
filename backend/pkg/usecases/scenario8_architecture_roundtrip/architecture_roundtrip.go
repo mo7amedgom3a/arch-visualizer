@@ -320,7 +320,7 @@ func resolveDiagramJSONPath(filename string) (string, error) {
 	}
 
 	dir := filepath.Dir(thisFile)
-	root := filepath.Clean(filepath.Join(dir, "..", "..", ".."))
+	root := filepath.Clean(filepath.Join(dir, ".."))
 	jsonPath := filepath.Join(root, filename)
 
 	return jsonPath, nil

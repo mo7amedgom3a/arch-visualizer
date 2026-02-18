@@ -23,11 +23,11 @@ import (
 	tfgen "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	"gorm.io/datatypes"
 	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
+	"gorm.io/datatypes"
 )
 
 // TerraformWithPersistenceRunner demonstrates the end-to-end pipeline from a diagram IR JSON
@@ -503,7 +503,7 @@ func resolveDiagramJSONPath(filename string) (string, error) {
 	// thisFile = .../backend/pkg/usecases/scenario6_terraform_with_persistence/terraform_with_persistence.go
 	// backend root = thisFile/../../../..
 	dir := filepath.Dir(thisFile)
-	root := filepath.Clean(filepath.Join(dir, "..", "..", ".."))
+	root := filepath.Clean(filepath.Join(dir, ".."))
 	jsonPath := filepath.Join(root, filename)
 
 	return jsonPath, nil
