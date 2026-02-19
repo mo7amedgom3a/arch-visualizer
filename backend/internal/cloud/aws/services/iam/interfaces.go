@@ -76,6 +76,7 @@ type AWSIAMService interface {
 
 	// AWS Managed Policy operations
 	ListAWSManagedPolicies(ctx context.Context, scope *string, pathPrefix *string) ([]*awsoutputs.PolicyOutput, error)
+	ListPoliciesBetweenServices(ctx context.Context, sourceService, destinationService string) ([]*awsoutputs.PolicyOutput, error)
 	GetAWSManagedPolicy(ctx context.Context, arn string) (*awsoutputs.PolicyOutput, error)
 
 	// Instance Profile operations

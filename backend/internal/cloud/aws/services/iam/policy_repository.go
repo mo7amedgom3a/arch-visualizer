@@ -204,3 +204,29 @@ func (r *PolicyRepository) Count() int {
 	defer r.mu.RUnlock()
 	return len(r.policies)
 }
+
+// ListPoliciesByService returns policies filtered by source and destination service
+func (r *PolicyRepository) ListPoliciesByService(sourceService, destinationService string) []*awsoutputs.PolicyOutput {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	result := make([]*awsoutputs.PolicyOutput, 0)
+	sourceService = strings.ToLower(sourceService)
+	destinationService = strings.ToLower(destinationService)
+
+	for _, def := range r.policies {
+		// Heuristic 1: Policy name should contain source service (e.g. "Lambda" in "AWSLambdaExecute")
+		if sourceService != "" && !strings.Contains(strings.ToLower(def.Name), sourceService) {
+			continue
+		}
+
+		// Heuristic 2: Policy document should contain destination service (e.g. "s3:" in Action or Resource)
+		if destinationService != "" && !strings.Contains(strings.ToLower(def.PolicyDocument), destinationService) {
+			continue
+		}
+
+		result = append(result, r.toOutput(def))
+	}
+
+	return result
+}

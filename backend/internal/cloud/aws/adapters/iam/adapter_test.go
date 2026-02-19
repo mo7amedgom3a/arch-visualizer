@@ -113,6 +113,11 @@ func (m *mockAWSIAMService) ListPolicies(ctx context.Context, pathPrefix *string
 	return results, nil
 }
 
+func (m *mockAWSIAMService) ListPoliciesBetweenServices(ctx context.Context, sourceService, destinationService string) ([]*awsoutputs.PolicyOutput, error) {
+	// Simple mock implementation that returns nothing or could be customized
+	return []*awsoutputs.PolicyOutput{}, nil
+}
+
 // Role Operations
 
 func (m *mockAWSIAMService) CreateRole(ctx context.Context, role *awsiam.Role) (*awsoutputs.RoleOutput, error) {

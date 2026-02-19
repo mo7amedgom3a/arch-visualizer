@@ -39,3 +39,81 @@ func TestPolicyRepository_LoadPolicies(t *testing.T) {
 		t.Errorf("Expected case insensitive filtering: got %d for EC2, %d for ec2", len(ec2PoliciesUpper), len(ec2Policies))
 	}
 }
+
+func TestListPoliciesByService(t *testing.T) {
+	repo := NewPolicyRepository()
+
+	// Mock policies for testing, bypassing file load
+	repo.policies = []*PolicyDefinition{
+		{
+			ARN:            "arn:aws:iam::aws:policy/AWSLambdaExecute",
+			Name:           "AWSLambdaExecute",
+			PolicyDocument: `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":"*"}]}`,
+		},
+		{
+			ARN:            "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+			Name:           "AmazonS3ReadOnlyAccess",
+			PolicyDocument: `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:Get*","s3:List*"],"Resource":"*"}]}`,
+		},
+		{
+			ARN:            "arn:aws:iam::aws:policy/AdministratorAccess",
+			Name:           "AdministratorAccess",
+			PolicyDocument: `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"*","Resource":"*"}]}`,
+		},
+	}
+
+	tests := []struct {
+		name        string
+		source      string
+		destination string
+		expected    int
+	}{
+		{
+			name:        "Lambda to S3",
+			source:      "Lambda",
+			destination: "s3",
+			expected:    1, // AWSLambdaExecute
+		},
+		{
+			name:        "Any to S3",
+			source:      "",
+			destination: "s3",
+			expected:    2, // AWSLambdaExecute, AmazonS3ReadOnlyAccess
+		},
+		{
+			name:        "Lambda to Any",
+			source:      "Lambda",
+			destination: "",
+			expected:    1, // AWSLambdaExecute
+		},
+		{
+			name:        "No Match",
+			source:      "EC2",
+			destination: "DynamoDB",
+			expected:    0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			results := repo.ListPoliciesByService(tt.source, tt.destination)
+			if len(results) != tt.expected {
+				t.Errorf("ListPoliciesByService(%s, %s) returned %d policies, expected %d", tt.source, tt.destination, len(results), tt.expected)
+			}
+
+			// Additional verification for "Lambda to S3" case
+			if tt.name == "Lambda to S3" && len(results) > 0 {
+				found := false
+				for _, p := range results {
+					if p.Name == "AWSLambdaExecute" {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("Expected to find AWSLambdaExecute in results")
+				}
+			}
+		})
+	}
+}

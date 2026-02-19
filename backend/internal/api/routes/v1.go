@@ -74,6 +74,7 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		iam := v1.Group("/iam")
 		{
 			iam.GET("/policies", iamCtrl.ListPolicies)
+			iam.GET("/policies/between", iamCtrl.ListPoliciesBetweenServices)
 			iam.POST("/users", iamCtrl.CreateUser)
 			iam.POST("/roles", iamCtrl.CreateRole)
 		}

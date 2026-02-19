@@ -127,6 +127,10 @@ func (s *IAMService) ListAWSManagedPolicies(ctx context.Context, scope *string, 
 	return s.policyRepo.ListPolicies(filter), nil
 }
 
+func (s *IAMService) ListPoliciesBetweenServices(ctx context.Context, sourceService, destinationService string) ([]*awsoutputs.PolicyOutput, error) {
+	return s.policyRepo.ListPoliciesByService(sourceService, destinationService), nil
+}
+
 func (s *IAMService) GetAWSManagedPolicy(ctx context.Context, arn string) (*awsoutputs.PolicyOutput, error) {
 	return &awsoutputs.PolicyOutput{
 		ARN:              arn,

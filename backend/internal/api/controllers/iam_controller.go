@@ -46,6 +46,36 @@ func (ctrl *IAMController) ListPolicies(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, policies)
+	c.JSON(http.StatusOK, policies)
+}
+
+// ListPoliciesBetweenServices retrieves policies relevant to source and destination services
+// @Summary      List Policies Between Services
+// @Description  Get a list of policies that allow source service to access destination service
+// @Tags         iam
+// @Produce      json
+// @Param        source       query     string  true  "Source service (e.g. lambda)"
+// @Param        destination  query     string  true  "Destination service (e.g. s3)"
+// @Success      200          {array}   outputs.PolicyOutput
+// @Failure      400          {object}  map[string]interface{}
+// @Failure      500          {object}  map[string]interface{}
+// @Router       /iam/policies/between [get]
+func (ctrl *IAMController) ListPoliciesBetweenServices(c *gin.Context) {
+	source := c.Query("source")
+	destination := c.Query("destination")
+
+	if source == "" || destination == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Both source and destination query parameters are required"})
+		return
+	}
+
+	policies, err := ctrl.iamService.ListPoliciesBetweenServices(c.Request.Context(), source, destination)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list policies: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, policies)
 }
 
 // CreateUser creates a new IAM user (supports virtual)
