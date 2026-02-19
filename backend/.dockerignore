@@ -1,0 +1,98 @@
+# =============================================================================
+# .dockerignore — Exclude files/folders from Docker build context
+# =============================================================================
+
+# --------------- Version Control ---------------
+.git
+.gitignore
+.gitattributes
+.github
+
+# --------------- Go Build Artifacts ---------------
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/vendor/          # if using Go modules (not vendor mode)
+
+# --------------- IDE / Editor ---------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# --------------- Docker Files ---------------
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# --------------- CI / CD ---------------
+.github/
+.circleci/
+.travis.yml
+Jenkinsfile
+
+# --------------- Documentation ---------------
+README.md
+*README*
+
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+
+*.md
+
+# --------------- Test Files ---------------
+**/*_test.go
+testdata/
+coverage.out
+coverage.html
+*.cover
+
+# --------------- Logs & Temp ---------------
+*.log
+tmp/
+temp/
+.tmp/
+
+# --------------- Environment Files ---------------
+.env
+.env.*
+*.env
+!.env.example     # allow example env file if needed
+
+# --------------- Build/Output Directories ---------------
+bin/
+dist/
+out/
+build/
+
+# --------------- Kubernetes / Terraform / Infra ---------------
+k8s/
+terraform/
+helm/
+*.tf
+*.tfstate
+*.tfvars
+
+# --------------- Scripts (if not needed at runtime) ---------------
+scripts/
+
+terraform_output/
+migrations/
+log/
+import_pricing/
+run_migration/
+runner/
+seed/
+usecases/
+pkg/terraform/
+pkg/aws/
+*.png 
+
+

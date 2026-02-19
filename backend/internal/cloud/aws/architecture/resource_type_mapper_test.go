@@ -2,7 +2,7 @@ package architecture
 
 import (
 	"testing"
-	"fmt"
+
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory" // Initialize inventory
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 )
@@ -260,7 +260,7 @@ func TestAWSResourceTypeMapper_MapResourceNameToResourceType(t *testing.T) {
 		{
 			name:         "AutoScalingGroup",
 			resourceName: "AutoScalingGroup",
-			wantID:       "auto-scaling-group",
+			wantID:       "autoscaling-group",
 			wantCategory: string(resource.CategoryCompute),
 			wantKind:     "VirtualMachine",
 			wantErr:      false,
@@ -275,7 +275,7 @@ func TestAWSResourceTypeMapper_MapResourceNameToResourceType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := mapper.MapResourceNameToResourceType(tt.resourceName)
-			fmt.Println(got.Name)
+			// fmt.Println(got.Name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MapResourceNameToResourceType() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -1,0 +1,120 @@
+name: Go Tests
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  CONTAINER_NAME: mock-api
+  APP_PORT: 8080
+
+jobs:
+  test:
+    name: Run Go Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24'
+
+    - name: Run Tests
+      working-directory: ./backend
+      run: go test ./... -v -race -coverprofile=coverage.out
+
+  health-check:
+    name: Container Health Check
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build image locally for testing (no push needed here)
+      - name: Build image locally
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          load: true              # load into local Docker daemon
+          tags: ${{ env.CONTAINER_NAME }}:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Run the container in detached mode
+      - name: Run container
+        run: |
+          docker run -d \
+            --name ${{ env.CONTAINER_NAME }} \
+            -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} \
+            --restart=no \
+            ${{ env.CONTAINER_NAME }}:ci
+
+      # Wait for Docker's own HEALTHCHECK to pass
+      - name: Wait for container to be healthy
+        run: |
+          echo "Waiting for container health status..."
+          MAX_WAIT=60
+          ELAPSED=0
+          INTERVAL=5
+
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' ${{ env.CONTAINER_NAME }} 2>/dev/null || echo "unknown")
+            echo "  [${ELAPSED}s] Health status: $STATUS"
+
+            if [ "$STATUS" = "healthy" ]; then
+              echo "✅ Container is healthy!"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "unhealthy" ]; then
+              echo "❌ Container is unhealthy!"
+              docker logs ${{ env.CONTAINER_NAME }}
+              exit 1
+            fi
+
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+
+          echo "❌ Timed out waiting for container to become healthy"
+          docker logs ${{ env.CONTAINER_NAME }}
+          exit 1
+
+      # HTTP-level smoke test (if your app exposes a /health endpoint)
+      - name: HTTP health endpoint smoke test
+        run: |
+          echo "Testing HTTP /health endpoint..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            --retry 5 --retry-delay 3 --retry-connrefused \
+            http://localhost:${{ env.APP_PORT }}/health)
+
+          echo "HTTP status code: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ HTTP health check passed!"
+          else
+            echo "❌ HTTP health check failed with status: $HTTP_CODE"
+            docker logs ${{ env.CONTAINER_NAME }}
+            exit 1
+          fi
+
+      # Always print container logs (useful for debugging)
+      - name: Print container logs
+        if: always()
+        run: docker logs ${{ env.CONTAINER_NAME }} || true
+
+      # Cleanup
+      - name: Stop and remove container
+        if: always()
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }} || true
+          docker rm ${{ env.CONTAINER_NAME }} || true
