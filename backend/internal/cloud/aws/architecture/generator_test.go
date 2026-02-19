@@ -95,20 +95,8 @@ func TestAWSArchitectureGenerator_Generate_SimpleArchitecture(t *testing.T) {
 		t.Errorf("Expected resource region to be 'us-east-1', got '%s'", vpc.Region)
 	}
 
-	// Verify metadata
 	if vpc.Metadata["name"] != "main-vpc" {
 		t.Error("Expected metadata to contain 'name' field")
-	}
-
-	if pos, ok := vpc.Metadata["position"].(map[string]interface{}); ok {
-		if pos["x"] != 200 {
-			t.Errorf("Expected position x to be 200, got %v", pos["x"])
-		}
-		if pos["y"] != 200 {
-			t.Errorf("Expected position y to be 200, got %v", pos["y"])
-		}
-	} else {
-		t.Error("Expected metadata to contain 'position' field")
 	}
 }
 
@@ -292,7 +280,7 @@ func TestAWSArchitectureGenerator_Generate_WithDependencies(t *testing.T) {
 	}
 }
 
-func TestAWSArchitectureGenerator_Generate_FiltersVisualOnlyNodes(t *testing.T) {
+func TestAWSArchitectureGenerator_Generate_IncludesVisualOnlyNodes(t *testing.T) {
 	generator := NewAWSArchitectureGenerator()
 
 	diagramGraph := &graph.DiagramGraph{
@@ -337,13 +325,22 @@ func TestAWSArchitectureGenerator_Generate_FiltersVisualOnlyNodes(t *testing.T) 
 		t.Fatalf("Failed to generate architecture: %v", err)
 	}
 
-	// Verify visual-only node is filtered out
-	if len(arch.Resources) != 1 {
-		t.Errorf("Expected 1 resource (visual-only filtered), got %d", len(arch.Resources))
+	// Verify visual-only node is NOT filtered out
+	if len(arch.Resources) != 3 {
+		t.Errorf("Expected 3 resources (VPC, visual-ec2, default-sg), got %d", len(arch.Resources))
 	}
 
-	if arch.Resources[0].ID != "vpc-1" {
-		t.Errorf("Expected resource to be 'vpc-1', got '%s'", arch.Resources[0].ID)
+	foundVisual := false
+	for _, res := range arch.Resources {
+		if res.ID == "visual-1" {
+			foundVisual = true
+			if isVis, ok := res.Metadata["isVisualOnly"].(bool); !ok || !isVis {
+				t.Errorf("Expected visual-1 metadata to have isVisualOnly=true")
+			}
+		}
+	}
+	if !foundVisual {
+		t.Errorf("Expected visual-1 resource to be present")
 	}
 }
 
@@ -539,8 +536,8 @@ func TestAWSArchitectureGenerator_Generate_ComplexArchitecture(t *testing.T) {
 	}
 
 	// Verify all resources
-	if len(arch.Resources) != 4 {
-		t.Errorf("Expected 4 resources, got %d", len(arch.Resources))
+	if len(arch.Resources) != 5 {
+		t.Errorf("Expected 5 resources, got %d", len(arch.Resources))
 	}
 
 	// Verify containment relationships

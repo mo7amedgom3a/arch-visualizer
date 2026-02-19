@@ -322,7 +322,7 @@ func convertDBNameToIRType(dbName string) string {
 		"EBS":              "ebs",
 		"RDS":              "rds",
 		"VPC":              "vpc",
-		"AutoScalingGroup": "autoscaling-group",
+		"AutoScalingGroup": "auto-scaling-group",
 	}
 	if mapped, ok := specialCases[dbName]; ok {
 		return mapped

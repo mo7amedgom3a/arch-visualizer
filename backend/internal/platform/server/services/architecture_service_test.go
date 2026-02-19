@@ -9,6 +9,8 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+
+	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture"
 )
 
 // mockRuleService is a mock implementation of RuleService
@@ -143,9 +145,8 @@ func TestArchitectureService_ValidateRules(t *testing.T) {
 			service := NewArchitectureService(tt.ruleService, slog.Default())
 
 			// Create a minimal architecture for testing
-			// Note: This is a simplified test - in a real scenario, you'd create a full architecture
-			// For now, we'll test with nil to check error handling
-			_, err := service.ValidateRules(ctx, nil, resource.AWS)
+			arch := &architecture.Architecture{}
+			_, err := service.ValidateRules(ctx, arch, resource.AWS)
 			if tt.wantError {
 				if err == nil {
 					t.Errorf("expected error but got none")

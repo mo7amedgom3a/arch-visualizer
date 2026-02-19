@@ -307,7 +307,8 @@ func TestMapECSCapacityProvider(t *testing.T) {
 
 			// Check managed scaling block
 			if tt.input.AutoScalingGroupProvider != nil && tt.input.AutoScalingGroupProvider.ManagedScaling != nil {
-				assert.Contains(t, got.NestedBlocks, "managed_scaling")
+				asgBlock := got.NestedBlocks["auto_scaling_group_provider"][0]
+				assert.Contains(t, asgBlock.NestedBlocks, "managed_scaling")
 			}
 		})
 	}

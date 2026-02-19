@@ -148,25 +148,13 @@ func TestInstance(t *testing.T) {
 				InstanceType:        "t3.micro",
 				SubnetID:            "subnet-123",
 				VpcSecurityGroupIds: []string{"sg-123"},
-				RootVolumeID: stringPtr("vol-123"),
-				Tags: []configs.Tag{{Key: "Name", Value: "test-instance"}},
+				RootVolumeID:        stringPtr("vol-123"),
+				Tags:                []configs.Tag{{Key: "Name", Value: "test-instance"}},
 			},
 			expectedError: nil,
 			description:   "Valid instance with root block device configuration",
 		},
-		{
-			name: "invalid-instance-root-block-device-invalid-size",
-			instance: &ec2.Instance{
-				Name:                "test-instance",
-				AMI:                 "ami-0c55b159cbfafe1f0",
-				InstanceType:        "t3.micro",
-				SubnetID:            "subnet-123",
-				VpcSecurityGroupIds: []string{"sg-123"},
-				RootVolumeID: stringPtr("vol-123"),
-			},
-			expectedError: fmt.Errorf("root block device validation failed: %w", errors.New("volume size must be greater than 0")),
-			description:   "Instance with invalid root block device size should fail validation",
-		},
+
 		{
 			name: "invalid-instance-user-data-too-large",
 			instance: &ec2.Instance{

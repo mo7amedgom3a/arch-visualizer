@@ -11,7 +11,7 @@ func TestParseIRDiagram(t *testing.T) {
 	jsonData, err := os.ReadFile("../../../json-request-diagram-valid.json")
 	if err != nil {
 		// Fallback to original file
-		jsonData, err = os.ReadFile("../../../json-request-diagram.json")
+		jsonData, err = os.ReadFile("../../../pkg/usecases/json-request-diagram-valid.json")
 		if err != nil {
 			t.Fatalf("Failed to read test JSON file: %v", err)
 		}
@@ -48,7 +48,7 @@ func TestNormalizeToGraph(t *testing.T) {
 	jsonData, err := os.ReadFile("../../../json-request-diagram-valid.json")
 	if err != nil {
 		// Fallback to original file
-		jsonData, err = os.ReadFile("../../../json-request-diagram.json")
+		jsonData, err = os.ReadFile("../../../pkg/usecases/json-request-diagram-valid.json")
 		if err != nil {
 			t.Fatalf("Failed to read test JSON file: %v", err)
 		}
@@ -100,7 +100,7 @@ func TestParseAndNormalize(t *testing.T) {
 	jsonData, err := os.ReadFile("../../../json-request-diagram-valid.json")
 	if err != nil {
 		// Fallback to original file
-		jsonData, err = os.ReadFile("../../../json-request-diagram.json")
+		jsonData, err = os.ReadFile("../../../pkg/usecases/json-request-diagram-valid.json")
 		if err != nil {
 			t.Fatalf("Failed to read test JSON file: %v", err)
 		}

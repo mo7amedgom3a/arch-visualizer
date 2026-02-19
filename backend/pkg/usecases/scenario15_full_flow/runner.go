@@ -20,11 +20,11 @@ import (
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/iam"
 
-	"gorm.io/gorm"
 	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
+	"gorm.io/gorm"
 )
 
 // -- Adapters to fix interface mismatches --
@@ -297,7 +297,7 @@ func run() error {
 	if err := db.Where("name = ?", "edge-lambda-1-s3-3").First(&edgeResource).Error; err != nil {
 		return fmt.Errorf("failed to find edge resource in DB: %w", err)
 	}
-	fmt.Printf("✓ Found Edge Resource in DB: %s (Type: %s)\n", edgeResource.Name, edgeResource.ResourceTypeID)
+	fmt.Printf("✓ Found Edge Resource in DB: %s (Type: %d)\n", edgeResource.Name, edgeResource.ResourceTypeID)
 
 	// 9. Generate Code
 	genReq := &serverinterfaces.GenerateCodeRequest{

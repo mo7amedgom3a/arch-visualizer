@@ -2,17 +2,17 @@ package validator
 
 import (
 	"encoding/json"
-	"os"
 	"fmt"
-	"testing"
+	"os"
 	"strings"
+	"testing"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 )
 
 func TestInvalidDiagramFixtureReturnsMultipleErrors(t *testing.T) {
 	// Read invalid fixture
-	data, err := os.ReadFile("../../../json-request-diagram-invalid.json")
+	data, err := os.ReadFile("../../../pkg/usecases/json-request-diagram-invalid.json")
 	if err != nil {
 		t.Fatalf("failed to read invalid fixture: %v", err)
 	}
