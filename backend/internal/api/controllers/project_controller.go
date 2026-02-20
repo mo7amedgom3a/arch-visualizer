@@ -2,15 +2,18 @@ package controllers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto/request"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/api/dto/response"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 )
+
+// Ensure dto is imported for swag annotations
+var _ dto.ArchitectureResponse
 
 // ProjectController handles project-related requests
 type ProjectController struct {
@@ -19,10 +22,10 @@ type ProjectController struct {
 
 // NewProjectController creates a new ProjectController
 func NewProjectController(projectService serverinterfaces.ProjectService) *ProjectController {
-	return &ProjectController{
-		projectService: projectService,
-	}
+	return &ProjectController{projectService: projectService}
 }
+
+// ── Project CRUD (non-versioned) ──────────────────────────────────────────────
 
 // CreateProject creates a new project
 // @Summary      Create a new project
@@ -42,55 +45,33 @@ func (ctrl *ProjectController) CreateProject(c *gin.Context) {
 		return
 	}
 
-	// TODO: Get user ID from context (from auth middleware)
-	// For now, we'll use user_id from request or generate dummy
-	var userID uuid.UUID
-	var err error
-	if req.UserID != "" {
-		userID, err = uuid.Parse(req.UserID)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id"})
-			return
-		}
-	} else {
-		// Fallback to dummy which will likely fail FK constraint unless user exists
-		// But in unit tests we might allow it. In integration, we need valid user.
-		// Let's create a specific placeholder logic or error
+	if req.UserID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
 		return
 	}
+	userID, err := uuid.Parse(req.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id"})
+		return
+	}
 
-	svcReq := &serverinterfaces.CreateProjectRequest{
+	project, err := ctrl.projectService.Create(c.Request.Context(), &serverinterfaces.CreateProjectRequest{
 		Name:          req.Name,
 		UserID:        userID,
 		IACTargetID:   req.IACToolID,
 		CloudProvider: req.CloudProvider,
 		Region:        req.Region,
-	}
-
-	project, err := ctrl.projectService.Create(c.Request.Context(), svcReq)
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create project: " + err.Error()})
 		return
 	}
-
-	resp := response.ProjectResponse{
-		ID:            project.ID.String(),
-		Name:          project.Name,
-		CloudProvider: project.CloudProvider,
-		Region:        project.Region,
-		IACToolID:     project.InfraToolID,
-		UserID:        project.UserID.String(),
-		CreatedAt:     project.CreatedAt,
-		UpdatedAt:     project.UpdatedAt,
-	}
-
-	c.JSON(http.StatusCreated, resp)
+	c.JSON(http.StatusCreated, projectToResponse(project))
 }
 
 // GetProject retrieves a project by ID
 // @Summary      Get a project
-// @Description  Get a project by its ID
+// @Description  Get a project snapshot by its ID
 // @Tags         projects
 // @Produce      json
 // @Param        id   path      string  true  "Project ID"
@@ -100,16 +81,12 @@ func (ctrl *ProjectController) CreateProject(c *gin.Context) {
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /projects/{id} [get]
 func (ctrl *ProjectController) GetProject(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
-
 	project, err := ctrl.projectService.GetByID(c.Request.Context(), id)
 	if err != nil {
-		// Differentiate between not found and internal error if possible
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch project: " + err.Error()})
 		return
 	}
@@ -117,24 +94,12 @@ func (ctrl *ProjectController) GetProject(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
 	}
-
-	resp := response.ProjectResponse{
-		ID:            project.ID.String(),
-		Name:          project.Name,
-		CloudProvider: project.CloudProvider,
-		Region:        project.Region,
-		IACToolID:     project.InfraToolID,
-		UserID:        project.UserID.String(),
-		CreatedAt:     project.CreatedAt,
-		UpdatedAt:     project.UpdatedAt,
-	}
-
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, projectToResponse(project))
 }
 
-// UpdateProject updates an existing project
-// @Summary      Update a project
-// @Description  Update an existing project's details
+// UpdateProject performs an in-place metadata update (no new snapshot).
+// @Summary      Update project metadata
+// @Description  In-place update of project metadata (name, description, cloud_provider, region, iac_tool_id). Does NOT create a new version.
 // @Tags         projects
 // @Accept       json
 // @Produce      json
@@ -146,10 +111,8 @@ func (ctrl *ProjectController) GetProject(c *gin.Context) {
 // @Failure      500      {object}  map[string]interface{}
 // @Router       /projects/{id} [put]
 func (ctrl *ProjectController) UpdateProject(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
 
@@ -159,18 +122,12 @@ func (ctrl *ProjectController) UpdateProject(c *gin.Context) {
 		return
 	}
 
-	// Fetch existing project first
 	project, err := ctrl.projectService.GetByID(c.Request.Context(), id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch project"})
-		return
-	}
-	if project == nil {
+	if err != nil || project == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Project not found"})
 		return
 	}
 
-	// Update fields
 	if req.Name != "" {
 		project.Name = req.Name
 	}
@@ -184,48 +141,32 @@ func (ctrl *ProjectController) UpdateProject(c *gin.Context) {
 		project.InfraToolID = req.IACToolID
 	}
 
-	if err := ctrl.projectService.Update(c.Request.Context(), project); err != nil {
+	updated, err := ctrl.projectService.UpdateMetadata(c.Request.Context(), project)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update project: " + err.Error()})
 		return
 	}
-
-	resp := response.ProjectResponse{
-		ID:            project.ID.String(),
-		Name:          project.Name,
-		CloudProvider: project.CloudProvider,
-		Region:        project.Region,
-		IACToolID:     project.InfraToolID,
-		UserID:        project.UserID.String(),
-		CreatedAt:     project.CreatedAt,
-		UpdatedAt:     project.UpdatedAt,
-	}
-
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, projectToResponse(updated))
 }
 
 // DeleteProject deletes a project
 // @Summary      Delete a project
 // @Description  Delete a project by its ID
 // @Tags         projects
-// @Produces     json
 // @Param        id   path      string  true  "Project ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /projects/{id} [delete]
 func (ctrl *ProjectController) DeleteProject(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
-
 	if err := ctrl.projectService.Delete(c.Request.Context(), id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete project: " + err.Error()})
 		return
 	}
-
 	c.Status(http.StatusNoContent)
 }
 
@@ -245,7 +186,6 @@ func (ctrl *ProjectController) DeleteProject(c *gin.Context) {
 // @Failure      500      {object}  map[string]interface{}
 // @Router       /projects [get]
 func (ctrl *ProjectController) ListProjects(c *gin.Context) {
-	// Parse query params
 	var query struct {
 		Page   int    `form:"page,default=1"`
 		Limit  int    `form:"limit,default=20"`
@@ -254,25 +194,20 @@ func (ctrl *ProjectController) ListProjects(c *gin.Context) {
 		Search string `form:"search"`
 		UserID string `form:"user_id"`
 	}
-
 	if err := c.ShouldBindQuery(&query); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid query parameters"})
 		return
 	}
 
 	var userID uuid.UUID
-	var err error
 	if query.UserID != "" {
-		userID, err = uuid.Parse(query.UserID)
+		parsed, err := uuid.Parse(query.UserID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user_id filter"})
 			return
 		}
+		userID = parsed
 	}
-
-	// TODO: Get authenticated user ID from context if not admin, to enforce RLS-like logic
-	// For now we trust the query or return all if nil (depending on service logic)
-	// Service List handles nil userID by returning all (or user-scoped if enforced there)
 
 	projects, total, err := ctrl.projectService.List(c.Request.Context(), userID, query.Page, query.Limit, query.Sort, query.Order, query.Search)
 	if err != nil {
@@ -280,88 +215,48 @@ func (ctrl *ProjectController) ListProjects(c *gin.Context) {
 		return
 	}
 
-	projectResps := make([]response.ProjectResponse, len(projects))
-	for i, project := range projects {
-		projectResps[i] = response.ProjectResponse{
-			ID:            project.ID.String(),
-			Name:          project.Name,
-			CloudProvider: project.CloudProvider,
-			Region:        project.Region,
-			IACToolID:     project.InfraToolID,
-			UserID:        project.UserID.String(),
-			CreatedAt:     project.CreatedAt,
-			UpdatedAt:     project.UpdatedAt,
-			// TODO: Add new response fields if needed in DTO
-		}
+	resps := make([]response.ProjectResponse, len(projects))
+	for i, p := range projects {
+		resps[i] = projectToResponse(p)
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"projects": projectResps,
-		"total":    total,
-		"page":     query.Page,
-		"limit":    query.Limit,
-	})
+	c.JSON(http.StatusOK, gin.H{"projects": resps, "total": total, "page": query.Page, "limit": query.Limit})
 }
 
-// ListUserProjects (Deprecated/Alias to ListProjects with user_id)
+// ListUserProjects – alias for /users/:id/projects
 func (ctrl *ProjectController) ListUserProjects(c *gin.Context) {
-	userIDStr := c.Param("id")
-	// logical redirect to ListProjects with query param?
-	// For now, implement finding by calling List
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+	userID, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
-	// Defaults
-	page := 1
-	limit := 100 // Legacy behavior might expect all?
-	projects, total, err := ctrl.projectService.List(c.Request.Context(), userID, page, limit, "", "", "")
+	projects, total, err := ctrl.projectService.List(c.Request.Context(), userID, 1, 100, "", "", "")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list projects: " + err.Error()})
 		return
 	}
-
-	// Legacy response format
-	projectResps := make([]response.ProjectResponse, len(projects))
-	for i, project := range projects {
-		projectResps[i] = response.ProjectResponse{
-			ID:            project.ID.String(),
-			Name:          project.Name,
-			CloudProvider: project.CloudProvider,
-			Region:        project.Region,
-			IACToolID:     project.InfraToolID,
-			UserID:        project.UserID.String(),
-			CreatedAt:     project.CreatedAt,
-			UpdatedAt:     project.UpdatedAt,
-		}
+	resps := make([]response.ProjectResponse, len(projects))
+	for i, p := range projects {
+		resps[i] = projectToResponse(p)
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"projects": projectResps,
-		"count":    total,
-	})
+	c.JSON(http.StatusOK, gin.H{"projects": resps, "count": total})
 }
 
 // DuplicateProject duplicates a project
 // @Summary      Duplicate a project
-// @Description  Create a copy of an existing project and its architecture
+// @Description  Create an independent copy of an existing project and its architecture (new root, version 1)
 // @Tags         projects
 // @Accept       json
 // @Produce      json
-// @Param        id    path      string  true  "Project ID"
-// @Param        body  body      map[string]string  true  "Duplicate Request (requires 'name')"
+// @Param        id    path      string              true  "Project ID"
+// @Param        body  body      map[string]string   true  "Requires 'name'"
 // @Success      201   {object}  map[string]interface{}
 // @Failure      400   {object}  map[string]interface{}
 // @Failure      500   {object}  map[string]interface{}
 // @Router       /projects/{id}/duplicate [post]
 func (ctrl *ProjectController) DuplicateProject(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
-
 	var req struct {
 		Name string `json:"name" binding:"required"`
 	}
@@ -369,96 +264,24 @@ func (ctrl *ProjectController) DuplicateProject(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	project, err := ctrl.projectService.Duplicate(c.Request.Context(), id, req.Name)
+	project, version, err := ctrl.projectService.Duplicate(c.Request.Context(), id, req.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to duplicate project: " + err.Error()})
 		return
 	}
-
-	// Return simplified response or full response
 	c.JSON(http.StatusCreated, gin.H{
-		"id":      project.ID.String(),
-		"name":    project.Name,
-		"message": "Project duplicated successfully",
+		"id":         project.ID.String(),
+		"version_id": version.ID.String(),
+		"name":       project.Name,
+		"message":    "Project duplicated successfully",
 	})
 }
 
-// GetProjectVersions retrieves version history
-// @Summary      Get project versions
-// @Description  Retrieve the history of versions for a project
-// @Tags         projects
-// @Produce      json
-// @Param        id   path      string  true  "Project ID"
-// @Success      200  {object}  map[string]interface{}
-// @Failure      400  {object}  map[string]interface{}
-// @Failure      500  {object}  map[string]interface{}
-// @Router       /projects/{id}/versions [get]
-func (ctrl *ProjectController) GetProjectVersions(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	}
+// ── Architecture (read-only) ──────────────────────────────────────────────────
 
-	versions, err := ctrl.projectService.GetVersions(c.Request.Context(), id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch versions: " + err.Error()})
-		return
-	}
-
-	// Map to response DTOs if needed, or return directly
-	c.JSON(http.StatusOK, gin.H{
-		"versions": versions,
-	})
-}
-
-// RestoreProjectVersion restores a version
-// @Summary      Restore project version
-// @Description  Restore a project to a specific version
-// @Tags         projects
-// @Accept       json
-// @Produce      json
-// @Param        id    path      string  true  "Project ID"
-// @Param        body  body      map[string]string  true  "Restore Request (requires 'versionId')"
-// @Success      200   {object}  map[string]interface{}
-// @Failure      400   {object}  map[string]interface{}
-// @Failure      500   {object}  map[string]interface{}
-// @Router       /projects/{id}/restore [post]
-func (ctrl *ProjectController) RestoreProjectVersion(c *gin.Context) {
-	// It's a POST /projects/:id/restore with body? Or /projects/:id/restore/:versionId?
-	// Spec says: POST /projects/:id/restore Body: { "versionId": "..." }
-
-	var req struct {
-		VersionID string `json:"versionId" binding:"required"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	versionID, err := uuid.Parse(req.VersionID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid version ID"})
-		return
-	}
-
-	project, err := ctrl.projectService.RestoreVersion(c.Request.Context(), versionID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to restore version: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":    "Project restored successfully",
-		"project_id": project.ID.String(),
-	})
-}
-
-// GetArchitecture retrieves architecture
+// GetArchitecture retrieves a project's latest architecture (read-only).
 // @Summary      Get architecture
-// @Description  Get full architecture for a project
+// @Description  Get the full architecture for a project snapshot. For a specific historical state, use GET /projects/{id}/versions/{version_id}.
 // @Tags         projects
 // @Produce      json
 // @Param        id   path      string  true  "Project ID"
@@ -467,158 +290,205 @@ func (ctrl *ProjectController) RestoreProjectVersion(c *gin.Context) {
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /projects/{id}/architecture [get]
 func (ctrl *ProjectController) GetArchitecture(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
-
 	arch, err := ctrl.projectService.GetArchitecture(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get architecture: " + err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, arch)
 }
 
-// UpdateArchitecture updates full architecture
-// @Summary      Update architecture
-// @Description  Save/update full architecture
-// @Tags         projects
+// ── Version CRUD ──────────────────────────────────────────────────────────────
+
+// CreateVersion creates a new immutable architecture snapshot (version).
+// @Summary      Create new version
+// @Description  Save a full architecture state as a new immutable snapshot. Returns the version metadata including the new project_id that encodes this snapshot.
+// @Tags         versioning
 // @Accept       json
 // @Produce      json
-// @Param        id    path      string                         true  "Project ID"
-// @Param        body  body      dto.UpdateArchitectureRequest  true  "Architecture Data"
-// @Success      200  {object}  dto.ArchitectureResponse
-// @Failure      400  {object}  map[string]interface{}
-// @Failure      500  {object}  map[string]interface{}
-// @Router       /projects/{id}/architecture [put]
-func (ctrl *ProjectController) UpdateArchitecture(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+// @Param        id    path      string                              true  "Project ID (any version in the lineage)"
+// @Param        body  body      serverinterfaces.CreateVersionRequest  true  "Architecture state and optional message"
+// @Success      201   {object}  serverinterfaces.ProjectVersionDetail
+// @Failure      400   {object}  map[string]interface{}
+// @Failure      404   {object}  map[string]interface{}
+// @Failure      500   {object}  map[string]interface{}
+// @Router       /projects/{id}/versions [post]
+func (ctrl *ProjectController) CreateVersion(c *gin.Context) {
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
-
-	var req dto.UpdateArchitectureRequest
+	var req serverinterfaces.CreateVersionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	arch, err := ctrl.projectService.SaveArchitecture(c.Request.Context(), id, &req)
+	detail, err := ctrl.projectService.CreateVersion(c.Request.Context(), id, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save architecture: " + err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create version: " + err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"architecture": arch,
-		"savedAt":      time.Now().UTC(),
-	})
+	c.JSON(http.StatusCreated, detail)
 }
 
-// UpdateArchitectureNode updates a single node
-// @Summary      Update architecture node
-// @Description  Update a specific node in architecture
-// @Tags         projects
-// @Accept       json
+// ListVersions lists all versions in a project's lineage.
+// @Summary      List versions
+// @Description  Returns the full ordered version chain. Any project_id in the lineage may be used.
+// @Tags         versioning
 // @Produce      json
-// @Param        id      path      string                 true  "Project ID"
-// @Param        nodeId  path      string                 true  "Node ID"
-// @Param        body    body      dto.UpdateNodeRequest  true  "Node Data"
-// @Success      200     {object}  dto.ArchitectureNode
-// @Failure      400     {object}  map[string]interface{}
-// @Failure      500     {object}  map[string]interface{}
-// @Router       /projects/{id}/architecture/nodes/{nodeId} [patch]
-func (ctrl *ProjectController) UpdateArchitectureNode(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	}
-
-	nodeID := c.Param("nodeId")
-	if nodeID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Node ID required"})
-		return
-	}
-
-	var req dto.UpdateNodeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	node, err := ctrl.projectService.UpdateNode(c.Request.Context(), id, nodeID, &req)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update node: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"node": node})
-}
-
-// DeleteArchitectureNode deletes a node
-// @Summary      Delete architecture node
-// @Description  Delete a specific node
-// @Tags         projects
-// @Produce      json
-// @Param        id      path      string  true  "Project ID"
-// @Param        nodeId  path      string  true  "Node ID"
-// @Success      200     {object}  map[string]interface{}
-// @Failure      400     {object}  map[string]interface{}
-// @Failure      500     {object}  map[string]interface{}
-// @Router       /projects/{id}/architecture/nodes/{nodeId} [delete]
-func (ctrl *ProjectController) DeleteArchitectureNode(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
-		return
-	}
-
-	nodeID := c.Param("nodeId")
-	if nodeID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Node ID required"})
-		return
-	}
-
-	if err := ctrl.projectService.DeleteNode(c.Request.Context(), id, nodeID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete node: " + err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Node deleted"})
-}
-
-// ValidateArchitecture validates architecture
-// @Summary      Validate architecture
-// @Description  Validate project architecture
-// @Tags         projects
-// @Produce      json
-// @Param        id   path      string  true  "Project ID"
-// @Success      200  {object}  dto.ValidationResponse
+// @Param        id   path      string  true  "Project ID (any version in the lineage)"
+// @Success      200  {array}   serverinterfaces.ProjectVersionSummary
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      500  {object}  map[string]interface{}
-// @Router       /projects/{id}/architecture/validate [post]
-func (ctrl *ProjectController) ValidateArchitecture(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+// @Router       /projects/{id}/versions [get]
+func (ctrl *ProjectController) ListVersions(c *gin.Context) {
+	id, ok := parseID(c, "id")
+	if !ok {
 		return
 	}
+	versions, err := ctrl.projectService.GetVersions(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch versions: " + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, versions)
+}
 
-	res, err := ctrl.projectService.ValidateArchitecture(c.Request.Context(), id)
+// GetLatestVersion returns the most recent version with full state.
+// @Summary      Get latest version
+// @Description  Returns the latest version in the chain including full architecture state.
+// @Tags         versioning
+// @Produce      json
+// @Param        id   path      string  true  "Project ID (any version in the lineage)"
+// @Success      200  {object}  serverinterfaces.ProjectVersionDetail
+// @Failure      400  {object}  map[string]interface{}
+// @Failure      404  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /projects/{id}/versions/latest [get]
+func (ctrl *ProjectController) GetLatestVersion(c *gin.Context) {
+	id, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	detail, err := ctrl.projectService.GetLatestVersion(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get latest version: " + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, detail)
+}
+
+// GetVersionDetail returns a specific version with its full architecture state.
+// @Summary      Get specific version
+// @Description  Returns a specific version entry including its full architecture snapshot.
+// @Tags         versioning
+// @Produce      json
+// @Param        id          path      string  true  "Project ID"
+// @Param        version_id  path      string  true  "Version ID"
+// @Success      200         {object}  serverinterfaces.ProjectVersionDetail
+// @Failure      400         {object}  map[string]interface{}
+// @Failure      404         {object}  map[string]interface{}
+// @Failure      500         {object}  map[string]interface{}
+// @Router       /projects/{id}/versions/{version_id} [get]
+func (ctrl *ProjectController) GetVersionDetail(c *gin.Context) {
+	id, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	versionID, ok := parseID(c, "version_id")
+	if !ok {
+		return
+	}
+	detail, err := ctrl.projectService.GetVersionByID(c.Request.Context(), id, versionID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get version: " + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, detail)
+}
+
+// DeleteVersion removes a version entry (does not delete the snapshot itself).
+// @Summary      Delete version
+// @Description  Removes a version entry from the chain. The underlying project snapshot is preserved.
+// @Tags         versioning
+// @Param        id          path      string  true  "Project ID"
+// @Param        version_id  path      string  true  "Version ID"
+// @Success      204         {object}  nil
+// @Failure      400         {object}  map[string]interface{}
+// @Failure      404         {object}  map[string]interface{}
+// @Failure      500         {object}  map[string]interface{}
+// @Router       /projects/{id}/versions/{version_id} [delete]
+func (ctrl *ProjectController) DeleteVersion(c *gin.Context) {
+	id, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	versionID, ok := parseID(c, "version_id")
+	if !ok {
+		return
+	}
+	if err := ctrl.projectService.DeleteVersion(c.Request.Context(), id, versionID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete version: " + err.Error()})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+// ── Version-scoped utility actions ────────────────────────────────────────────
+
+// ValidateVersion validates the architecture of a specific version.
+// @Summary      Validate version architecture
+// @Description  Validates the architecture state captured in the specified version.
+// @Tags         versioning
+// @Produce      json
+// @Param        id          path      string  true  "Project ID"
+// @Param        version_id  path      string  true  "Version ID"
+// @Success      200         {object}  dto.ValidationResponse
+// @Failure      400         {object}  map[string]interface{}
+// @Failure      404         {object}  map[string]interface{}
+// @Failure      500         {object}  map[string]interface{}
+// @Router       /projects/{id}/versions/{version_id}/validate [post]
+func (ctrl *ProjectController) ValidateVersion(c *gin.Context) {
+	_, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	versionID, ok := parseID(c, "version_id")
+	if !ok {
+		return
+	}
+	res, err := ctrl.projectService.ValidateVersionArchitecture(c.Request.Context(), versionID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate: " + err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, res)
+}
+
+// ── helper ────────────────────────────────────────────────────────────────────
+
+func parseID(c *gin.Context, param string) (uuid.UUID, bool) {
+	id, err := uuid.Parse(c.Param(param))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid " + param})
+		return uuid.Nil, false
+	}
+	return id, true
+}
+
+func projectToResponse(p *models.Project) response.ProjectResponse {
+	return response.ProjectResponse{
+		ID:            p.ID.String(),
+		Name:          p.Name,
+		CloudProvider: p.CloudProvider,
+		Region:        p.Region,
+		IACToolID:     p.InfraToolID,
+		UserID:        p.UserID.String(),
+		CreatedAt:     p.CreatedAt,
+		UpdatedAt:     p.UpdatedAt,
+	}
 }

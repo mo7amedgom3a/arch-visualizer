@@ -27,6 +27,52 @@ The system allows solution architects to visually compose cloud architectures an
 - **Pluggable IaC engines**
 - **Monolith today, microservices tomorrow**
 
+## 🔀 Project Versioning
+
+**Goal**: Every write (update architecture, update node, delete node, update metadata) is **immutable**. It creates a new `projects` row, clones all resources/UI-state into it, and writes a `project_versions` chain entry linking to the previous version. The old rows are never mutated or deleted.
+
+### Version Chain
+
+```
+project_versions
+├── id         UUID  PK
+├── project_id UUID  → projects.id  (the snapshot project row for this version)
+├── parent_version_id UUID (NULL = root / first version)
+├── version_number    INT  (monotonically increasing per root project)
+├── created_at TIMESTAMP
+└── created_by UUID  → users.id
+```
+
+```
+projects
+├── root_project_id UUID (NULL = this row IS the root; child versions point back to root)
+└── …all other columns unchanged…
+```
+
+### Write Path (any mutation)
+
+1. Load source project + architecture.
+2. Create new `projects` row (new UUID, same metadata). `root_project_id` = source's root (or source ID if source is root).
+3. Clone all `resources` into new `project_id` (fresh UUIDs).
+4. Clone `resource_containment`, `resource_dependencies`, `resource_ui_states` for new resource IDs.
+5. Apply the requested change to the cloned snapshot.
+6. Persist `project_versions`: `project_id` = new project, `parent_version_id` = previous version's ID, `version_number` = prev + 1.
+7. Return new `project_id` + `version_id` to the caller.
+
+> **Breaking change for clients**: mutation endpoints (`PUT /projects/:id`, `PUT /projects/:id/architecture`, `PATCH .../nodes/:nodeId`, `DELETE .../nodes/:nodeId`) now return a **new `project_id`**. Clients must use the returned ID for subsequent reads.
+
+### Read Path
+
+- `GET /projects/:id` — returns the project for that exact snapshot UUID.
+- `GET /projects/:id/versions` — traverses the `project_versions` chain by `root_project_id` and returns all versions ordered by `version_number ASC`.
+- `POST /projects/:id/restore` — creates a new version from the chosen version's snapshot (no in-place restore).
+
+### Migration (`00016_project_versioning.sql`)
+
+- Adds `parent_version_id`, `version_number` to `project_versions`; drops old `changes` / `snapshot` columns.
+- Adds `root_project_id` to `projects`.
+- Backfills `version_number=1` for all existing projects.
+
 ## 📁 High-Level Structure
 
 ```
@@ -72,6 +118,7 @@ internal/platform/
 ```
 
 Responsibilities:
+
 - Configuration, logging, DB connection pooling
 - HTTP server setup, authentication helpers
 - Common error handling
@@ -82,7 +129,7 @@ Responsibilities:
 ```
 internal/domain/
 ├── architecture/
-│   ├── aggregate.go           # Architecture aggregate 
+│   ├── aggregate.go           # Architecture aggregate
 │   ├── generator.go           # ArchitectureGenerator interface
 │   ├── resource_type_mapper.go  # ResourceTypeMapper interface
 │   ├── ir_type_mapper.go      # IRTypeMapper interface
@@ -99,6 +146,7 @@ internal/domain/
 **The heart of the system.**
 
 Contains:
+
 - Domain models and resource abstractions
 - Relationships and dependencies
 - Constraint interfaces
@@ -109,6 +157,7 @@ Contains:
 - **IR Type Mapper Interface**: IR type → resource name mapping
 
 **About `architecture/`:**
+
 - Defines `ArchitectureGenerator` interface for provider-specific architecture generation
 - Defines `ResourceTypeMapper` interface for provider-specific resource type mapping
 - Provides registry system for managing provider implementations
@@ -116,13 +165,15 @@ Contains:
 - Each cloud provider implements these interfaces in `internal/cloud/{provider}/architecture/`
 
 **About `rules/`:**
+
 - The `rules` folder in `internal/domain/` defines interfaces and constructs for all rule types (e.g., constraint validators, rule engines).
-- These interfaces describe *what* kind of validations or roles can exist, but are not tied to any specific cloud provider.
+- These interfaces describe _what_ kind of validations or roles can exist, but are not tied to any specific cloud provider.
 - This empowers any provider to use, extend, or implement these roles via their own code.
 - The domain rules engine enforces constraints like: required parents, allowed parents, required region, max/min children, and more — for any resource, regardless of cloud provider.
 - By keeping the interfaces in domain, we enable **all providers** (AWS, GCP, Azure, etc.) to leverage a shared, consistent rules contract.
 
 **Key Points:**
+
 - 🚫 No provider-specific or IaC tool code in domain
 - ✅ All cloud providers implement and use these domain rules
 - ✅ Provider-specific mappings are defined by providers (no static fallbacks)
@@ -163,6 +214,7 @@ aws/
 ```
 
 Responsibilities:
+
 - **Architecture Generation**: Provider-specific generators convert diagram graphs to domain architectures
 - **Resource Type Mapping**: Provider-specific mappers handle IR type → ResourceType conversion
 - **Inventory System**: Classifies resources and provides function registries (Terraform mappers, pricing calculators)
@@ -182,6 +234,7 @@ internal/iac/
 ```
 
 Purpose:
+
 - Generate IaC from validated architectures
 - Support multiple engines with a plug-in interface
 
@@ -207,7 +260,7 @@ internal/rules/
 ```
 
 **Note:**  
-With the new structure, the *domain* now owns the APIs and interfaces for constraints/rules — used by all providers and services.  
+With the new structure, the _domain_ now owns the APIs and interfaces for constraints/rules — used by all providers and services.  
 The `internal/rules/` folder supports legacy or backward-compatible logic that may interact with persistence or external data sources, but core rule definitions now live under `internal/domain/rules/`.  
 All cloud providers or engines consume these domain interfaces, ensuring universal, cloud-agnostic usage.
 
@@ -221,6 +274,7 @@ internal/diagram/
 ```
 
 Handles:
+
 - Diagram/canvas parsing and validation from frontend
 - Converts UI designs into validation-ready domain models
 
@@ -234,6 +288,7 @@ internal/codegen/
 ```
 
 Orchestrates the full pipeline:
+
 1. Diagram parsing
 2. Domain conversion
 3. Rule/constraint validation (via domain rules)
@@ -254,6 +309,7 @@ internal/api/
 ```
 
 Responsibilities:
+
 - HTTP endpoints and routing
 - Request/response DTOs
 - Middleware
@@ -272,6 +328,7 @@ internal/persistence/
 ```
 
 Responsibilities:
+
 - Database reads/writes
 - Repository implementations
 - PostgreSQL-specific logic
@@ -316,40 +373,43 @@ The system uses **PostgreSQL** to store projects, resources, constraints, and th
 ### Core Tables
 
 #### **users**
+
 Stores user profiles (also used by marketplace authors and reviewers).
 
-| Column       | Type        | Description                    |
-|--------------|-------------|--------------------------------|
-| `id`         | UUID        | Primary key                    |
-| `name`       | VARCHAR(255) | User's display name            |
-| `avatar`     | VARCHAR(500) | Optional avatar URL            |
-| `is_verified`| BOOLEAN     | Verification status            |
-| `created_at` | TIMESTAMP   | Account creation timestamp     |
-| `updated_at` | TIMESTAMP   | Last update timestamp          |
+| Column        | Type         | Description                |
+| ------------- | ------------ | -------------------------- |
+| `id`          | UUID         | Primary key                |
+| `name`        | VARCHAR(255) | User's display name        |
+| `avatar`      | VARCHAR(500) | Optional avatar URL        |
+| `is_verified` | BOOLEAN      | Verification status        |
+| `created_at`  | TIMESTAMP    | Account creation timestamp |
+| `updated_at`  | TIMESTAMP    | Last update timestamp      |
 
 ---
 
 #### **projects**
+
 Each project is a cloud architecture design.
 
-| Column         | Type  | Description                                         |
-|----------------|-------|-----------------------------------------------------|
-| `id`           | UUID  | Primary key                                         |
-| `user_id`      | UUID  | Owner (FK → `users.id`)                             |
-| `infra_tool`   | INT   | IaC tool (FK → `iac_targets.id`)                    |
-| `name`         | TEXT  | Project name                                        |
-| `cloud_provider` | TEXT | Target cloud (`aws`, `azure`, `gcp`)               |
-| `region`       | TEXT  | Default region for resources                        |
-| `created_at`   | TIMESTAMP | Project creation timestamp                       |
+| Column           | Type      | Description                          |
+| ---------------- | --------- | ------------------------------------ |
+| `id`             | UUID      | Primary key                          |
+| `user_id`        | UUID      | Owner (FK → `users.id`)              |
+| `infra_tool`     | INT       | IaC tool (FK → `iac_targets.id`)     |
+| `name`           | TEXT      | Project name                         |
+| `cloud_provider` | TEXT      | Target cloud (`aws`, `azure`, `gcp`) |
+| `region`         | TEXT      | Default region for resources         |
+| `created_at`     | TIMESTAMP | Project creation timestamp           |
 
 ---
 
 #### **iac_targets**
+
 IaC tools supported.
 
-| Column | Type   | Description                              |
-|--------|--------|------------------------------------------|
-| `id`   | SERIAL | Primary key                              |
+| Column | Type   | Description                                 |
+| ------ | ------ | ------------------------------------------- |
+| `id`   | SERIAL | Primary key                                 |
 | `name` | TEXT   | IaC tool name (e.g., `terraform`, `pulumi`) |
 
 ---
@@ -357,267 +417,284 @@ IaC tools supported.
 ### Pricing & Cost Estimates
 
 #### **project_pricing**
+
 Stores total pricing estimate per project.
 
-| Column            | Type    | Description                                    |
-|-------------------|---------|------------------------------------------------|
-| `id`              | SERIAL  | Primary key                                    |
-| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
-| `total_cost`      | NUMERIC | Total estimated cost                           |
-| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
-| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
-| `duration_seconds` | BIGINT | Duration used for the estimate                 |
-| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
-| `region`          | TEXT    | Region (nullable)                              |
-| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+| Column             | Type      | Description                            |
+| ------------------ | --------- | -------------------------------------- |
+| `id`               | SERIAL    | Primary key                            |
+| `project_id`       | UUID      | Project (FK → `projects.id`)           |
+| `total_cost`       | NUMERIC   | Total estimated cost                   |
+| `currency`         | TEXT      | Currency (`USD`, `EUR`, `GBP`)         |
+| `period`           | TEXT      | Period (`hourly`, `monthly`, `yearly`) |
+| `duration_seconds` | BIGINT    | Duration used for the estimate         |
+| `provider`         | TEXT      | Cloud provider (`aws`, `azure`, `gcp`) |
+| `region`           | TEXT      | Region (nullable)                      |
+| `calculated_at`    | TIMESTAMP | Calculation timestamp                  |
 
 ---
 
 #### **service_pricing**
+
 Pricing per service (resource category).
 
-| Column            | Type    | Description                                    |
-|-------------------|---------|------------------------------------------------|
-| `id`              | SERIAL  | Primary key                                    |
-| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
-| `category_id`     | INT     | Category (FK → `resource_categories.id`)       |
-| `total_cost`      | NUMERIC | Total estimated cost                           |
-| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
-| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
-| `duration_seconds` | BIGINT | Duration used for the estimate                 |
-| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
-| `region`          | TEXT    | Region (nullable)                              |
-| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+| Column             | Type      | Description                              |
+| ------------------ | --------- | ---------------------------------------- |
+| `id`               | SERIAL    | Primary key                              |
+| `project_id`       | UUID      | Project (FK → `projects.id`)             |
+| `category_id`      | INT       | Category (FK → `resource_categories.id`) |
+| `total_cost`       | NUMERIC   | Total estimated cost                     |
+| `currency`         | TEXT      | Currency (`USD`, `EUR`, `GBP`)           |
+| `period`           | TEXT      | Period (`hourly`, `monthly`, `yearly`)   |
+| `duration_seconds` | BIGINT    | Duration used for the estimate           |
+| `provider`         | TEXT      | Cloud provider (`aws`, `azure`, `gcp`)   |
+| `region`           | TEXT      | Region (nullable)                        |
+| `calculated_at`    | TIMESTAMP | Calculation timestamp                    |
 
 ---
 
 #### **service_type_pricing**
+
 Pricing per service type (resource type).
 
-| Column            | Type    | Description                                    |
-|-------------------|---------|------------------------------------------------|
-| `id`              | SERIAL  | Primary key                                    |
-| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
-| `resource_type_id`| INT     | Resource type (FK → `resource_types.id`)       |
-| `total_cost`      | NUMERIC | Total estimated cost                           |
-| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
-| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
-| `duration_seconds` | BIGINT | Duration used for the estimate                 |
-| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
-| `region`          | TEXT    | Region (nullable)                              |
-| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+| Column             | Type      | Description                              |
+| ------------------ | --------- | ---------------------------------------- |
+| `id`               | SERIAL    | Primary key                              |
+| `project_id`       | UUID      | Project (FK → `projects.id`)             |
+| `resource_type_id` | INT       | Resource type (FK → `resource_types.id`) |
+| `total_cost`       | NUMERIC   | Total estimated cost                     |
+| `currency`         | TEXT      | Currency (`USD`, `EUR`, `GBP`)           |
+| `period`           | TEXT      | Period (`hourly`, `monthly`, `yearly`)   |
+| `duration_seconds` | BIGINT    | Duration used for the estimate           |
+| `provider`         | TEXT      | Cloud provider (`aws`, `azure`, `gcp`)   |
+| `region`           | TEXT      | Region (nullable)                        |
+| `calculated_at`    | TIMESTAMP | Calculation timestamp                    |
 
 ---
 
 #### **resource_pricing**
+
 Pricing per resource instance.
 
-| Column            | Type    | Description                                    |
-|-------------------|---------|------------------------------------------------|
-| `id`              | SERIAL  | Primary key                                    |
-| `project_id`      | UUID    | Project (FK → `projects.id`)                   |
-| `resource_id`     | UUID    | Resource (FK → `resources.id`)                 |
-| `total_cost`      | NUMERIC | Total estimated cost                           |
-| `currency`        | TEXT    | Currency (`USD`, `EUR`, `GBP`)                 |
-| `period`          | TEXT    | Period (`hourly`, `monthly`, `yearly`)         |
-| `duration_seconds` | BIGINT | Duration used for the estimate                 |
-| `provider`        | TEXT    | Cloud provider (`aws`, `azure`, `gcp`)         |
-| `region`          | TEXT    | Region (nullable)                              |
-| `calculated_at`   | TIMESTAMP | Calculation timestamp                        |
+| Column             | Type      | Description                            |
+| ------------------ | --------- | -------------------------------------- |
+| `id`               | SERIAL    | Primary key                            |
+| `project_id`       | UUID      | Project (FK → `projects.id`)           |
+| `resource_id`      | UUID      | Resource (FK → `resources.id`)         |
+| `total_cost`       | NUMERIC   | Total estimated cost                   |
+| `currency`         | TEXT      | Currency (`USD`, `EUR`, `GBP`)         |
+| `period`           | TEXT      | Period (`hourly`, `monthly`, `yearly`) |
+| `duration_seconds` | BIGINT    | Duration used for the estimate         |
+| `provider`         | TEXT      | Cloud provider (`aws`, `azure`, `gcp`) |
+| `region`           | TEXT      | Region (nullable)                      |
+| `calculated_at`    | TIMESTAMP | Calculation timestamp                  |
 
 ---
 
 #### **pricing_components**
+
 Pricing breakdown per component (per-hour, per-GB, per-request, etc.).
 
-| Column               | Type    | Description                                   |
-|----------------------|---------|-----------------------------------------------|
-| `id`                 | SERIAL  | Primary key                                   |
-| `resource_pricing_id`| INT     | Resource pricing (FK → `resource_pricing.id`) |
-| `component_name`     | TEXT    | Component name                                |
-| `model`              | TEXT    | Pricing model (`per_hour`, `per_gb`, etc.)     |
-| `unit`               | TEXT    | Unit of measure                               |
-| `quantity`           | NUMERIC | Quantity used                                 |
-| `unit_rate`          | NUMERIC | Rate per unit                                 |
-| `subtotal`           | NUMERIC | Subtotal cost for this component              |
-| `currency`           | TEXT    | Currency (`USD`, `EUR`, `GBP`)                |
+| Column                | Type    | Description                                   |
+| --------------------- | ------- | --------------------------------------------- |
+| `id`                  | SERIAL  | Primary key                                   |
+| `resource_pricing_id` | INT     | Resource pricing (FK → `resource_pricing.id`) |
+| `component_name`      | TEXT    | Component name                                |
+| `model`               | TEXT    | Pricing model (`per_hour`, `per_gb`, etc.)    |
+| `unit`                | TEXT    | Unit of measure                               |
+| `quantity`            | NUMERIC | Quantity used                                 |
+| `unit_rate`           | NUMERIC | Rate per unit                                 |
+| `subtotal`            | NUMERIC | Subtotal cost for this component              |
+| `currency`            | TEXT    | Currency (`USD`, `EUR`, `GBP`)                |
 
 ---
 
 ### Marketplace
 
 #### **categories**
+
 Marketplace categories for templates.
 
-| Column       | Type        | Description            |
-|--------------|-------------|------------------------|
-| `id`         | UUID        | Primary key            |
-| `name`       | VARCHAR(100) | Category name          |
-| `slug`       | VARCHAR(100) | URL-friendly slug      |
-| `created_at` | TIMESTAMP   | Creation timestamp     |
+| Column       | Type         | Description        |
+| ------------ | ------------ | ------------------ |
+| `id`         | UUID         | Primary key        |
+| `name`       | VARCHAR(100) | Category name      |
+| `slug`       | VARCHAR(100) | URL-friendly slug  |
+| `created_at` | TIMESTAMP    | Creation timestamp |
 
 ---
 
 #### **templates**
+
 Marketplace templates with pricing and metadata.
 
-| Column              | Type        | Description                                  |
-|---------------------|-------------|----------------------------------------------|
-| `id`                | UUID        | Primary key                                  |
-| `title`             | VARCHAR(255) | Template title                               |
-| `description`       | TEXT        | Template description                         |
-| `category_id`       | UUID        | Category (FK → `categories.id`)              |
-| `cloud_provider`    | VARCHAR(50) | Cloud (`AWS`, `Azure`, `GCP`, `Multi-Cloud`) |
-| `rating`            | DECIMAL     | Average rating (0–5)                         |
-| `review_count`      | INTEGER     | Count of reviews                             |
-| `downloads`         | INTEGER     | Total downloads                              |
-| `price`             | DECIMAL     | One-time price                               |
-| `is_subscription`   | BOOLEAN     | Subscription flag                            |
-| `subscription_price`| DECIMAL     | Subscription price                           |
-| `estimated_cost_min`| DECIMAL     | Estimated monthly min cost                   |
-| `estimated_cost_max`| DECIMAL     | Estimated monthly max cost                   |
-| `author_id`         | UUID        | Author (FK → `users.id`)                     |
-| `image_url`         | VARCHAR(500) | Template image URL                           |
-| `is_popular`        | BOOLEAN     | Popular flag                                 |
-| `is_new`            | BOOLEAN     | New flag                                     |
-| `last_updated`      | TIMESTAMP   | Last updated timestamp                        |
-| `resources`         | INTEGER     | Number of resources                          |
-| `deployment_time`   | VARCHAR(50) | Estimated deployment time                    |
-| `regions`           | TEXT        | Supported regions                            |
-| `created_at`        | TIMESTAMP   | Creation timestamp                           |
-| `updated_at`        | TIMESTAMP   | Update timestamp                             |
+| Column               | Type         | Description                                  |
+| -------------------- | ------------ | -------------------------------------------- |
+| `id`                 | UUID         | Primary key                                  |
+| `title`              | VARCHAR(255) | Template title                               |
+| `description`        | TEXT         | Template description                         |
+| `category_id`        | UUID         | Category (FK → `categories.id`)              |
+| `cloud_provider`     | VARCHAR(50)  | Cloud (`AWS`, `Azure`, `GCP`, `Multi-Cloud`) |
+| `rating`             | DECIMAL      | Average rating (0–5)                         |
+| `review_count`       | INTEGER      | Count of reviews                             |
+| `downloads`          | INTEGER      | Total downloads                              |
+| `price`              | DECIMAL      | One-time price                               |
+| `is_subscription`    | BOOLEAN      | Subscription flag                            |
+| `subscription_price` | DECIMAL      | Subscription price                           |
+| `estimated_cost_min` | DECIMAL      | Estimated monthly min cost                   |
+| `estimated_cost_max` | DECIMAL      | Estimated monthly max cost                   |
+| `author_id`          | UUID         | Author (FK → `users.id`)                     |
+| `image_url`          | VARCHAR(500) | Template image URL                           |
+| `is_popular`         | BOOLEAN      | Popular flag                                 |
+| `is_new`             | BOOLEAN      | New flag                                     |
+| `last_updated`       | TIMESTAMP    | Last updated timestamp                       |
+| `resources`          | INTEGER      | Number of resources                          |
+| `deployment_time`    | VARCHAR(50)  | Estimated deployment time                    |
+| `regions`            | TEXT         | Supported regions                            |
+| `created_at`         | TIMESTAMP    | Creation timestamp                           |
+| `updated_at`         | TIMESTAMP    | Update timestamp                             |
 
 ---
 
 #### **technologies**
+
 Technology tags for templates.
 
-| Column       | Type        | Description        |
-|--------------|-------------|--------------------|
-| `id`         | UUID        | Primary key        |
+| Column       | Type         | Description        |
+| ------------ | ------------ | ------------------ |
+| `id`         | UUID         | Primary key        |
 | `name`       | VARCHAR(100) | Technology name    |
 | `slug`       | VARCHAR(100) | URL-friendly slug  |
-| `created_at` | TIMESTAMP   | Creation timestamp |
+| `created_at` | TIMESTAMP    | Creation timestamp |
 
 ---
 
 #### **iac_formats**
+
 IaC formats supported per template.
 
-| Column       | Type        | Description        |
-|--------------|-------------|--------------------|
-| `id`         | UUID        | Primary key        |
+| Column       | Type         | Description        |
+| ------------ | ------------ | ------------------ |
+| `id`         | UUID         | Primary key        |
 | `name`       | VARCHAR(100) | Format name        |
 | `slug`       | VARCHAR(100) | URL-friendly slug  |
-| `created_at` | TIMESTAMP   | Creation timestamp |
+| `created_at` | TIMESTAMP    | Creation timestamp |
 
 ---
 
 #### **compliance_standards**
+
 Compliance standards associated with templates.
 
-| Column       | Type        | Description        |
-|--------------|-------------|--------------------|
-| `id`         | UUID        | Primary key        |
+| Column       | Type         | Description        |
+| ------------ | ------------ | ------------------ |
+| `id`         | UUID         | Primary key        |
 | `name`       | VARCHAR(100) | Standard name      |
 | `slug`       | VARCHAR(100) | URL-friendly slug  |
-| `created_at` | TIMESTAMP   | Creation timestamp |
+| `created_at` | TIMESTAMP    | Creation timestamp |
 
 ---
 
 #### **template_technologies**
+
 Join table for template → technology (many-to-many).
 
-| Column         | Type | Description                        |
-|----------------|------|------------------------------------|
-| `template_id`  | UUID | Template (FK → `templates.id`)     |
-| `technology_id`| UUID | Technology (FK → `technologies.id`)|
+| Column          | Type | Description                         |
+| --------------- | ---- | ----------------------------------- |
+| `template_id`   | UUID | Template (FK → `templates.id`)      |
+| `technology_id` | UUID | Technology (FK → `technologies.id`) |
 
 ---
 
 #### **template_iac_formats**
+
 Join table for template → IaC format (many-to-many).
 
-| Column        | Type | Description                        |
-|---------------|------|------------------------------------|
-| `template_id` | UUID | Template (FK → `templates.id`)     |
+| Column          | Type | Description                        |
+| --------------- | ---- | ---------------------------------- |
+| `template_id`   | UUID | Template (FK → `templates.id`)     |
 | `iac_format_id` | UUID | IaC format (FK → `iac_formats.id`) |
 
 ---
 
 #### **template_compliance**
+
 Join table for template → compliance (many-to-many).
 
-| Column         | Type | Description                           |
-|----------------|------|---------------------------------------|
-| `template_id`  | UUID | Template (FK → `templates.id`)        |
-| `compliance_id`| UUID | Compliance (FK → `compliance_standards.id`) |
+| Column          | Type | Description                                 |
+| --------------- | ---- | ------------------------------------------- |
+| `template_id`   | UUID | Template (FK → `templates.id`)              |
+| `compliance_id` | UUID | Compliance (FK → `compliance_standards.id`) |
 
 ---
 
 #### **template_use_cases**
+
 Template use-case items.
 
-| Column        | Type        | Description                       |
-|---------------|-------------|-----------------------------------|
-| `id`          | UUID        | Primary key                       |
-| `template_id` | UUID        | Template (FK → `templates.id`)    |
-| `icon`        | VARCHAR(100) | Icon identifier                   |
-| `title`       | VARCHAR(255) | Use case title                    |
-| `description` | TEXT        | Use case description              |
-| `display_order` | INTEGER   | UI display order                  |
-| `created_at`  | TIMESTAMP   | Creation timestamp                |
+| Column          | Type         | Description                    |
+| --------------- | ------------ | ------------------------------ |
+| `id`            | UUID         | Primary key                    |
+| `template_id`   | UUID         | Template (FK → `templates.id`) |
+| `icon`          | VARCHAR(100) | Icon identifier                |
+| `title`         | VARCHAR(255) | Use case title                 |
+| `description`   | TEXT         | Use case description           |
+| `display_order` | INTEGER      | UI display order               |
+| `created_at`    | TIMESTAMP    | Creation timestamp             |
 
 ---
 
 #### **template_features**
+
 Template feature items.
 
-| Column        | Type      | Description                    |
-|---------------|-----------|--------------------------------|
-| `id`          | UUID      | Primary key                    |
-| `template_id` | UUID      | Template (FK → `templates.id`) |
-| `feature`     | TEXT      | Feature description            |
-| `display_order` | INTEGER | UI display order               |
-| `created_at`  | TIMESTAMP | Creation timestamp             |
+| Column          | Type      | Description                    |
+| --------------- | --------- | ------------------------------ |
+| `id`            | UUID      | Primary key                    |
+| `template_id`   | UUID      | Template (FK → `templates.id`) |
+| `feature`       | TEXT      | Feature description            |
+| `display_order` | INTEGER   | UI display order               |
+| `created_at`    | TIMESTAMP | Creation timestamp             |
 
 ---
 
 #### **template_components**
+
 Individual components in a template.
 
-| Column        | Type        | Description                    |
-|---------------|-------------|--------------------------------|
-| `id`          | UUID        | Primary key                    |
-| `template_id` | UUID        | Template (FK → `templates.id`) |
-| `name`        | VARCHAR(255) | Component name                 |
-| `service`     | VARCHAR(255) | Cloud service name             |
-| `configuration` | TEXT      | Optional configuration         |
-| `monthly_cost` | DECIMAL    | Monthly cost                   |
-| `purpose`     | TEXT        | Purpose/role                   |
-| `display_order` | INTEGER   | UI display order               |
-| `created_at`  | TIMESTAMP   | Creation timestamp             |
+| Column          | Type         | Description                    |
+| --------------- | ------------ | ------------------------------ |
+| `id`            | UUID         | Primary key                    |
+| `template_id`   | UUID         | Template (FK → `templates.id`) |
+| `name`          | VARCHAR(255) | Component name                 |
+| `service`       | VARCHAR(255) | Cloud service name             |
+| `configuration` | TEXT         | Optional configuration         |
+| `monthly_cost`  | DECIMAL      | Monthly cost                   |
+| `purpose`       | TEXT         | Purpose/role                   |
+| `display_order` | INTEGER      | UI display order               |
+| `created_at`    | TIMESTAMP    | Creation timestamp             |
 
 ---
 
 #### **reviews**
+
 User reviews for templates.
 
-| Column        | Type        | Description                    |
-|---------------|-------------|--------------------------------|
-| `id`          | UUID        | Primary key                    |
-| `template_id` | UUID        | Template (FK → `templates.id`) |
-| `user_id`     | UUID        | User (FK → `users.id`)         |
-| `rating`      | INTEGER     | Rating (1–5)                   |
-| `title`       | VARCHAR(255) | Review title                   |
-| `content`     | TEXT        | Review content                 |
-| `use_case`    | VARCHAR(255) | Use case label                 |
-| `team_size`   | VARCHAR(50) | Team size                      |
-| `deployment_time` | VARCHAR(50) | Deployment time             |
-| `helpful_count` | INTEGER   | Helpful votes count            |
-| `creator_response` | TEXT   | Optional creator response      |
-| `created_at`  | TIMESTAMP   | Creation timestamp             |
-| `updated_at`  | TIMESTAMP   | Update timestamp               |
+| Column             | Type         | Description                    |
+| ------------------ | ------------ | ------------------------------ |
+| `id`               | UUID         | Primary key                    |
+| `template_id`      | UUID         | Template (FK → `templates.id`) |
+| `user_id`          | UUID         | User (FK → `users.id`)         |
+| `rating`           | INTEGER      | Rating (1–5)                   |
+| `title`            | VARCHAR(255) | Review title                   |
+| `content`          | TEXT         | Review content                 |
+| `use_case`         | VARCHAR(255) | Use case label                 |
+| `team_size`        | VARCHAR(50)  | Team size                      |
+| `deployment_time`  | VARCHAR(50)  | Deployment time                |
+| `helpful_count`    | INTEGER      | Helpful votes count            |
+| `creator_response` | TEXT         | Optional creator response      |
+| `created_at`       | TIMESTAMP    | Creation timestamp             |
+| `updated_at`       | TIMESTAMP    | Update timestamp               |
 
 ---
 
@@ -625,10 +702,10 @@ User reviews for templates.
 
 #### **resource_categories**
 
-| Column | Type   | Description      |
-|--------|--------|-----------------|
-| `id`   | SERIAL | Primary key     |
-| `name` | TEXT   | Category name   |
+| Column | Type   | Description   |
+| ------ | ------ | ------------- |
+| `id`   | SERIAL | Primary key   |
+| `name` | TEXT   | Category name |
 
 Examples: `Compute`, `Networking`, `Storage`, `Database`, `Security`
 
@@ -636,27 +713,28 @@ Examples: `Compute`, `Networking`, `Storage`, `Database`, `Security`
 
 #### **resource_kinds**
 
-| Column | Type   | Description      |
-|--------|--------|-----------------|
-| `id`   | SERIAL | Primary key     |
-| `name` | TEXT   | Kind name       |
+| Column | Type   | Description |
+| ------ | ------ | ----------- |
+| `id`   | SERIAL | Primary key |
+| `name` | TEXT   | Kind name   |
 
 Examples: `VirtualMachine`, `Container`, `Function`, `Network`, `LoadBalancer`
 
 ---
 
 #### **resource_types**
+
 Cloud-specific resource implementations.
 
-| Column          | Type    | Description                                  |
-|-----------------|---------|----------------------------------------------|
-| `id`            | SERIAL  | Primary key                                  |
-| `name`          | TEXT    | Resource type name                           |
-| `cloud_provider`| TEXT    | Cloud provider (`aws`, `azure`, `gcp`)       |
-| `category_id`   | INT     | FK → `resource_categories.id`                |
-| `kind_id`       | INT     | FK → `resource_kinds.id`                     |
-| `is_regional`   | BOOLEAN | Whether resource is region-specific          |
-| `is_global`     | BOOLEAN | Whether resource is global                   |
+| Column           | Type    | Description                            |
+| ---------------- | ------- | -------------------------------------- |
+| `id`             | SERIAL  | Primary key                            |
+| `name`           | TEXT    | Resource type name                     |
+| `cloud_provider` | TEXT    | Cloud provider (`aws`, `azure`, `gcp`) |
+| `category_id`    | INT     | FK → `resource_categories.id`          |
+| `kind_id`        | INT     | FK → `resource_kinds.id`               |
+| `is_regional`    | BOOLEAN | Whether resource is region-specific    |
+| `is_global`      | BOOLEAN | Whether resource is global             |
 
 This mapping enables cloud-agnostic handling at the domain level.
 
@@ -665,36 +743,39 @@ This mapping enables cloud-agnostic handling at the domain level.
 ### Architecture Graph
 
 #### **resources**
+
 Resource instances in a project.
 
-| Column            | Type    | Description                                 |
-|-------------------|---------|---------------------------------------------|
-| `id`              | UUID    | Primary key                                 |
-| `project_id`      | UUID    | Parent project (FK → `projects.id`)         |
-| `resource_type_id`| INT     | Resource type (FK → `resource_types.id`)    |
-| `name`            | TEXT    | User-defined name                           |
-| `pos_x`           | INT     | X coordinate on canvas                      |
-| `pos_y`           | INT     | Y coordinate on canvas                      |
-| `config`          | JSONB   | Resource-specific config (CIDR, tags, etc.) |
-| `created_at`      | TIMESTAMP | Creation timestamp                        |
+| Column             | Type      | Description                                 |
+| ------------------ | --------- | ------------------------------------------- |
+| `id`               | UUID      | Primary key                                 |
+| `project_id`       | UUID      | Parent project (FK → `projects.id`)         |
+| `resource_type_id` | INT       | Resource type (FK → `resource_types.id`)    |
+| `name`             | TEXT      | User-defined name                           |
+| `pos_x`            | INT       | X coordinate on canvas                      |
+| `pos_y`            | INT       | Y coordinate on canvas                      |
+| `config`           | JSONB     | Resource-specific config (CIDR, tags, etc.) |
+| `created_at`       | TIMESTAMP | Creation timestamp                          |
 
 ---
 
 #### **resource_containment**
+
 Parent-child relationships (VPC → Subnet → EC2, etc.).
 
-| Column            | Type    | Description                                 |
-|-------------------|---------|---------------------------------------------|
-| `parent_resource_id` | UUID | Parent  (FK → `resources.id`)               |
-| `child_resource_id`  | UUID | Contained resource (FK → `resources.id`)    |
+| Column               | Type | Description                              |
+| -------------------- | ---- | ---------------------------------------- |
+| `parent_resource_id` | UUID | Parent (FK → `resources.id`)             |
+| `child_resource_id`  | UUID | Contained resource (FK → `resources.id`) |
 
 ---
 
 #### **dependency_types**
+
 Types of resource dependencies.
 
-| Column | Type   | Description      |
-|--------|--------|-----------------|
+| Column | Type   | Description     |
+| ------ | ------ | --------------- |
 | `id`   | SERIAL | Primary key     |
 | `name` | TEXT   | Dependency type |
 
@@ -703,41 +784,44 @@ E.g. `uses`, `depends_on`, `connects_to`, `references`
 ---
 
 #### **resource_dependencies**
+
 Directed dependencies between resources.
 
-| Column           | Type   | Description                                   |
-|------------------|--------|-----------------------------------------------|
-| `from_resource_id` | UUID | Source      (FK → `resources.id`)             |
-| `to_resource_id`   | UUID | Target      (FK → `resources.id`)             |
-| `dependency_type_id` | INT | Dependency type (FK → `dependency_types.id`) |
+| Column               | Type | Description                                  |
+| -------------------- | ---- | -------------------------------------------- |
+| `from_resource_id`   | UUID | Source (FK → `resources.id`)                 |
+| `to_resource_id`     | UUID | Target (FK → `resources.id`)                 |
+| `dependency_type_id` | INT  | Dependency type (FK → `dependency_types.id`) |
 
 ---
 
 ### Rules & Constraints
 
 #### **resource_constraints**
+
 Database-driven validation rules and constraints.
 
-| Column            | Type   | Description                                               |
-|-------------------|--------|----------------------------------------------------------|
-| `id`              | SERIAL | Primary key                                              |
-| `resource_type_id`| INT    | Applies to resource type (FK → `resource_types.id`)      |
-| `constraint_type` | TEXT   | Type of constraint (interface in domain/rules/)          |
-| `constraint_value`| TEXT   | The constraint value itself                              |
+| Column             | Type   | Description                                         |
+| ------------------ | ------ | --------------------------------------------------- |
+| `id`               | SERIAL | Primary key                                         |
+| `resource_type_id` | INT    | Applies to resource type (FK → `resource_types.id`) |
+| `constraint_type`  | TEXT   | Type of constraint (interface in domain/rules/)     |
+| `constraint_value` | TEXT   | The constraint value itself                         |
 
 **Constraint Types:**  
 (defined as interfaces in `internal/domain/rules/`, implemented by any provider)
 
-- `requires_parent`   → Must be inside another resource
-- `allowed_parent`    → Only specific parents allowed
-- `requires_region`   → Must specify a region
-- `max_children`      → Max number of children
-- `min_children`      → Min number of children
+- `requires_parent` → Must be inside another resource
+- `allowed_parent` → Only specific parents allowed
+- `requires_region` → Must specify a region
+- `max_children` → Max number of children
+- `min_children` → Min number of children
 - `allowed_dependencies` → Valid dependency types
 
 Any cloud provider can use these roles via implementing the interfaces from the domain rules contract.
 
 **Examples:**
+
 ```sql
 -- EC2 must be inside a subnet
 (resource_type_id: EC2, constraint_type: 'requires_parent', constraint_value: 'Subnet')
@@ -748,6 +832,7 @@ Any cloud provider can use these roles via implementing the interfaces from the 
 -- S3 Bucket is global
 (resource_type_id: S3, constraint_type: 'requires_region', constraint_value: 'false')
 ```
+
 This enables **rule-driven, provider-independent validation** with no logic hardcoded to a specific cloud.
 
 ---
@@ -818,9 +903,9 @@ templates (N) ──→ (N) compliance_standards
 ## 🚀 Scalability & Future-Proofing
 
 This structure supports:
+
 - ✅ Adding new cloud providers
 - ✅ Adding/plugging in new IaC tools
 - ✅ Migrating to microservices later
 - ✅ Centralized, role/interface-driven validation
 - ✅ Clean separation of concerns, cloud-agnostic at core
-

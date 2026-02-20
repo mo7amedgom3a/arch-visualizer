@@ -105,6 +105,16 @@ func (r *ResourceRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
+// DeleteByProjectID soft-deletes all resources belonging to the given project.
+// Used during rollback cleanup if a versioned write fails partway through.
+func (r *ResourceRepository) DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error {
+	err := r.GetDB(ctx).Where("project_id = ?", projectID).Delete(&models.Resource{}).Error
+	if err != nil {
+		return errors.HandleGormError(err, "resource", "ResourceRepository.DeleteByProjectID")
+	}
+	return nil
+}
+
 // CreateContainment creates a parent-child relationship
 func (r *ResourceRepository) CreateContainment(ctx context.Context, parentID, childID uuid.UUID) error {
 	containment := &models.ResourceContainment{

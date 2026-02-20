@@ -151,3 +151,34 @@ func (cc *CostController) GetProjectOptimization(c *gin.Context) {
 
 	c.JSON(http.StatusOK, suggestions)
 }
+
+// EstimateVersionCost estimates the cost for a specific version snapshot.
+// @Summary      Estimate cost for a version
+// @Description  Calculate the estimated monthly cost for the architecture of a specific version
+// @Tags         versioning
+// @Produce      json
+// @Param        id          path      string  true  "Project ID"
+// @Param        version_id  path      string  true  "Version ID"
+// @Success      200         {object}  serverinterfaces.ArchitectureCostEstimate
+// @Failure      400         {object}  map[string]string
+// @Failure      404         {object}  map[string]string
+// @Failure      500         {object}  map[string]string
+// @Router       /projects/{id}/versions/{version_id}/estimate-cost [post]
+func (cc *CostController) EstimateVersionCost(c *gin.Context) {
+	projectID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid project ID"})
+		return
+	}
+	arch, err := cc.projectService.LoadArchitecture(c.Request.Context(), projectID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Architecture not found for this version"})
+		return
+	}
+	estimate, err := cc.pricingService.CalculateArchitectureCost(c.Request.Context(), arch, 720*time.Hour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to estimate cost: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, estimate)
+}

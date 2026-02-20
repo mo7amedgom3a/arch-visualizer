@@ -64,6 +64,18 @@ func (r *ProjectRepository) FindByUserID(ctx context.Context, userID uuid.UUID) 
 	return projects, err
 }
 
+// FindByRootProjectID returns all project snapshot rows that share the given root project ID.
+// This includes the root itself (root_project_id IS NULL but id = rootProjectID) and all
+// subsequent versions (root_project_id = rootProjectID).
+func (r *ProjectRepository) FindByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.Project, error) {
+	var projects []*models.Project
+	err := r.GetDB(ctx).
+		Where("root_project_id = ? OR id = ?", rootProjectID, rootProjectID).
+		Order("created_at asc").
+		Find(&projects).Error
+	return projects, err
+}
+
 // Update updates an existing project
 func (r *ProjectRepository) Update(ctx context.Context, project *models.Project) error {
 	return r.GetDB(ctx).Save(project).Error

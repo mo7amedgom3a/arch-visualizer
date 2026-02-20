@@ -4,6 +4,7 @@ import "encoding/json"
 
 // ArchitectureResponse represents the full architecture response
 type ArchitectureResponse struct {
+	VersionID string                 `json:"version_id,omitempty"`
 	Nodes     []ArchitectureNode     `json:"nodes"`
 	Edges     []ArchitectureEdge     `json:"edges"`
 	Variables []ArchitectureVariable `json:"variables"`
@@ -18,6 +19,23 @@ type ArchitectureNode struct {
 	Position NodePosition         `json:"position"`
 	Data     ArchitectureNodeData `json:"data"`
 	ParentID *string              `json:"parentId,omitempty"`
+	UIState  *NodeUIState         `json:"uiState,omitempty"`
+}
+
+// NodeUIState carries canvas/rendering state for a node (position, dimensions, style, etc.)
+type NodeUIState struct {
+	X          float64                `json:"x"`
+	Y          float64                `json:"y"`
+	Width      float64                `json:"width,omitempty"`
+	Height     float64                `json:"height,omitempty"`
+	Style      map[string]interface{} `json:"style,omitempty"`
+	Measured   map[string]interface{} `json:"measured,omitempty"`
+	Selected   bool                   `json:"selected,omitempty"`
+	Dragging   bool                   `json:"dragging,omitempty"`
+	Resizing   bool                   `json:"resizing,omitempty"`
+	Focusable  bool                   `json:"focusable,omitempty"`
+	Selectable bool                   `json:"selectable,omitempty"`
+	ZIndex     int                    `json:"zIndex,omitempty"`
 }
 
 // NodePosition represents the x, y coordinates

@@ -35,6 +35,7 @@ func newTestDB(t *testing.T, modelsToMigrate ...interface{}) *gorm.DB {
 		);`,
 		`CREATE TABLE IF NOT EXISTS projects (
 			id TEXT PRIMARY KEY,
+			root_project_id TEXT,
 			user_id TEXT,
 			infra_tool INTEGER,
 			name TEXT,
@@ -46,6 +47,16 @@ func newTestDB(t *testing.T, modelsToMigrate ...interface{}) *gorm.DB {
 			created_at DATETIME,
 			updated_at DATETIME,
 			deleted_at DATETIME
+		);`,
+
+		// Project versions chain (immutable versioning)
+		`CREATE TABLE IF NOT EXISTS project_versions (
+			id TEXT PRIMARY KEY,
+			project_id TEXT,
+			parent_version_id TEXT,
+			version_number INTEGER NOT NULL DEFAULT 1,
+			created_at DATETIME,
+			created_by TEXT
 		);`,
 
 		// Lookup / metadata

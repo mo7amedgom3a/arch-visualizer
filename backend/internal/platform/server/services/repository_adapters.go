@@ -62,6 +62,10 @@ func (a *ProjectRepositoryAdapter) FindAll(ctx context.Context, userID uuid.UUID
 	return a.Repo.FindAll(ctx, userID, page, limit, sort, order, search)
 }
 
+func (a *ProjectRepositoryAdapter) FindByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.Project, error) {
+	return a.Repo.FindByRootProjectID(ctx, rootProjectID)
+}
+
 // ProjectVersionRepositoryAdapter adapts repository.ProjectVersionRepository to serverinterfaces.ProjectVersionRepository
 type ProjectVersionRepositoryAdapter struct {
 	Repo *projectrepo.ProjectVersionRepository
@@ -81,6 +85,14 @@ func (a *ProjectVersionRepositoryAdapter) ListByProjectID(ctx context.Context, p
 
 func (a *ProjectVersionRepositoryAdapter) Delete(ctx context.Context, id uuid.UUID) error {
 	return a.Repo.Delete(ctx, id)
+}
+
+func (a *ProjectVersionRepositoryAdapter) ListByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.ProjectVersion, error) {
+	return a.Repo.ListByRootProjectID(ctx, rootProjectID)
+}
+
+func (a *ProjectVersionRepositoryAdapter) GetLatestVersionForProject(ctx context.Context, projectID uuid.UUID) (*models.ProjectVersion, error) {
+	return a.Repo.GetLatestVersionForProject(ctx, projectID)
 }
 
 // ResourceRepositoryAdapter adapts repository.ResourceRepository to serverinterfaces.ResourceRepository
@@ -106,6 +118,10 @@ func (a *ResourceRepositoryAdapter) CreateContainment(ctx context.Context, paren
 
 func (a *ResourceRepositoryAdapter) CreateDependency(ctx context.Context, dependency *models.ResourceDependency) error {
 	return a.Repo.CreateDependency(ctx, dependency)
+}
+
+func (a *ResourceRepositoryAdapter) DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error {
+	return a.Repo.DeleteByProjectID(ctx, projectID)
 }
 
 // ResourceTypeRepositoryAdapter adapts repository.ResourceTypeRepository to serverinterfaces.ResourceTypeRepository

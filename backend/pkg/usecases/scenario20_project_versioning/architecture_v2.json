@@ -1,0 +1,266 @@
+{
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "us-east-1",
+        "resourceType": "region",
+        "config": { "name": "us-east-1" },
+        "isVisualOnly": false
+      },
+      "parentId": null,
+      "uiState": {
+        "x": 0, "y": 0, "width": 1400, "height": 850,
+        "style": { "backgroundColor": "#e8f4fd", "border": "2px solid #3498db" },
+        "selectable": true, "focusable": true, "zIndex": 0
+      }
+    },
+    {
+      "id": "vpc-1",
+      "type": "containerNode",
+      "position": { "x": 50, "y": 60 },
+      "data": {
+        "label": "Main VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "versioning-demo-vpc",
+          "cidr": "10.0.0.0/16",
+          "regionId": "us-east-1",
+          "enableDnsSupport": true,
+          "enableDnsHostnames": true
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "region-1",
+      "uiState": {
+        "x": 50, "y": 60, "width": 1200, "height": 700,
+        "style": { "backgroundColor": "#fef9e7", "border": "2px solid #f39c12" },
+        "selectable": true, "focusable": true, "zIndex": 1
+      }
+    },
+    {
+      "id": "subnet-public-1",
+      "type": "containerNode",
+      "position": { "x": 40, "y": 80 },
+      "data": {
+        "label": "Public Subnet A",
+        "resourceType": "subnet",
+        "config": {
+          "name": "public-subnet-a",
+          "cidr": "10.0.1.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "mapPublicIpOnLaunch": true
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1",
+      "uiState": {
+        "x": 40, "y": 80, "width": 400, "height": 350,
+        "style": { "backgroundColor": "#eafaf1", "border": "1px solid #27ae60" },
+        "selectable": true, "focusable": true, "zIndex": 2
+      }
+    },
+    {
+      "id": "subnet-private-1",
+      "type": "containerNode",
+      "position": { "x": 500, "y": 80 },
+      "data": {
+        "label": "Private Subnet A",
+        "resourceType": "subnet",
+        "config": {
+          "name": "private-subnet-a",
+          "cidr": "10.0.2.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "mapPublicIpOnLaunch": false
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1",
+      "uiState": {
+        "x": 500, "y": 80, "width": 450, "height": 350,
+        "style": { "backgroundColor": "#fdedec", "border": "1px solid #e74c3c" },
+        "selectable": true, "focusable": true, "zIndex": 2
+      }
+    },
+    {
+      "id": "sg-web",
+      "type": "resourceNode",
+      "position": { "x": 30, "y": 30 },
+      "data": {
+        "label": "Web Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "web-sg",
+          "description": "Allow HTTP and SSH",
+          "ingressRules": [
+            { "protocol": "tcp", "fromPort": 80, "toPort": 80, "cidr": "0.0.0.0/0" },
+            { "protocol": "tcp", "fromPort": 443, "toPort": 443, "cidr": "0.0.0.0/0" },
+            { "protocol": "tcp", "fromPort": 22, "toPort": 22, "cidr": "10.0.0.0/8" }
+          ],
+          "egressRules": [
+            { "protocol": "-1", "fromPort": 0, "toPort": 0, "cidr": "0.0.0.0/0" }
+          ]
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1",
+      "uiState": {
+        "x": 30, "y": 30, "width": 200, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 3
+      }
+    },
+    {
+      "id": "ec2-web",
+      "type": "resourceNode",
+      "position": { "x": 80, "y": 150 },
+      "data": {
+        "label": "Web Server (UPDATED)",
+        "resourceType": "ec2",
+        "config": {
+          "name": "web-server-v2",
+          "instanceType": "t3.small",
+          "ami": "ami-0c55b159cbfafe1f0",
+          "keyName": "my-key",
+          "securityGroupId": "sg-web"
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "subnet-public-1",
+      "uiState": {
+        "x": 80, "y": 150, "width": 200, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 4
+      }
+    },
+    {
+      "id": "alb-1",
+      "type": "resourceNode",
+      "position": { "x": 100, "y": 260 },
+      "data": {
+        "label": "Application Load Balancer",
+        "resourceType": "alb",
+        "config": {
+          "name": "web-alb",
+          "scheme": "internet-facing",
+          "ipAddressType": "ipv4",
+          "subnetIds": ["subnet-public-1"]
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "subnet-public-1",
+      "uiState": {
+        "x": 100, "y": 260, "width": 220, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 4
+      }
+    },
+    {
+      "id": "rds-1",
+      "type": "resourceNode",
+      "position": { "x": 550, "y": 180 },
+      "data": {
+        "label": "PostgreSQL Database",
+        "resourceType": "rds",
+        "config": {
+          "name": "app-db",
+          "engine": "postgres",
+          "engineVersion": "14.5",
+          "instanceClass": "db.t3.micro",
+          "allocatedStorage": 20,
+          "dbName": "appdb",
+          "masterUsername": "admin",
+          "multiAZ": false,
+          "subnetId": "subnet-private-1"
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "subnet-private-1",
+      "uiState": {
+        "x": 550, "y": 180, "width": 200, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 4
+      }
+    },
+    {
+      "id": "s3-assets",
+      "type": "resourceNode",
+      "position": { "x": 1050, "y": 20 },
+      "data": {
+        "label": "Assets Bucket",
+        "resourceType": "s3",
+        "config": {
+          "name": "versioning-demo-assets",
+          "versioning": true,
+          "accessControl": "private",
+          "tags": { "Environment": "demo", "Team": "platform" }
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "region-1",
+      "uiState": {
+        "x": 1050, "y": 20, "width": 160, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 3
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-alb-ec2",
+      "source": "alb-1",
+      "target": "ec2-web",
+      "type": "depends_on",
+      "label": "routes traffic"
+    },
+    {
+      "id": "edge-ec2-rds",
+      "source": "ec2-web",
+      "target": "rds-1",
+      "type": "depends_on",
+      "label": "connects to DB"
+    },
+    {
+      "id": "edge-ec2-s3",
+      "source": "ec2-web",
+      "target": "s3-assets",
+      "type": "depends_on",
+      "label": "reads assets"
+    }
+  ],
+  "variables": [
+    {
+      "name": "environment",
+      "type": "string",
+      "value": "production",
+      "description": "Deployment environment"
+    },
+    {
+      "name": "aws_region",
+      "type": "string",
+      "value": "us-east-1",
+      "description": "AWS region"
+    },
+    {
+      "name": "db_password",
+      "type": "string",
+      "value": "",
+      "description": "RDS master password",
+      "sensitive": true
+    }
+  ],
+  "outputs": [
+    {
+      "name": "vpc_id",
+      "value": "${vpc-1.id}",
+      "description": "The VPC ID"
+    },
+    {
+      "name": "alb_dns_name",
+      "value": "${alb-1.dns_name}",
+      "description": "ALB DNS name"
+    },
+    {
+      "name": "rds_endpoint",
+      "value": "${rds-1.endpoint}",
+      "description": "RDS connection endpoint"
+    }
+  ]
+}

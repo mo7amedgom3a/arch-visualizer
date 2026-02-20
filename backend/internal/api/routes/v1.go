@@ -45,29 +45,32 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 		projects := v1.Group("/projects")
 		{
 			projects.POST("", projectCtrl.CreateProject)
-			projects.GET("", projectCtrl.ListProjects) // New List endpoint
+			projects.GET("", projectCtrl.ListProjects)
 			projects.GET("/:id", projectCtrl.GetProject)
 			projects.PUT("/:id", projectCtrl.UpdateProject)
 			projects.DELETE("/:id", projectCtrl.DeleteProject)
 			projects.POST("/:id/duplicate", projectCtrl.DuplicateProject)
-			projects.GET("/:id/versions", projectCtrl.GetProjectVersions)
-			projects.POST("/:id/restore", projectCtrl.RestoreProjectVersion)
 
-			// Architecture endpoints
+			// Architecture (read-only snapshot lookup)
 			projects.GET("/:id/architecture", projectCtrl.GetArchitecture)
-			projects.PUT("/:id/architecture", projectCtrl.UpdateArchitecture)
-			projects.PATCH("/:id/architecture/nodes/:nodeId", projectCtrl.UpdateArchitectureNode)
-			projects.DELETE("/:id/architecture/nodes/:nodeId", projectCtrl.DeleteArchitectureNode)
-			projects.POST("/:id/architecture/validate", projectCtrl.ValidateArchitecture)
 
-			// Code Generation endpoints
-			projects.POST("/:id/generate", generationCtrl.GenerateCode)
+			// ── Version CRUD ──────────────────────────────────────────────
+			versions := projects.Group("/:id/versions")
+			{
+				versions.POST("", projectCtrl.CreateVersion)
+				versions.GET("", projectCtrl.ListVersions)
+				versions.GET("/latest", projectCtrl.GetLatestVersion)
+				versions.GET("/:version_id", projectCtrl.GetVersionDetail)
+				versions.DELETE("/:version_id", projectCtrl.DeleteVersion)
+
+				// Version-scoped utility actions
+				versions.POST("/:version_id/validate", projectCtrl.ValidateVersion)
+				versions.POST("/:version_id/export/terraform", generationCtrl.GenerateCodeForVersion)
+				versions.POST("/:version_id/estimate-cost", costCtrl.EstimateVersionCost)
+			}
+
+			// Code Generation (kept for non-version-scoped download convenience)
 			projects.GET("/:id/download", generationCtrl.DownloadCode)
-
-			// Cost Estimation endpoints
-			projects.GET("/:id/cost/estimate", costCtrl.GetProjectEstimate)
-			projects.GET("/:id/cost/estimate/resources/:resourceName", costCtrl.GetResourceEstimate)
-			projects.GET("/:id/cost/optimize", costCtrl.GetProjectOptimization)
 		}
 
 		// IAM Routes

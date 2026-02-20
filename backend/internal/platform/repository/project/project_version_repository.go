@@ -1,12 +1,12 @@
 package projectrepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
 
 	"github.com/google/uuid"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 )
 
 // ProjectVersionRepository defines operations for project version management
@@ -38,14 +38,41 @@ func (r *ProjectVersionRepository) FindByID(ctx context.Context, id uuid.UUID) (
 	return &version, nil
 }
 
-// ListByProjectID lists all versions for a project
+// ListByProjectID lists all version entries whose project_id matches the given project UUID.
+// This is a direct lookup — for the full history chain use ListByRootProjectID.
 func (r *ProjectVersionRepository) ListByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error) {
 	var versions []*models.ProjectVersion
 	err := r.GetDB(ctx).
 		Where("project_id = ?", projectID).
-		Order("created_at desc").
+		Order("version_number asc").
 		Find(&versions).Error
 	return versions, err
+}
+
+// ListByRootProjectID returns all version entries across the entire version chain for a root project.
+// It finds every project that shares the same root_project_id (or whose id IS the root), then
+// returns all version entries for those projects ordered by version_number ASC.
+func (r *ProjectVersionRepository) ListByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.ProjectVersion, error) {
+	var versions []*models.ProjectVersion
+	err := r.GetDB(ctx).
+		Joins("JOIN projects ON projects.id = project_versions.project_id").
+		Where("projects.root_project_id = ? OR projects.id = ?", rootProjectID, rootProjectID).
+		Order("project_versions.version_number asc").
+		Find(&versions).Error
+	return versions, err
+}
+
+// GetLatestVersionForProject returns the most recent version entry for a given project snapshot UUID.
+func (r *ProjectVersionRepository) GetLatestVersionForProject(ctx context.Context, projectID uuid.UUID) (*models.ProjectVersion, error) {
+	var version models.ProjectVersion
+	err := r.GetDB(ctx).
+		Where("project_id = ?", projectID).
+		Order("version_number desc").
+		First(&version).Error
+	if err != nil {
+		return nil, platformerrors.HandleGormError(err, "project_version", "ProjectVersionRepository.GetLatestVersionForProject")
+	}
+	return &version, nil
 }
 
 // Delete deletes a project version

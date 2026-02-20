@@ -15,6 +15,8 @@ type ProjectRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*models.Project, error)
 	FindByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Project, error)
 	FindAll(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error)
+	// FindByRootProjectID returns all project snapshots that share the same root (all versions of a logical project)
+	FindByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.Project, error)
 	Update(ctx context.Context, project *models.Project) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	BeginTransaction(ctx context.Context) (interface{}, context.Context)
@@ -26,15 +28,23 @@ type ProjectRepository interface {
 type ProjectVersionRepository interface {
 	Create(ctx context.Context, version *models.ProjectVersion) error
 	FindByID(ctx context.Context, id uuid.UUID) (*models.ProjectVersion, error)
+	// ListByProjectID returns versions whose project_id matches (direct lookup)
 	ListByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error)
+	// ListByRootProjectID returns all version entries across the whole chain for a root project,
+	// ordered by version_number ASC.
+	ListByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.ProjectVersion, error)
+	// GetLatestVersionForProject returns the most recent version entry for the given project snapshot.
+	GetLatestVersionForProject(ctx context.Context, projectID uuid.UUID) (*models.ProjectVersion, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-} // added ProjectVersionRepository definitions
+}
 
 // ResourceRepository defines resource repository operations
 type ResourceRepository interface {
 	Create(ctx context.Context, resource *models.Resource) error
 	FindByID(ctx context.Context, id uuid.UUID) (*models.Resource, error)
 	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.Resource, error)
+	// DeleteByProjectID soft-deletes all resources belonging to a project (used for rollback cleanup)
+	DeleteByProjectID(ctx context.Context, projectID uuid.UUID) error
 	CreateContainment(ctx context.Context, parentID, childID uuid.UUID) error
 	CreateDependency(ctx context.Context, dependency *models.ResourceDependency) error
 }

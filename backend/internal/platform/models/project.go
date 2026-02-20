@@ -7,9 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// Project represents a cloud architecture design project
+// Project represents a cloud architecture design project.
+// Projects are immutable snapshots – every update creates a new row.
+// RootProjectID links all versions of the same logical project.
 type Project struct {
 	ID            uuid.UUID      `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	RootProjectID *uuid.UUID     `gorm:"type:uuid;index" json:"root_project_id"` // NULL = this IS the root
 	UserID        uuid.UUID      `gorm:"type:uuid;not null;index" json:"user_id"`
 	InfraToolID   uint           `gorm:"column:infra_tool;not null;index" json:"infra_tool"`
 	Name          string         `gorm:"type:text;not null" json:"name"`
@@ -28,6 +31,7 @@ type Project struct {
 	User               User                 `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user,omitempty"`
 	IACTarget          IACTarget            `gorm:"foreignKey:InfraToolID" json:"iac_target,omitempty"`
 	Resources          []Resource           `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"resources,omitempty"`
+	Versions           []ProjectVersion     `gorm:"foreignKey:ProjectID" json:"versions,omitempty"`
 	ProjectPricing     []ProjectPricing     `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"project_pricing,omitempty"`
 	ServicePricing     []ServicePricing     `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"service_pricing,omitempty"`
 	ServiceTypePricing []ServiceTypePricing `gorm:"foreignKey:ProjectID;constraint:OnDelete:CASCADE" json:"service_type_pricing,omitempty"`

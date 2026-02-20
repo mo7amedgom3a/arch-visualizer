@@ -26,6 +26,8 @@ definitions:
         $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition'
       type:
         type: string
+      uiState:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodeUIState'
     type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData:
     properties:
@@ -69,6 +71,8 @@ definitions:
         items:
           $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable'
         type: array
+      version_id:
+        type: string
       warnings:
         items:
           $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue'
@@ -155,31 +159,34 @@ definitions:
       "y":
         type: number
     type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest:
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodeUIState:
     properties:
-      edges:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge'
-        type: array
-      nodes:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode'
-        type: array
-      outputs:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput'
-        type: array
-      variables:
-        items:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable'
-        type: array
-    type: object
-  github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest:
-    properties:
-      data:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData'
-      position:
-        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition'
+      dragging:
+        type: boolean
+      focusable:
+        type: boolean
+      height:
+        type: number
+      measured:
+        additionalProperties: true
+        type: object
+      resizing:
+        type: boolean
+      selectable:
+        type: boolean
+      selected:
+        type: boolean
+      style:
+        additionalProperties: true
+        type: object
+      width:
+        type: number
+      x:
+        type: number
+      "y":
+        type: number
+      zIndex:
+        type: integer
     type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationIssue:
     properties:
@@ -514,6 +521,27 @@ definitions:
         description: UnitRate is the rate per unit
         type: number
     type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CreateVersionRequest:
+    properties:
+      edges:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge'
+        type: array
+      message:
+        type: string
+      nodes:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode'
+        type: array
+      outputs:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput'
+        type: array
+      variables:
+        items:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable'
+        type: array
+    type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.FieldDescriptorDTO:
     properties:
       default: {}
@@ -558,6 +586,42 @@ definitions:
         type: array
       total_potential_savings:
         type: number
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      parent_version_id:
+        type: string
+      project_id:
+        type: string
+      state:
+        $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse'
+      version_number:
+        type: integer
+    type: object
+  github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionSummary:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      parent_version_id:
+        type: string
+      project_id:
+        type: string
+      version_number:
+        type: integer
     type: object
   github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ResourceCostEstimate:
     properties:
@@ -1157,7 +1221,7 @@ paths:
       tags:
       - projects
     get:
-      description: Get a project by its ID
+      description: Get a project snapshot by its ID
       parameters:
       - description: Project ID
         in: path
@@ -1192,7 +1256,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update an existing project's details
+      description: In-place update of project metadata (name, description, cloud_provider,
+        region, iac_tool_id). Does NOT create a new version.
       parameters:
       - description: Project ID
         in: path
@@ -1227,12 +1292,13 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Update a project
+      summary: Update project metadata
       tags:
       - projects
   /projects/{id}/architecture:
     get:
-      description: Get full architecture for a project
+      description: Get the full architecture for a project snapshot. For a specific
+        historical state, use GET /projects/{id}/versions/{version_id}.
       parameters:
       - description: Project ID
         in: path
@@ -1257,147 +1323,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Get architecture
-      tags:
-      - projects
-    put:
-      consumes:
-      - application/json
-      description: Save/update full architecture
-      parameters:
-      - description: Project ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Architecture Data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Update architecture
-      tags:
-      - projects
-  /projects/{id}/architecture/nodes/{nodeId}:
-    delete:
-      description: Delete a specific node
-      parameters:
-      - description: Project ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Node ID
-        in: path
-        name: nodeId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Delete architecture node
-      tags:
-      - projects
-    patch:
-      consumes:
-      - application/json
-      description: Update a specific node in architecture
-      parameters:
-      - description: Project ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Node ID
-        in: path
-        name: nodeId
-        required: true
-        type: string
-      - description: Node Data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Update architecture node
-      tags:
-      - projects
-  /projects/{id}/architecture/validate:
-    post:
-      description: Validate project architecture
-      parameters:
-      - description: Project ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Validate architecture
       tags:
       - projects
   /projects/{id}/cost/estimate:
@@ -1556,14 +1481,15 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a copy of an existing project and its architecture
+      description: Create an independent copy of an existing project and its architecture
+        (new root, version 1)
       parameters:
       - description: Project ID
         in: path
         name: id
         required: true
         type: string
-      - description: Duplicate Request (requires 'name')
+      - description: Requires 'name'
         in: body
         name: body
         required: true
@@ -1631,35 +1557,69 @@ paths:
       summary: Generate Infrastructure-as-Code
       tags:
       - Code Generation
-  /projects/{id}/restore:
-    post:
-      consumes:
-      - application/json
-      description: Restore a project to a specific version
+  /projects/{id}/versions:
+    get:
+      description: Returns the full ordered version chain. Any project_id in the lineage
+        may be used.
       parameters:
-      - description: Project ID
+      - description: Project ID (any version in the lineage)
         in: path
         name: id
         required: true
         type: string
-      - description: Restore Request (requires 'versionId')
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionSummary'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List versions
+      tags:
+      - versioning
+    post:
+      consumes:
+      - application/json
+      description: Save a full architecture state as a new immutable snapshot. Returns
+        the version metadata including the new project_id that encodes this snapshot.
+      parameters:
+      - description: Project ID (any version in the lineage)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Architecture state and optional message
         in: body
         name: body
         required: true
         schema:
-          additionalProperties:
-            type: string
-          type: object
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CreateVersionRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail'
+        "400":
+          description: Bad Request
           schema:
             additionalProperties: true
             type: object
-        "400":
-          description: Bad Request
+        "404":
+          description: Not Found
           schema:
             additionalProperties: true
             type: object
@@ -1668,14 +1628,216 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Restore project version
+      summary: Create new version
       tags:
-      - projects
-  /projects/{id}/versions:
-    get:
-      description: Retrieve the history of versions for a project
+      - versioning
+  /projects/{id}/versions/{version_id}:
+    delete:
+      description: Removes a version entry from the chain. The underlying project
+        snapshot is preserved.
       parameters:
       - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version ID
+        in: path
+        name: version_id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete version
+      tags:
+      - versioning
+    get:
+      description: Returns a specific version entry including its full architecture
+        snapshot.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version ID
+        in: path
+        name: version_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get specific version
+      tags:
+      - versioning
+  /projects/{id}/versions/{version_id}/estimate-cost:
+    post:
+      description: Calculate the estimated monthly cost for the architecture of a
+        specific version
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version ID
+        in: path
+        name: version_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ArchitectureCostEstimate'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Estimate cost for a version
+      tags:
+      - versioning
+  /projects/{id}/versions/{version_id}/export/terraform:
+    post:
+      consumes:
+      - application/json
+      description: Generates IaC files for the architecture captured in a specific
+        version
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version ID
+        in: path
+        name: version_id
+        required: true
+        type: string
+      - description: Generation options
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerateCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate IaC for version
+      tags:
+      - versioning
+  /projects/{id}/versions/{version_id}/validate:
+    post:
+      description: Validates the architecture state captured in the specified version.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version ID
+        in: path
+        name: version_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validate version architecture
+      tags:
+      - versioning
+  /projects/{id}/versions/latest:
+    get:
+      description: Returns the latest version in the chain including full architecture
+        state.
+      parameters:
+      - description: Project ID (any version in the lineage)
         in: path
         name: id
         required: true
@@ -1686,10 +1848,14 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail'
         "400":
           description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
           schema:
             additionalProperties: true
             type: object
@@ -1698,9 +1864,9 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Get project versions
+      summary: Get latest version
       tags:
-      - projects
+      - versioning
   /static/cloud-config:
     get:
       description: Get global cloud configurations like regions, instance types, etc.

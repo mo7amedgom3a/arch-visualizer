@@ -1,0 +1,193 @@
+{
+  "nodes": [
+    {
+      "id": "region-1",
+      "type": "containerNode",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "us-east-1",
+        "resourceType": "region",
+        "config": { "name": "us-east-1" },
+        "isVisualOnly": false
+      },
+      "parentId": null,
+      "uiState": {
+        "x": 0, "y": 0, "width": 1100, "height": 700,
+        "style": { "backgroundColor": "#e8f4fd", "border": "2px solid #3498db" },
+        "selectable": true, "focusable": true, "zIndex": 0
+      }
+    },
+    {
+      "id": "vpc-1",
+      "type": "containerNode",
+      "position": { "x": 50, "y": 60 },
+      "data": {
+        "label": "Main VPC",
+        "resourceType": "vpc",
+        "config": {
+          "name": "versioning-demo-vpc",
+          "cidr": "10.0.0.0/16",
+          "regionId": "us-east-1",
+          "enableDnsSupport": true,
+          "enableDnsHostnames": true
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "region-1",
+      "uiState": {
+        "x": 50, "y": 60, "width": 900, "height": 550,
+        "style": { "backgroundColor": "#fef9e7", "border": "2px solid #f39c12" },
+        "selectable": true, "focusable": true, "zIndex": 1
+      }
+    },
+    {
+      "id": "subnet-public-1",
+      "type": "containerNode",
+      "position": { "x": 40, "y": 60 },
+      "data": {
+        "label": "Public Subnet A",
+        "resourceType": "subnet",
+        "config": {
+          "name": "public-subnet-a",
+          "cidr": "10.0.1.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "mapPublicIpOnLaunch": true
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1",
+      "uiState": {
+        "x": 40, "y": 60, "width": 350, "height": 280,
+        "style": { "backgroundColor": "#eafaf1", "border": "1px solid #27ae60" },
+        "selectable": true, "focusable": true, "zIndex": 2
+      }
+    },
+    {
+      "id": "subnet-private-1",
+      "type": "containerNode",
+      "position": { "x": 450, "y": 60 },
+      "data": {
+        "label": "Private Subnet A",
+        "resourceType": "subnet",
+        "config": {
+          "name": "private-subnet-a",
+          "cidr": "10.0.2.0/24",
+          "availabilityZoneId": "us-east-1a",
+          "mapPublicIpOnLaunch": false
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1",
+      "uiState": {
+        "x": 450, "y": 60, "width": 350, "height": 280,
+        "style": { "backgroundColor": "#fdedec", "border": "1px solid #e74c3c" },
+        "selectable": true, "focusable": true, "zIndex": 2
+      }
+    },
+    {
+      "id": "sg-web",
+      "type": "resourceNode",
+      "position": { "x": 30, "y": 30 },
+      "data": {
+        "label": "Web Security Group",
+        "resourceType": "security-group",
+        "config": {
+          "name": "web-sg",
+          "description": "Allow HTTP and SSH",
+          "ingressRules": [
+            { "protocol": "tcp", "fromPort": 80, "toPort": 80, "cidr": "0.0.0.0/0" },
+            { "protocol": "tcp", "fromPort": 22, "toPort": 22, "cidr": "10.0.0.0/8" }
+          ],
+          "egressRules": [
+            { "protocol": "-1", "fromPort": 0, "toPort": 0, "cidr": "0.0.0.0/0" }
+          ]
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "vpc-1",
+      "uiState": {
+        "x": 30, "y": 30, "width": 180, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 3
+      }
+    },
+    {
+      "id": "ec2-web",
+      "type": "resourceNode",
+      "position": { "x": 80, "y": 120 },
+      "data": {
+        "label": "Web Server",
+        "resourceType": "ec2",
+        "config": {
+          "name": "web-server-v1",
+          "instanceType": "t3.micro",
+          "ami": "ami-0c55b159cbfafe1f0",
+          "keyName": "my-key",
+          "securityGroupId": "sg-web"
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "subnet-public-1",
+      "uiState": {
+        "x": 80, "y": 120, "width": 160, "height": 60,
+        "selected": false, "dragging": false,
+        "selectable": true, "focusable": true, "zIndex": 4
+      }
+    },
+    {
+      "id": "s3-assets",
+      "type": "resourceNode",
+      "position": { "x": 600, "y": 20 },
+      "data": {
+        "label": "Assets Bucket",
+        "resourceType": "s3",
+        "config": {
+          "name": "versioning-demo-assets",
+          "versioning": true,
+          "accessControl": "private",
+          "tags": { "Environment": "demo", "Team": "platform" }
+        },
+        "isVisualOnly": false
+      },
+      "parentId": "region-1",
+      "uiState": {
+        "x": 600, "y": 20, "width": 160, "height": 60,
+        "selectable": true, "focusable": true, "zIndex": 3
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-ec2-s3",
+      "source": "ec2-web",
+      "target": "s3-assets",
+      "type": "depends_on",
+      "label": "reads assets"
+    }
+  ],
+  "variables": [
+    {
+      "name": "environment",
+      "type": "string",
+      "value": "production",
+      "description": "Deployment environment"
+    },
+    {
+      "name": "aws_region",
+      "type": "string",
+      "value": "us-east-1",
+      "description": "AWS region"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "vpc_id",
+      "value": "${vpc-1.id}",
+      "description": "The VPC ID"
+    },
+    {
+      "name": "web_server_public_ip",
+      "value": "${ec2-web.public_ip}",
+      "description": "Public IP of the web server"
+    }
+  ]
+}

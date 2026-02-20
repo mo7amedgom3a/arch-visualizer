@@ -105,17 +105,17 @@ type mockProjectService struct {
 	loadArchFunc               func(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error)
 	getProjectPricingFunc      func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectPricing, error)
 	listFunc                   func(ctx context.Context, userID uuid.UUID, page, limit int, sort, order, search string) ([]*models.Project, int64, error)
-	duplicateFunc              func(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, error)
-	getVersionsFunc            func(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error)
-	restoreVersionFunc         func(ctx context.Context, versionID uuid.UUID) (*models.Project, error)
-	updateFunc                 func(ctx context.Context, project *models.Project) error
+	duplicateFunc              func(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, *models.ProjectVersion, error)
+	updateMetadataFunc         func(ctx context.Context, project *models.Project) (*models.Project, error)
 	deleteFunc                 func(ctx context.Context, id uuid.UUID) error
-	// New methods
-	getArchFunc      func(ctx context.Context, projectID uuid.UUID) (*dto.ArchitectureResponse, error)
-	saveArchFunc     func(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*dto.ArchitectureResponse, error)
-	updateNodeFunc   func(ctx context.Context, projectID uuid.UUID, nodeID string, req *dto.UpdateNodeRequest) (*dto.ArchitectureNode, error)
-	deleteNodeFunc   func(ctx context.Context, projectID uuid.UUID, nodeID string) error
-	validateArchFunc func(ctx context.Context, projectID uuid.UUID) (*dto.ValidationResponse, error)
+	getArchFunc                func(ctx context.Context, projectID uuid.UUID) (*dto.ArchitectureResponse, error)
+	// Version CRUD
+	createVersionFunc       func(ctx context.Context, projectID uuid.UUID, req *serverinterfaces.CreateVersionRequest) (*serverinterfaces.ProjectVersionDetail, error)
+	getVersionsFunc         func(ctx context.Context, projectID uuid.UUID) ([]*serverinterfaces.ProjectVersionSummary, error)
+	getLatestVersionFunc    func(ctx context.Context, projectID uuid.UUID) (*serverinterfaces.ProjectVersionDetail, error)
+	getVersionByIDFunc      func(ctx context.Context, projectID, versionID uuid.UUID) (*serverinterfaces.ProjectVersionDetail, error)
+	deleteVersionFunc       func(ctx context.Context, projectID, versionID uuid.UUID) error
+	validateVersionArchFunc func(ctx context.Context, versionID uuid.UUID) (*dto.ValidationResponse, error)
 }
 
 func (m *mockProjectService) Create(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error) {
@@ -181,39 +181,72 @@ func (m *mockProjectService) List(ctx context.Context, userID uuid.UUID, page, l
 	return []*models.Project{}, 0, nil
 }
 
-func (m *mockProjectService) Duplicate(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, error) {
+func (m *mockProjectService) Duplicate(ctx context.Context, projectID uuid.UUID, name string) (*models.Project, *models.ProjectVersion, error) {
 	if m.duplicateFunc != nil {
 		return m.duplicateFunc(ctx, projectID, name)
 	}
-	return &models.Project{ID: uuid.New(), Name: name}, nil
+	project := &models.Project{ID: uuid.New(), Name: name}
+	version := &models.ProjectVersion{ID: uuid.New(), ProjectID: project.ID, VersionNumber: 1}
+	return project, version, nil
 }
 
-func (m *mockProjectService) GetVersions(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectVersion, error) {
+func (m *mockProjectService) GetVersions(ctx context.Context, projectID uuid.UUID) ([]*serverinterfaces.ProjectVersionSummary, error) {
 	if m.getVersionsFunc != nil {
 		return m.getVersionsFunc(ctx, projectID)
 	}
-	return []*models.ProjectVersion{}, nil
+	return []*serverinterfaces.ProjectVersionSummary{}, nil
 }
 
-func (m *mockProjectService) RestoreVersion(ctx context.Context, versionID uuid.UUID) (*models.Project, error) {
-	if m.restoreVersionFunc != nil {
-		return m.restoreVersionFunc(ctx, versionID)
+func (m *mockProjectService) CreateVersion(ctx context.Context, projectID uuid.UUID, req *serverinterfaces.CreateVersionRequest) (*serverinterfaces.ProjectVersionDetail, error) {
+	if m.createVersionFunc != nil {
+		return m.createVersionFunc(ctx, projectID, req)
 	}
-	return &models.Project{ID: uuid.New()}, nil
+	return &serverinterfaces.ProjectVersionDetail{
+		ProjectVersionSummary: serverinterfaces.ProjectVersionSummary{
+			ID:            uuid.New(),
+			ProjectID:     projectID,
+			VersionNumber: 1,
+		},
+	}, nil
 }
 
-func (m *mockProjectService) Update(ctx context.Context, project *models.Project) error {
-	if m.updateFunc != nil {
-		return m.updateFunc(ctx, project)
+func (m *mockProjectService) GetLatestVersion(ctx context.Context, projectID uuid.UUID) (*serverinterfaces.ProjectVersionDetail, error) {
+	if m.getLatestVersionFunc != nil {
+		return m.getLatestVersionFunc(ctx, projectID)
+	}
+	return &serverinterfaces.ProjectVersionDetail{
+		ProjectVersionSummary: serverinterfaces.ProjectVersionSummary{ID: uuid.New(), ProjectID: projectID, VersionNumber: 1},
+	}, nil
+}
+
+func (m *mockProjectService) GetVersionByID(ctx context.Context, projectID, versionID uuid.UUID) (*serverinterfaces.ProjectVersionDetail, error) {
+	if m.getVersionByIDFunc != nil {
+		return m.getVersionByIDFunc(ctx, projectID, versionID)
+	}
+	return &serverinterfaces.ProjectVersionDetail{
+		ProjectVersionSummary: serverinterfaces.ProjectVersionSummary{ID: versionID, ProjectID: projectID, VersionNumber: 1},
+	}, nil
+}
+
+func (m *mockProjectService) DeleteVersion(ctx context.Context, projectID, versionID uuid.UUID) error {
+	if m.deleteVersionFunc != nil {
+		return m.deleteVersionFunc(ctx, projectID, versionID)
 	}
 	return nil
 }
 
-func (m *mockProjectService) Delete(ctx context.Context, id uuid.UUID) error {
-	if m.deleteFunc != nil {
-		return m.deleteFunc(ctx, id)
+func (m *mockProjectService) UpdateMetadata(ctx context.Context, project *models.Project) (*models.Project, error) {
+	if m.updateMetadataFunc != nil {
+		return m.updateMetadataFunc(ctx, project)
 	}
-	return nil
+	return project, nil
+}
+
+func (m *mockProjectService) ValidateVersionArchitecture(ctx context.Context, versionID uuid.UUID) (*dto.ValidationResponse, error) {
+	if m.validateVersionArchFunc != nil {
+		return m.validateVersionArchFunc(ctx, versionID)
+	}
+	return &dto.ValidationResponse{Valid: true, Errors: []dto.ValidationIssue{}, Warnings: []dto.ValidationIssue{}}, nil
 }
 
 func (m *mockProjectService) GetArchitecture(ctx context.Context, projectID uuid.UUID) (*dto.ArchitectureResponse, error) {
@@ -223,48 +256,11 @@ func (m *mockProjectService) GetArchitecture(ctx context.Context, projectID uuid
 	return &dto.ArchitectureResponse{}, nil
 }
 
-func (m *mockProjectService) SaveArchitecture(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*dto.ArchitectureResponse, error) {
-	if m.saveArchFunc != nil {
-		return m.saveArchFunc(ctx, projectID, req)
-	}
-	return &dto.ArchitectureResponse{}, nil
-}
-
-func (m *mockProjectService) UpdateNode(ctx context.Context, projectID uuid.UUID, nodeID string, req *dto.UpdateNodeRequest) (*dto.ArchitectureNode, error) {
-	if m.updateNodeFunc != nil {
-		return m.updateNodeFunc(ctx, projectID, nodeID, req)
-	}
-	return &dto.ArchitectureNode{}, nil
-}
-
-func (m *mockProjectService) DeleteNode(ctx context.Context, projectID uuid.UUID, nodeID string) error {
-	if m.deleteNodeFunc != nil {
-		return m.deleteNodeFunc(ctx, projectID, nodeID)
+func (m *mockProjectService) Delete(ctx context.Context, id uuid.UUID) error {
+	if m.deleteFunc != nil {
+		return m.deleteFunc(ctx, id)
 	}
 	return nil
-}
-
-func (m *mockProjectService) ValidateArchitecture(ctx context.Context, projectID uuid.UUID) (*dto.ValidationResponse, error) {
-	if m.validateArchFunc != nil {
-		return m.validateArchFunc(ctx, projectID)
-	}
-	return &dto.ValidationResponse{Valid: true}, nil
-}
-
-func (m *mockProjectService) GenerateCode(ctx context.Context, projectID uuid.UUID, req *dto.GenerateCodeRequest) (*dto.GenerationResponse, error) {
-	return &dto.GenerationResponse{}, nil
-}
-
-func (m *mockProjectService) GetGenerations(ctx context.Context, projectID uuid.UUID) ([]*dto.GenerationResponse, error) {
-	return []*dto.GenerationResponse{}, nil
-}
-
-func (m *mockProjectService) GetGeneration(ctx context.Context, generationID uuid.UUID) (*dto.GenerationResponse, error) {
-	return &dto.GenerationResponse{}, nil
-}
-
-func (m *mockProjectService) DownloadGeneration(ctx context.Context, generationID uuid.UUID) (string, error) {
-	return "", nil
 }
 
 func TestPipelineOrchestrator_ProcessDiagram(t *testing.T) {

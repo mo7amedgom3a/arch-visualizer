@@ -768,7 +768,7 @@ const docTemplate = `{
         },
         "/projects/{id}": {
             "get": {
-                "description": "Get a project by its ID",
+                "description": "Get a project snapshot by its ID",
                 "produces": [
                     "application/json"
                 ],
@@ -816,7 +816,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "Update an existing project's details",
+                "description": "In-place update of project metadata (name, description, cloud_provider, region, iac_tool_id). Does NOT create a new version.",
                 "consumes": [
                     "application/json"
                 ],
@@ -826,7 +826,7 @@ const docTemplate = `{
                 "tags": [
                     "projects"
                 ],
-                "summary": "Update a project",
+                "summary": "Update project metadata",
                 "parameters": [
                     {
                         "type": "string",
@@ -913,7 +913,7 @@ const docTemplate = `{
         },
         "/projects/{id}/architecture": {
             "get": {
-                "description": "Get full architecture for a project",
+                "description": "Get the full architecture for a project snapshot. For a specific historical state, use GET /projects/{id}/versions/{version_id}.",
                 "produces": [
                     "application/json"
                 ],
@@ -935,213 +935,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Save/update full architecture",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "projects"
-                ],
-                "summary": "Update architecture",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Architecture Data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/projects/{id}/architecture/nodes/{nodeId}": {
-            "delete": {
-                "description": "Delete a specific node",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "projects"
-                ],
-                "summary": "Delete architecture node",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Node ID",
-                        "name": "nodeId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "description": "Update a specific node in architecture",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "projects"
-                ],
-                "summary": "Update architecture node",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Node ID",
-                        "name": "nodeId",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Node Data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/projects/{id}/architecture/validate": {
-            "post": {
-                "description": "Validate project architecture",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "projects"
-                ],
-                "summary": "Validate architecture",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse"
                         }
                     },
                     "400": {
@@ -1392,7 +1185,7 @@ const docTemplate = `{
         },
         "/projects/{id}/duplicate": {
             "post": {
-                "description": "Create a copy of an existing project and its architecture",
+                "description": "Create an independent copy of an existing project and its architecture (new root, version 1)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1412,7 +1205,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Duplicate Request (requires 'name')",
+                        "description": "Requires 'name'",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1508,46 +1301,33 @@ const docTemplate = `{
                 }
             }
         },
-        "/projects/{id}/restore": {
-            "post": {
-                "description": "Restore a project to a specific version",
-                "consumes": [
-                    "application/json"
-                ],
+        "/projects/{id}/versions": {
+            "get": {
+                "description": "Returns the full ordered version chain. Any project_id in the lineage may be used.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "projects"
+                    "versioning"
                 ],
-                "summary": "Restore project version",
+                "summary": "List versions",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
+                        "description": "Project ID (any version in the lineage)",
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Restore Request (requires 'versionId')",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionSummary"
+                            }
                         }
                     },
                     "400": {
@@ -1565,22 +1345,82 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/projects/{id}/versions": {
-            "get": {
-                "description": "Retrieve the history of versions for a project",
+            },
+            "post": {
+                "description": "Save a full architecture state as a new immutable snapshot. Returns the version metadata including the new project_id that encodes this snapshot.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "projects"
+                    "versioning"
                 ],
-                "summary": "Get project versions",
+                "summary": "Create new version",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Project ID",
+                        "description": "Project ID (any version in the lineage)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Architecture state and optional message",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CreateVersionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/versions/latest": {
+            "get": {
+                "description": "Returns the latest version in the chain including full architecture state.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Get latest version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID (any version in the lineage)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1590,12 +1430,309 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/versions/{version_id}": {
+            "get": {
+                "description": "Returns a specific version entry including its full architecture snapshot.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Get specific version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Removes a version entry from the chain. The underlying project snapshot is preserved.",
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Delete version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/versions/{version_id}/estimate-cost": {
+            "post": {
+                "description": "Calculate the estimated monthly cost for the architecture of a specific version",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Estimate cost for a version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ArchitectureCostEstimate"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/versions/{version_id}/export/terraform": {
+            "post": {
+                "description": "Generates IaC files for the architecture captured in a specific version",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Generate IaC for version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Generation options",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerateCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.GenerationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/projects/{id}/versions/{version_id}/validate": {
+            "post": {
+                "description": "Validates the architecture state captured in the specified version.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Validate version architecture",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ValidationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1901,6 +2038,9 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                },
+                "uiState": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodeUIState"
                 }
             }
         },
@@ -1966,6 +2106,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable"
                     }
+                },
+                "version_id": {
+                    "type": "string"
                 },
                 "warnings": {
                     "type": "array",
@@ -2097,43 +2240,46 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateArchitectureRequest": {
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodeUIState": {
             "type": "object",
             "properties": {
-                "edges": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge"
-                    }
+                "dragging": {
+                    "type": "boolean"
                 },
-                "nodes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
-                    }
+                "focusable": {
+                    "type": "boolean"
                 },
-                "outputs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput"
-                    }
+                "height": {
+                    "type": "number"
                 },
-                "variables": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable"
-                    }
-                }
-            }
-        },
-        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.UpdateNodeRequest": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNodeData"
+                "measured": {
+                    "type": "object",
+                    "additionalProperties": true
                 },
-                "position": {
-                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.NodePosition"
+                "resizing": {
+                    "type": "boolean"
+                },
+                "selectable": {
+                    "type": "boolean"
+                },
+                "selected": {
+                    "type": "boolean"
+                },
+                "style": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "width": {
+                    "type": "number"
+                },
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                },
+                "zIndex": {
+                    "type": "integer"
                 }
             }
         },
@@ -2622,6 +2768,38 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.CreateVersionRequest": {
+            "type": "object",
+            "properties": {
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureEdge"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureNode"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureOutput"
+                    }
+                },
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureVariable"
+                    }
+                }
+            }
+        },
         "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.FieldDescriptorDTO": {
             "type": "object",
             "properties": {
@@ -2687,6 +2865,61 @@ const docTemplate = `{
                 },
                 "total_potential_savings": {
                     "type": "number"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionDetail": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "parent_version_id": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse"
+                },
+                "version_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_mo7amedgom3a_arch-visualizer_backend_internal_platform_server_interfaces.ProjectVersionSummary": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "parent_version_id": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "version_number": {
+                    "type": "integer"
                 }
             }
         },
