@@ -411,6 +411,37 @@ func (ctrl *ProjectController) GetVersionDetail(c *gin.Context) {
 	c.JSON(http.StatusOK, detail)
 }
 
+// GetVersionArchitecture returns the architecture snapshot of a specific version.
+// @Summary      Get architecture for version
+// @Description  Returns the full architecture state captured in a specific version.
+// @Tags         versioning
+// @Produce      json
+// @Param        id          path      string  true  "Project ID"
+// @Param        version_id  path      string  true  "Version ID"
+// @Success      200         {object}  dto.ArchitectureResponse
+// @Failure      400         {object}  map[string]interface{}
+// @Failure      404         {object}  map[string]interface{}
+// @Failure      500         {object}  map[string]interface{}
+// @Router       /projects/{id}/versions/{version_id}/architecture [get]
+func (ctrl *ProjectController) GetVersionArchitecture(c *gin.Context) {
+	id, ok := parseID(c, "id")
+	if !ok {
+		return
+	}
+	versionID, ok := parseID(c, "version_id")
+	if !ok {
+		return
+	}
+
+	// GetVersionDetail already returns the version along with the State field (dto.ArchitectureResponse)
+	detail, err := ctrl.projectService.GetVersionByID(c.Request.Context(), id, versionID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get version: " + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, detail.State)
+}
+
 // DeleteVersion removes a version entry (does not delete the snapshot itself).
 // @Summary      Delete version
 // @Description  Removes a version entry from the chain. The underlying project snapshot is preserved.

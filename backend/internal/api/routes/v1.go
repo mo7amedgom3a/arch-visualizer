@@ -61,6 +61,7 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 				versions.GET("", projectCtrl.ListVersions)
 				versions.GET("/latest", projectCtrl.GetLatestVersion)
 				versions.GET("/:version_id", projectCtrl.GetVersionDetail)
+				versions.GET("/:version_id/architecture", projectCtrl.GetVersionArchitecture)
 				versions.DELETE("/:version_id", projectCtrl.DeleteVersion)
 
 				// Version-scoped utility actions

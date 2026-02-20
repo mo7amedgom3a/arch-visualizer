@@ -1706,6 +1706,45 @@ paths:
       summary: Get specific version
       tags:
       - versioning
+  /projects/{id}/versions/{version_id}/architecture:
+    get:
+      description: Returns the full architecture state captured in a specific version.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Version ID
+        in: path
+        name: version_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get architecture for version
+      tags:
+      - versioning
   /projects/{id}/versions/{version_id}/estimate-cost:
     post:
       description: Calculate the estimated monthly cost for the architecture of a

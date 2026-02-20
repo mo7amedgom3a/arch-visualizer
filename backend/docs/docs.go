@@ -1563,6 +1563,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/projects/{id}/versions/{version_id}/architecture": {
+            "get": {
+                "description": "Returns the full architecture state captured in a specific version.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "versioning"
+                ],
+                "summary": "Get architecture for version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Version ID",
+                        "name": "version_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_mo7amedgom3a_arch-visualizer_backend_internal_api_dto.ArchitectureResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/projects/{id}/versions/{version_id}/estimate-cost": {
             "post": {
                 "description": "Calculate the estimated monthly cost for the architecture of a specific version",
