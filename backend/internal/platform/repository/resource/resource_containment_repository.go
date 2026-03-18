@@ -1,8 +1,9 @@
 package resourcerepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
+
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 
 	"github.com/google/uuid"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
@@ -55,3 +56,13 @@ func (r *ResourceContainmentRepository) FindParents(ctx context.Context, childID
 	return items, err
 }
 
+// FindByProjectID returns all containment relationships for resources belonging to a project.
+// This is a bulk query used by LoadArchitecture to avoid N+1 per-resource queries.
+func (r *ResourceContainmentRepository) FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ResourceContainment, error) {
+	var items []*models.ResourceContainment
+	err := r.GetDB(ctx).
+		Joins("JOIN resources ON resources.id = resource_containments.parent_resource_id").
+		Where("resources.project_id = ?", projectID).
+		Find(&items).Error
+	return items, err
+}

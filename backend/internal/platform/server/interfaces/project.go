@@ -125,25 +125,3 @@ type ArchitecturePersistResult struct {
 	ResourceIDMapping map[string]uuid.UUID      `json:"resource_id_mapping"`
 	PricingEstimate   *ArchitectureCostEstimate `json:"pricing_estimate,omitempty"`
 }
-
-// ── Kept for backward compatibility with orchestrator types ──────────────────
-
-// VersionedOperationResult is kept because the orchestrator test mock references it.
-// New code should use ProjectVersionDetail / ProjectVersionSummary instead.
-type VersionedOperationResult struct {
-	NewProjectID  uuid.UUID `json:"project_id"`
-	VersionID     uuid.UUID `json:"version_id"`
-	VersionNumber int       `json:"version_number"`
-}
-
-// VersionedArchitectureResult is kept for scenario20 runner compat.
-type VersionedArchitectureResult struct {
-	VersionedOperationResult
-	Architecture *dto.ArchitectureResponse `json:"architecture"`
-}
-
-// VersionedNodeResult is kept for pipeline_test.go mock compat.
-type VersionedNodeResult struct {
-	VersionedOperationResult
-	Node *dto.ArchitectureNode `json:"node"`
-}

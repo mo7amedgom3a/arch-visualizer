@@ -24,44 +24,7 @@ import (
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
-	"gorm.io/gorm"
 )
-
-// -- Adapters to fix interface mismatches --
-
-type ProjectRepoAdapter struct {
-	*projectrepo.ProjectRepository
-}
-
-// BeginTransaction matches interface signature (returns interface{})
-func (a *ProjectRepoAdapter) BeginTransaction(ctx context.Context) (interface{}, context.Context) {
-	tx, txCtx := a.ProjectRepository.BeginTransaction(ctx)
-	return tx, txCtx
-}
-
-func (a *ProjectRepoAdapter) CommitTransaction(tx interface{}) error {
-	gormTx, ok := tx.(*gorm.DB)
-	if !ok {
-		return fmt.Errorf("transaction is not *gorm.DB")
-	}
-	return a.ProjectRepository.CommitTransaction(gormTx)
-}
-
-func (a *ProjectRepoAdapter) RollbackTransaction(tx interface{}) error {
-	gormTx, ok := tx.(*gorm.DB)
-	if !ok {
-		return fmt.Errorf("transaction is not *gorm.DB")
-	}
-	return a.ProjectRepository.RollbackTransaction(gormTx)
-}
-
-type DependencyTypeRepoAdapter struct {
-	*resourcerepo.DependencyTypeRepository
-}
-
-func (a *DependencyTypeRepoAdapter) Create(ctx context.Context, depType *models.DependencyType) error {
-	return fmt.Errorf("Create not implemented in adapter (DependencyTypeRepository)")
-}
 
 func main() {
 	if err := run(); err != nil {
@@ -151,23 +114,16 @@ func run() error {
 		}
 	}
 
-	// 3. Initialize Repositories
+	// 3. Initialize Repositories (concrete repos implement interfaces directly — no adapter wrappers needed)
 	logger := slog.Default()
-	projectRepoRaw, err := projectrepo.NewProjectRepository(logger)
+	projectRepo, err := projectrepo.NewProjectRepository(logger)
 	if err != nil {
 		return err
 	}
-	projectRepo := &ProjectRepoAdapter{projectRepoRaw}
-
-	versionRepoRaw, err := projectrepo.NewProjectVersionRepository()
+	versionRepo, err := projectrepo.NewProjectVersionRepository()
 	if err != nil {
 		return err
 	}
-	// Use the adapter from services package if possible, or define locally if needed.
-	// Since we are in main package and importing services, let's try to use services.ProjectVersionRepositoryAdapter?
-	// But struct fields are not exported? No, "Repo" field is exported in services.ProjectVersionRepositoryAdapter
-	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
-
 	resourceRepo, err := resourcerepo.NewResourceRepository(logger)
 	if err != nil {
 		return err
@@ -184,13 +140,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
-	dependencyTypeRepoRaw, err := resourcerepo.NewDependencyTypeRepository()
+	dependencyTypeRepo, err := resourcerepo.NewDependencyTypeRepository()
 	if err != nil {
 		return err
 	}
-	dependencyTypeRepo := &DependencyTypeRepoAdapter{dependencyTypeRepoRaw}
-
 	userRepo, err := userrepo.NewUserRepository()
 	if err != nil {
 		return err
@@ -199,12 +152,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
 	variableRepo, err := projectrepo.NewProjectVariableRepository()
 	if err != nil {
 		return err
 	}
-
 	outputRepo, err := projectrepo.NewProjectOutputRepository()
 	if err != nil {
 		return err
@@ -212,21 +163,21 @@ func run() error {
 
 	// 4. Initialize Services (logger already defined above)
 	diagramService := services.NewDiagramService(logger)
-	// Pass nil for ruleService as we don't need strict rule validation for this simulation
 	architectureService := services.NewArchitectureService(nil, logger)
 	codegenService := services.NewCodegenService(logger)
-	projectService := services.NewProjectService(
-		projectRepo, // Wrapped
-		versionRepo, // Wrapper
+	projectService := services.NewProjectServiceWithPricing(
+		projectRepo,
+		versionRepo,
 		resourceRepo,
 		resourceTypeRepo,
 		containmentRepo,
 		dependencyRepo,
-		dependencyTypeRepo, // Wrapped
+		dependencyTypeRepo,
 		userRepo,
 		iacTargetRepo,
 		variableRepo,
 		outputRepo,
+		nil, // no pricing for simulation
 	)
 
 	// 5. Initialize Orchestrator

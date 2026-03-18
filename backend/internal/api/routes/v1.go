@@ -102,63 +102,19 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 			awsRules.GET("/:service", rulesCtrl.Get)
 		}
 
-		// Networking (backward-compatible)
+		// Networking (backward-compatible route kept)
 		awsNetworking := v1.Group("/aws/networking")
 		{
 			awsNetworking.GET("/schemas", metadataCtrl.ListSchemas)
 			awsNetworking.GET("/schemas/:resource", metadataCtrl.GetSchema)
 		}
 
-		// Compute
-		awsCompute := v1.Group("/aws/compute")
+		// Parameterized AWS service metadata — replaces the former compute/storage/database/iam duplicates.
+		// All service names supported: "compute", "storage", "database", "iam"
+		awsService := v1.Group("/aws/:service")
 		{
-			awsCompute.GET("/schemas", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "compute"})
-				metadataCtrl.ListSchemasByService(c)
-			})
-			awsCompute.GET("/schemas/:resource", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "compute"})
-				metadataCtrl.GetSchemaByService(c)
-			})
-		}
-
-		// Storage
-		awsStorage := v1.Group("/aws/storage")
-		{
-			awsStorage.GET("/schemas", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "storage"})
-				metadataCtrl.ListSchemasByService(c)
-			})
-			awsStorage.GET("/schemas/:resource", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "storage"})
-				metadataCtrl.GetSchemaByService(c)
-			})
-		}
-
-		// Database
-		awsDatabase := v1.Group("/aws/database")
-		{
-			awsDatabase.GET("/schemas", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "database"})
-				metadataCtrl.ListSchemasByService(c)
-			})
-			awsDatabase.GET("/schemas/:resource", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "database"})
-				metadataCtrl.GetSchemaByService(c)
-			})
-		}
-
-		// IAM
-		awsIAM := v1.Group("/aws/iam")
-		{
-			awsIAM.GET("/schemas", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "iam"})
-				metadataCtrl.ListSchemasByService(c)
-			})
-			awsIAM.GET("/schemas/:resource", func(c *gin.Context) {
-				c.Params = append(c.Params, gin.Param{Key: "service", Value: "iam"})
-				metadataCtrl.GetSchemaByService(c)
-			})
+			awsService.GET("/schemas", metadataCtrl.ListSchemasByService)
+			awsService.GET("/schemas/:resource", metadataCtrl.GetSchemaByService)
 		}
 	}
 }

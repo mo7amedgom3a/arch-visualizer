@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
+	"gorm.io/gorm"
 )
 
 // Repository interfaces abstract the platform repositories for dependency injection
@@ -19,9 +20,9 @@ type ProjectRepository interface {
 	FindByRootProjectID(ctx context.Context, rootProjectID uuid.UUID) ([]*models.Project, error)
 	Update(ctx context.Context, project *models.Project) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	BeginTransaction(ctx context.Context) (interface{}, context.Context)
-	CommitTransaction(tx interface{}) error
-	RollbackTransaction(tx interface{}) error
+	BeginTransaction(ctx context.Context) (*gorm.DB, context.Context)
+	CommitTransaction(tx *gorm.DB) error
+	RollbackTransaction(tx *gorm.DB) error
 }
 
 // ProjectVersionRepository defines project version repository operations
@@ -63,7 +64,6 @@ type ResourceConstraintRepository interface {
 // DependencyTypeRepository defines dependency type repository operations
 type DependencyTypeRepository interface {
 	FindByName(ctx context.Context, name string) (*models.DependencyType, error)
-	Create(ctx context.Context, depType *models.DependencyType) error
 }
 
 // UserRepository defines user repository operations
@@ -83,6 +83,8 @@ type ResourceContainmentRepository interface {
 	Create(ctx context.Context, containment *models.ResourceContainment) error
 	FindChildren(ctx context.Context, parentID uuid.UUID) ([]*models.ResourceContainment, error)
 	FindParents(ctx context.Context, childID uuid.UUID) ([]*models.ResourceContainment, error)
+	// FindByProjectID returns all containments for resources belonging to a project (bulk query for N+1 fix)
+	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ResourceContainment, error)
 }
 
 // ResourceDependencyRepository defines dependency repository operations
@@ -90,6 +92,8 @@ type ResourceDependencyRepository interface {
 	Create(ctx context.Context, dependency *models.ResourceDependency) error
 	FindByFromResource(ctx context.Context, fromID uuid.UUID) ([]*models.ResourceDependency, error)
 	FindByToResource(ctx context.Context, toID uuid.UUID) ([]*models.ResourceDependency, error)
+	// FindByProjectID returns all dependencies for resources belonging to a project (bulk query for N+1 fix)
+	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ResourceDependency, error)
 }
 
 // ProjectVariableRepository defines project variable repository operations

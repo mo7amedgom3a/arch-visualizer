@@ -16,12 +16,12 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
 	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
+	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
 )
 
 // Run executes the architecture pipeline test scenario
@@ -92,39 +92,25 @@ func Run(ctx context.Context) error {
 }
 
 func persistProject(ctx context.Context, arch *architecture.Architecture, diagramGraph interface{}) (uuid.UUID, error) {
-	// Initialize repositories with adapters
+	// Initialize repositories (concrete repos implement interfaces directly — no adapter wrappers needed)
 	logger := slog.Default()
 
-	// Base repositories
-	projectBase, _ := projectrepo.NewProjectRepository(logger)
-	resourceBase, _ := resourcerepo.NewResourceRepository(logger)
-	verBase, _ := projectrepo.NewProjectVersionRepository()
-	resTypeBase, _ := resourcerepo.NewResourceTypeRepository()
-	contBase, _ := resourcerepo.NewResourceContainmentRepository()
-	depBase, _ := resourcerepo.NewResourceDependencyRepository()
-	depTypeBase, _ := resourcerepo.NewDependencyTypeRepository()
-	userBase, _ := userrepo.NewUserRepository()
-	iacBase, _ := infrastructurerepo.NewIACTargetRepository()
-	varBase, _ := projectrepo.NewProjectVariableRepository()
-	outBase, _ := projectrepo.NewProjectOutputRepository()
-
-	// Adapters
-	projectRepo := &services.ProjectRepositoryAdapter{Repo: projectBase}
-	resourceRepo := &services.ResourceRepositoryAdapter{Repo: resourceBase}
-	verRepo := &services.ProjectVersionRepositoryAdapter{Repo: verBase}
-	resTypeRepo := &services.ResourceTypeRepositoryAdapter{Repo: resTypeBase}
-	contRepo := &services.ResourceContainmentRepositoryAdapter{Repo: contBase}
-	depRepo := &services.ResourceDependencyRepositoryAdapter{Repo: depBase}
-	depTypeRepo := &services.DependencyTypeRepositoryAdapter{Repo: depTypeBase}
-	userRepo := &services.UserRepositoryAdapter{Repo: userBase}
-	iacRepo := &services.IACTargetRepositoryAdapter{Repo: iacBase}
-	varRepo := &services.ProjectVariableRepositoryAdapter{Repo: varBase}
-	outRepo := &services.ProjectOutputRepositoryAdapter{Repo: outBase}
+	projectRepo, _ := projectrepo.NewProjectRepository(logger)
+	resourceRepo, _ := resourcerepo.NewResourceRepository(logger)
+	versionRepo, _ := projectrepo.NewProjectVersionRepository()
+	resTypeRepo, _ := resourcerepo.NewResourceTypeRepository()
+	contRepo, _ := resourcerepo.NewResourceContainmentRepository()
+	depRepo, _ := resourcerepo.NewResourceDependencyRepository()
+	depTypeRepo, _ := resourcerepo.NewDependencyTypeRepository()
+	userRepo, _ := userrepo.NewUserRepository()
+	iacRepo, _ := infrastructurerepo.NewIACTargetRepository()
+	varRepo, _ := projectrepo.NewProjectVariableRepository()
+	outRepo, _ := projectrepo.NewProjectOutputRepository()
 
 	// Initialize Service
-	projectService := services.NewProjectService(
-		projectRepo, verRepo, resourceRepo, resTypeRepo,
-		contRepo, depRepo, depTypeRepo, userRepo, iacRepo, varRepo, outRepo,
+	projectService := services.NewProjectServiceWithPricing(
+		projectRepo, versionRepo, resourceRepo, resTypeRepo,
+		contRepo, depRepo, depTypeRepo, userRepo, iacRepo, varRepo, outRepo, nil,
 	)
 
 	// Ensure user exists

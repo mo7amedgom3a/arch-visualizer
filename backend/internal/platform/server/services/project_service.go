@@ -34,37 +34,7 @@ type ProjectServiceImpl struct {
 	pricingService     serverinterfaces.PricingService
 }
 
-// NewProjectService creates a new project service
-func NewProjectService(
-	projectRepo serverinterfaces.ProjectRepository,
-	versionRepo serverinterfaces.ProjectVersionRepository,
-	resourceRepo serverinterfaces.ResourceRepository,
-	resourceTypeRepo serverinterfaces.ResourceTypeRepository,
-	containmentRepo serverinterfaces.ResourceContainmentRepository,
-	dependencyRepo serverinterfaces.ResourceDependencyRepository,
-	dependencyTypeRepo serverinterfaces.DependencyTypeRepository,
-	userRepo serverinterfaces.UserRepository,
-	iacTargetRepo serverinterfaces.IACTargetRepository,
-	variableRepo serverinterfaces.ProjectVariableRepository,
-	outputRepo serverinterfaces.ProjectOutputRepository,
-) serverinterfaces.ProjectService {
-	return &ProjectServiceImpl{
-		projectRepo:        projectRepo,
-		versionRepo:        versionRepo,
-		resourceRepo:       resourceRepo,
-		resourceTypeRepo:   resourceTypeRepo,
-		containmentRepo:    containmentRepo,
-		dependencyRepo:     dependencyRepo,
-		dependencyTypeRepo: dependencyTypeRepo,
-		userRepo:           userRepo,
-		iacTargetRepo:      iacTargetRepo,
-		variableRepo:       variableRepo,
-		outputRepo:         outputRepo,
-		pricingService:     nil, // Will be set via SetPricingService
-	}
-}
-
-// NewProjectServiceWithPricing creates a new project service with pricing support
+// NewProjectServiceWithPricing creates a new project service with all dependencies.
 func NewProjectServiceWithPricing(
 	projectRepo serverinterfaces.ProjectRepository,
 	versionRepo serverinterfaces.ProjectVersionRepository,
@@ -95,10 +65,7 @@ func NewProjectServiceWithPricing(
 	}
 }
 
-// SetPricingService sets the pricing service (for backward compatibility)
-func (s *ProjectServiceImpl) SetPricingService(pricingService serverinterfaces.PricingService) {
-	s.pricingService = pricingService
-}
+// ── Project CRUD ──────────────────────────────────────────────────────────────
 
 // Create creates a new project
 func (s *ProjectServiceImpl) Create(ctx context.Context, req *serverinterfaces.CreateProjectRequest) (*models.Project, error) {
@@ -134,283 +101,34 @@ func (s *ProjectServiceImpl) List(ctx context.Context, userID uuid.UUID, page, l
 	return s.projectRepo.FindAll(ctx, userID, page, limit, sort, order, search)
 }
 
-// Update updates an existing project
-func (s *ProjectServiceImpl) Update(ctx context.Context, project *models.Project) error {
-	if project == nil {
-		return fmt.Errorf("project is nil")
-	}
-	// Add validation logic here if needed
-	return s.projectRepo.Update(ctx, project)
-}
-
 // Delete deletes a project by ID
 func (s *ProjectServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.projectRepo.Delete(ctx, id)
 }
 
-// PersistArchitecture persists an architecture to the database as part of a project
-func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error {
-	if arch == nil {
-		return fmt.Errorf("architecture is nil")
-	}
+// ── Architecture persistence ──────────────────────────────────────────────────
 
-	// Start transaction
-	tx, txCtx := s.projectRepo.BeginTransaction(ctx)
-	defer func() {
-		if r := recover(); r != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			panic(r)
-		}
-	}()
-
-	// Build ID mapping: domain resource ID -> database resource UUID
+// persistResources is the shared core write path used by both PersistArchitecture and
+// PersistArchitectureWithPricing. It runs INSIDE an existing transaction (txCtx must carry
+// the *gorm.DB set by BeginTransaction).
+//
+// Returns: domainID (string) → DB uuid mapping, or error (caller must rollback on error).
+func (s *ProjectServiceImpl) persistResources(
+	txCtx context.Context,
+	tx *gorm.DB,
+	projectID uuid.UUID,
+	arch *architecture.Architecture,
+	diagramGraph interface{},
+) (map[string]uuid.UUID, error) {
 	domainIDToDBID := make(map[string]uuid.UUID)
-	resourceTypeCache := make(map[string]uint) // cache resource type IDs
+	resourceTypeCache := make(map[string]uint)
 
-	// Create resources
+	// ── Create resources ──────────────────────────────────────────────────────
 	for _, res := range arch.Resources {
-		// Get or cache resource type ID
 		resourceTypeID, ok := resourceTypeCache[res.Type.Name]
 		if !ok {
 			resourceType, err := s.resourceTypeRepo.FindByNameAndProvider(txCtx, res.Type.Name, string(arch.Provider))
 			if err != nil {
-				// Create resource type if not exists
-				// Note: This requires direct DB access, which we'll need to handle
-				// For now, return error if resource type doesn't exist
-				s.projectRepo.RollbackTransaction(tx)
-				return fmt.Errorf("resource type %s not found for provider %s: %w", res.Type.Name, arch.Provider, err)
-			}
-			resourceTypeID = resourceType.ID
-			resourceTypeCache[res.Type.Name] = resourceTypeID
-		}
-
-		// Extract UI State
-		var uiState *models.ResourceUIState
-		if ui, ok := res.Metadata["ui"].(*graph.UIState); ok && ui != nil {
-			styleJSON, _ := json.Marshal(ui.Style)
-			measuredJSON, _ := json.Marshal(ui.Measured)
-
-			uiState = &models.ResourceUIState{
-				X:          ui.Position.X,
-				Y:          ui.Position.Y,
-				Width:      ui.Width,
-				Height:     ui.Height,
-				Style:      datatypes.JSON(styleJSON),
-				Measured:   datatypes.JSON(measuredJSON),
-				Selected:   ui.Selected,
-				Dragging:   ui.Dragging,
-				Resizing:   ui.Resizing,
-				Focusable:  ui.Focusable,
-				Selectable: ui.Selectable,
-				ZIndex:     ui.ZIndex,
-			}
-		}
-
-		// Get isVisualOnly from metadata
-		isVisualOnly := false
-		if v, ok := res.Metadata["isVisualOnly"].(bool); ok {
-			isVisualOnly = v
-		}
-
-		// Convert metadata to JSON
-		configJSON, err := json.Marshal(res.Metadata)
-		if err != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			return fmt.Errorf("marshal resource config: %w", err)
-		}
-
-		// Create resource
-		dbResource := &models.Resource{
-			ID:             uuid.New(),
-			OriginalID:     res.ID, // Store original frontend node ID for reference resolution
-			ProjectID:      projectID,
-			ResourceTypeID: resourceTypeID,
-			Name:           res.Name,
-			UIState:        uiState,
-			IsVisualOnly:   isVisualOnly,
-			Config:         datatypes.JSON(configJSON),
-		}
-		if err := s.resourceRepo.Create(txCtx, dbResource); err != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			return fmt.Errorf("create resource %s: %w", res.Name, err)
-		}
-
-		domainIDToDBID[res.ID] = dbResource.ID
-	}
-
-	// Create containment relationships
-	for parentID, childIDs := range arch.Containments {
-		parentDBID, ok := domainIDToDBID[parentID]
-		if !ok {
-			continue
-		}
-		for _, childID := range childIDs {
-			childDBID, ok := domainIDToDBID[childID]
-			if !ok {
-				continue
-			}
-			containment := &models.ResourceContainment{
-				ParentResourceID: parentDBID,
-				ChildResourceID:  childDBID,
-			}
-			if err := s.containmentRepo.Create(txCtx, containment); err != nil {
-				s.projectRepo.RollbackTransaction(tx)
-				return fmt.Errorf("create containment: %w", err)
-			}
-		}
-	}
-
-	// Create dependency relationships
-	// Get or create "depends_on" dependency type
-	dependencyType, err := s.dependencyTypeRepo.FindByName(txCtx, "depends_on")
-	if err != nil {
-		// Create dependency type if it doesn't exist
-		// Note: This requires direct DB access, which we'll need to handle
-		// For now, return error if dependency type doesn't exist
-		s.projectRepo.RollbackTransaction(tx)
-		return fmt.Errorf("dependency type 'depends_on' not found: %w", err)
-	}
-
-	for fromID, toIDs := range arch.Dependencies {
-		fromDBID, ok := domainIDToDBID[fromID]
-		if !ok {
-			continue
-		}
-		for _, toID := range toIDs {
-			toDBID, ok := domainIDToDBID[toID]
-			if !ok {
-				continue
-			}
-			dependency := &models.ResourceDependency{
-				FromResourceID:   fromDBID,
-				ToResourceID:     toDBID,
-				DependencyTypeID: dependencyType.ID,
-			}
-			if err := s.dependencyRepo.Create(txCtx, dependency); err != nil {
-				s.projectRepo.RollbackTransaction(tx)
-				return fmt.Errorf("create dependency: %w", err)
-			}
-		}
-	}
-
-	// Persist Variables
-	if err := s.variableRepo.DeleteByProjectID(txCtx, projectID); err != nil {
-		s.projectRepo.RollbackTransaction(tx)
-		return fmt.Errorf("delete variables: %w", err)
-	}
-	for _, v := range arch.Variables {
-		defaultValueJSON, err := json.Marshal(v.Default)
-		if err != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			return fmt.Errorf("marshal default value: %w", err)
-		}
-		newVar := &models.ProjectVariable{
-			ID:           uuid.New(),
-			ProjectID:    projectID,
-			Name:         v.Name,
-			Type:         v.Type,
-			Description:  v.Description,
-			DefaultValue: datatypes.JSON(defaultValueJSON),
-			Sensitive:    v.Sensitive,
-		}
-		if err := s.variableRepo.Create(txCtx, newVar); err != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			return fmt.Errorf("create variable: %w", err)
-		}
-	}
-
-	// Persist Outputs
-	if err := s.outputRepo.DeleteByProjectID(txCtx, projectID); err != nil {
-		s.projectRepo.RollbackTransaction(tx)
-		return fmt.Errorf("delete outputs: %w", err)
-	}
-	for _, o := range arch.Outputs {
-		newOutput := &models.ProjectOutput{
-			ID:          uuid.New(),
-			ProjectID:   projectID,
-			Name:        o.Name,
-			Value:       o.Value,
-			Description: o.Description,
-			Sensitive:   o.Sensitive,
-		}
-		if err := s.outputRepo.Create(txCtx, newOutput); err != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			return fmt.Errorf("create output: %w", err)
-		}
-	}
-
-	// Persist Project UI State
-	// Persist Project UI State
-	if graph, ok := diagramGraph.(*graph.DiagramGraph); ok && graph.UI != nil {
-		gormTx, ok := tx.(*gorm.DB)
-		if !ok {
-			s.projectRepo.RollbackTransaction(tx)
-			return fmt.Errorf("failed to cast transaction to gorm db")
-		}
-
-		selectedNodeIDs, _ := json.Marshal(graph.UI.SelectedNodeIDs)
-		selectedEdgeIDs, _ := json.Marshal(graph.UI.SelectedEdgeIDs)
-
-		uiState := &models.ProjectUIState{
-			ProjectID:       projectID,
-			Zoom:            graph.UI.Zoom,
-			ViewportX:       graph.UI.ViewportX,
-			ViewportY:       graph.UI.ViewportY,
-			SelectedNodeIDs: datatypes.JSON(selectedNodeIDs),
-			SelectedEdgeIDs: datatypes.JSON(selectedEdgeIDs),
-		}
-
-		// Create or Update
-		var existing models.ProjectUIState
-		if err := gormTx.Where("project_id = ?", projectID).First(&existing).Error; err == nil {
-			uiState.ID = existing.ID
-			if err := gormTx.Save(uiState).Error; err != nil {
-				s.projectRepo.RollbackTransaction(tx)
-				return fmt.Errorf("failed to update project ui state: %w", err)
-			}
-		} else {
-			if err := gormTx.Create(uiState).Error; err != nil {
-				s.projectRepo.RollbackTransaction(tx)
-				return fmt.Errorf("failed to create project ui state: %w", err)
-			}
-		}
-	}
-
-	// Commit transaction
-	if err := s.projectRepo.CommitTransaction(tx); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
-	}
-
-	return nil
-}
-
-// PersistArchitectureWithPricing persists an architecture with pricing calculation
-func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error) {
-	if arch == nil {
-		return nil, fmt.Errorf("architecture is nil")
-	}
-
-	// Start transaction
-	tx, txCtx := s.projectRepo.BeginTransaction(ctx)
-	defer func() {
-		if r := recover(); r != nil {
-			s.projectRepo.RollbackTransaction(tx)
-			panic(r)
-		}
-	}()
-
-	// Build ID mapping: domain resource ID -> database resource UUID
-	domainIDToDBID := make(map[string]uuid.UUID)
-	resourceTypeCache := make(map[string]uint) // cache resource type IDs
-
-	// Create resources
-	for _, res := range arch.Resources {
-		// Get or cache resource type ID
-		resourceTypeID, ok := resourceTypeCache[res.Type.Name]
-		if !ok {
-			resourceType, err := s.resourceTypeRepo.FindByNameAndProvider(txCtx, res.Type.Name, string(arch.Provider))
-			if err != nil {
-				s.projectRepo.RollbackTransaction(tx)
 				return nil, fmt.Errorf("resource type %s not found for provider %s: %w", res.Type.Name, arch.Provider, err)
 			}
 			resourceTypeID = resourceType.ID
@@ -422,7 +140,6 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 		if ui, ok := res.Metadata["ui"].(*graph.UIState); ok && ui != nil {
 			styleJSON, _ := json.Marshal(ui.Style)
 			measuredJSON, _ := json.Marshal(ui.Measured)
-
 			uiState = &models.ResourceUIState{
 				X:          ui.Position.X,
 				Y:          ui.Position.Y,
@@ -439,23 +156,19 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 			}
 		}
 
-		// Get isVisualOnly from metadata
 		isVisualOnly := false
 		if v, ok := res.Metadata["isVisualOnly"].(bool); ok {
 			isVisualOnly = v
 		}
 
-		// Convert metadata to JSON
 		configJSON, err := json.Marshal(res.Metadata)
 		if err != nil {
-			s.projectRepo.RollbackTransaction(tx)
 			return nil, fmt.Errorf("marshal resource config: %w", err)
 		}
 
-		// Create resource
 		dbResource := &models.Resource{
 			ID:             uuid.New(),
-			OriginalID:     res.ID, // Store original frontend node ID for reference resolution
+			OriginalID:     res.ID,
 			ProjectID:      projectID,
 			ResourceTypeID: resourceTypeID,
 			Name:           res.Name,
@@ -464,14 +177,12 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 			Config:         datatypes.JSON(configJSON),
 		}
 		if err := s.resourceRepo.Create(txCtx, dbResource); err != nil {
-			s.projectRepo.RollbackTransaction(tx)
 			return nil, fmt.Errorf("create resource %s: %w", res.Name, err)
 		}
-
 		domainIDToDBID[res.ID] = dbResource.ID
 	}
 
-	// Create containment relationships
+	// ── Create containment relationships ──────────────────────────────────────
 	for parentID, childIDs := range arch.Containments {
 		parentDBID, ok := domainIDToDBID[parentID]
 		if !ok {
@@ -487,16 +198,14 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 				ChildResourceID:  childDBID,
 			}
 			if err := s.containmentRepo.Create(txCtx, containment); err != nil {
-				s.projectRepo.RollbackTransaction(tx)
 				return nil, fmt.Errorf("create containment: %w", err)
 			}
 		}
 	}
 
-	// Create dependency relationships
+	// ── Create dependency relationships ───────────────────────────────────────
 	dependencyType, err := s.dependencyTypeRepo.FindByName(txCtx, "depends_on")
 	if err != nil {
-		s.projectRepo.RollbackTransaction(tx)
 		return nil, fmt.Errorf("dependency type 'depends_on' not found: %w", err)
 	}
 
@@ -516,13 +225,127 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 				DependencyTypeID: dependencyType.ID,
 			}
 			if err := s.dependencyRepo.Create(txCtx, dependency); err != nil {
-				s.projectRepo.RollbackTransaction(tx)
 				return nil, fmt.Errorf("create dependency: %w", err)
 			}
 		}
 	}
 
-	// Commit transaction before pricing calculation
+	// ── Persist Variables ─────────────────────────────────────────────────────
+	if err := s.variableRepo.DeleteByProjectID(txCtx, projectID); err != nil {
+		return nil, fmt.Errorf("delete variables: %w", err)
+	}
+	for _, v := range arch.Variables {
+		defaultValueJSON, err := json.Marshal(v.Default)
+		if err != nil {
+			return nil, fmt.Errorf("marshal default value: %w", err)
+		}
+		newVar := &models.ProjectVariable{
+			ID:           uuid.New(),
+			ProjectID:    projectID,
+			Name:         v.Name,
+			Type:         v.Type,
+			Description:  v.Description,
+			DefaultValue: datatypes.JSON(defaultValueJSON),
+			Sensitive:    v.Sensitive,
+		}
+		if err := s.variableRepo.Create(txCtx, newVar); err != nil {
+			return nil, fmt.Errorf("create variable: %w", err)
+		}
+	}
+
+	// ── Persist Outputs ───────────────────────────────────────────────────────
+	if err := s.outputRepo.DeleteByProjectID(txCtx, projectID); err != nil {
+		return nil, fmt.Errorf("delete outputs: %w", err)
+	}
+	for _, o := range arch.Outputs {
+		newOutput := &models.ProjectOutput{
+			ID:          uuid.New(),
+			ProjectID:   projectID,
+			Name:        o.Name,
+			Value:       o.Value,
+			Description: o.Description,
+			Sensitive:   o.Sensitive,
+		}
+		if err := s.outputRepo.Create(txCtx, newOutput); err != nil {
+			return nil, fmt.Errorf("create output: %w", err)
+		}
+	}
+
+	// ── Persist Project UI State ──────────────────────────────────────────────
+	if dg, ok := diagramGraph.(*graph.DiagramGraph); ok && dg != nil && dg.UI != nil {
+		selectedNodeIDs, _ := json.Marshal(dg.UI.SelectedNodeIDs)
+		selectedEdgeIDs, _ := json.Marshal(dg.UI.SelectedEdgeIDs)
+
+		uiState := &models.ProjectUIState{
+			ProjectID:       projectID,
+			Zoom:            dg.UI.Zoom,
+			ViewportX:       dg.UI.ViewportX,
+			ViewportY:       dg.UI.ViewportY,
+			SelectedNodeIDs: datatypes.JSON(selectedNodeIDs),
+			SelectedEdgeIDs: datatypes.JSON(selectedEdgeIDs),
+		}
+
+		var existing models.ProjectUIState
+		if err := tx.Where("project_id = ?", projectID).First(&existing).Error; err == nil {
+			uiState.ID = existing.ID
+			if err := tx.Save(uiState).Error; err != nil {
+				return nil, fmt.Errorf("failed to update project ui state: %w", err)
+			}
+		} else {
+			if err := tx.Create(uiState).Error; err != nil {
+				return nil, fmt.Errorf("failed to create project ui state: %w", err)
+			}
+		}
+	}
+
+	return domainIDToDBID, nil
+}
+
+// PersistArchitecture persists an architecture to the database.
+func (s *ProjectServiceImpl) PersistArchitecture(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}) error {
+	if arch == nil {
+		return fmt.Errorf("architecture is nil")
+	}
+
+	tx, txCtx := s.projectRepo.BeginTransaction(ctx)
+	defer func() {
+		if r := recover(); r != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			panic(r)
+		}
+	}()
+
+	if _, err := s.persistResources(txCtx, tx, projectID, arch, diagramGraph); err != nil {
+		s.projectRepo.RollbackTransaction(tx)
+		return err
+	}
+
+	if err := s.projectRepo.CommitTransaction(tx); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
+	return nil
+}
+
+// PersistArchitectureWithPricing persists an architecture with optional pricing calculation.
+func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context, projectID uuid.UUID, arch *architecture.Architecture, diagramGraph interface{}, pricingDuration time.Duration) (*serverinterfaces.ArchitecturePersistResult, error) {
+	if arch == nil {
+		return nil, fmt.Errorf("architecture is nil")
+	}
+
+	tx, txCtx := s.projectRepo.BeginTransaction(ctx)
+	defer func() {
+		if r := recover(); r != nil {
+			s.projectRepo.RollbackTransaction(tx)
+			panic(r)
+		}
+	}()
+
+	domainIDToDBID, err := s.persistResources(txCtx, tx, projectID, arch, diagramGraph)
+	if err != nil {
+		s.projectRepo.RollbackTransaction(tx)
+		return nil, err
+	}
+
 	if err := s.projectRepo.CommitTransaction(tx); err != nil {
 		return nil, fmt.Errorf("commit transaction: %w", err)
 	}
@@ -531,24 +354,19 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 		ResourceIDMapping: domainIDToDBID,
 	}
 
-	// Calculate and persist pricing if pricing service is available
+	// ── Calculate and persist pricing (non-blocking) ──────────────────────────
 	if s.pricingService != nil && pricingDuration > 0 {
 		fmt.Println("\n💵 Calculating pricing for resources...")
 		fmt.Println(strings.Repeat("-", 100))
 
-		// Calculate architecture cost
 		archEstimate, err := s.pricingService.CalculateArchitectureCost(ctx, arch, pricingDuration)
 		if err != nil {
-			// Log error but don't fail the operation
-			// Pricing calculation failure shouldn't block architecture persistence
 			fmt.Printf("  ⚠️  Failed to calculate architecture cost: %v\n", err)
 		} else {
 			result.PricingEstimate = archEstimate
 
-			// Log resource costs summary
 			fmt.Printf("  ✓ Calculated pricing for %d resources\n", len(archEstimate.ResourceEstimates))
 			for domainID, resEstimate := range archEstimate.ResourceEstimates {
-				// Find the domain resource to get its details
 				var domainRes *resource.Resource
 				for _, res := range arch.Resources {
 					if res.ID == domainID {
@@ -556,15 +374,11 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 						break
 					}
 				}
-
 				resourceName := resEstimate.ResourceName
 				if domainRes != nil {
 					resourceName = domainRes.Name
 				}
-
-				// Calculate base and hidden costs for display
-				baseCost := 0.0
-				hiddenCost := 0.0
+				baseCost, hiddenCost := 0.0, 0.0
 				for _, comp := range resEstimate.Breakdown {
 					if strings.Contains(comp.ComponentName, "(") && strings.Contains(comp.ComponentName, ")") {
 						hiddenCost += comp.Subtotal
@@ -572,38 +386,29 @@ func (s *ProjectServiceImpl) PersistArchitectureWithPricing(ctx context.Context,
 						baseCost += comp.Subtotal
 					}
 				}
-
 				fmt.Printf("    • %s (%s): $%.2f", resourceName, resEstimate.ResourceType, resEstimate.TotalCost)
 				if hiddenCost > 0 {
 					fmt.Printf(" [Base: $%.2f + Hidden: $%.2f]", baseCost, hiddenCost)
 				}
 				fmt.Println()
+				_ = resEstimate
 			}
 			fmt.Println(strings.Repeat("-", 100))
-			fmt.Printf("  💰 Total Architecture Cost: $%.2f %s\n", archEstimate.TotalCost, archEstimate.Currency)
-			fmt.Println()
+			fmt.Printf("  💰 Total Architecture Cost: $%.2f %s\n\n", archEstimate.TotalCost, archEstimate.Currency)
 
-			// Persist individual resource pricing
+			// Persist per-resource pricing
 			for domainID, dbID := range domainIDToDBID {
-				if resEstimate, ok := archEstimate.ResourceEstimates[domainID]; ok {
-					// Find the domain resource to get its details
-					var domainRes *resource.Resource
-					for _, res := range arch.Resources {
-						if res.ID == domainID {
-							domainRes = res
-							break
-						}
+				var domainRes *resource.Resource
+				for _, res := range arch.Resources {
+					if res.ID == domainID {
+						domainRes = res
+						break
 					}
-
-					if domainRes != nil {
-						// Calculate individual resource cost
-						costEstimate, err := s.pricingService.CalculateResourceCost(ctx, domainRes, pricingDuration)
-						if err == nil {
-							// Persist resource pricing
-							_ = s.pricingService.PersistResourcePricing(ctx, projectID, dbID, costEstimate, string(arch.Provider), arch.Region)
-						}
+				}
+				if domainRes != nil {
+					if costEstimate, err := s.pricingService.CalculateResourceCost(ctx, domainRes, pricingDuration); err == nil {
+						_ = s.pricingService.PersistResourcePricing(ctx, projectID, dbID, costEstimate, string(arch.Provider), arch.Region)
 					}
-					_ = resEstimate // suppress unused warning
 				}
 			}
 
@@ -632,7 +437,8 @@ func (s *ProjectServiceImpl) GetProjectPricing(ctx context.Context, projectID uu
 	return s.pricingService.GetProjectPricing(ctx, projectID)
 }
 
-// LoadArchitecture loads an architecture from the database for a project
+// LoadArchitecture loads an architecture from the database.
+// Uses bulk queries for containments and dependencies to avoid N+1 DB round-trips.
 func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uuid.UUID) (*architecture.Architecture, error) {
 	// Step 1: Load project
 	project, err := s.projectRepo.FindByID(ctx, projectID)
@@ -645,43 +451,40 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 	if err != nil {
 		return nil, fmt.Errorf("failed to load resources: %w", err)
 	}
-	// fmt.Printf("🔍 Loading %d resources for project %s\n", len(dbResources), projectID)
-	// for _, dbRes := range dbResources {
-	// 	fmt.Printf("  - Resource: %s (%s)\n", dbRes.Name, dbRes.ResourceType)
-	// 	fmt.Printf("    Config: %s\n", string(dbRes.Config))
-	// }
-
-	// Step 3: Convert database resources to domain resources
-	domainResources := make([]*resource.Resource, 0, len(dbResources))
-	dbIDToDomainID := make(map[uuid.UUID]string) // DB UUID -> Domain ID
 
 	provider := resource.CloudProvider(project.CloudProvider)
 	if provider == "" {
-		provider = resource.AWS // Default
+		provider = resource.AWS
+	}
+
+	// Step 3: Convert database resources to domain resources
+	domainResources := make([]*resource.Resource, 0, len(dbResources))
+	dbIDToDomainID := make(map[uuid.UUID]string)
+
+	originalIDToName := make(map[string]string)
+	for _, dbRes := range dbResources {
+		if dbRes.OriginalID != "" {
+			originalIDToName[dbRes.OriginalID] = dbRes.Name
+		}
 	}
 
 	for _, dbRes := range dbResources {
-		// Use database UUID as domain resource ID
 		domainID := dbRes.ID.String()
 		dbIDToDomainID[dbRes.ID] = domainID
 
-		// Parse config/metadata from JSON
 		var metadata map[string]interface{}
 		if err := json.Unmarshal(dbRes.Config, &metadata); err != nil {
-			// If unmarshal fails, create empty metadata
 			metadata = make(map[string]interface{})
 		}
 		if metadata == nil {
 			metadata = make(map[string]interface{})
 		}
 
-		// Add UI state to metadata
 		if dbRes.UIState != nil {
 			var style map[string]interface{}
 			var measured map[string]interface{}
 			_ = json.Unmarshal(dbRes.UIState.Style, &style)
 			_ = json.Unmarshal(dbRes.UIState.Measured, &measured)
-
 			metadata["ui"] = &graph.UIState{
 				Position:   graph.Position{X: dbRes.UIState.X, Y: dbRes.UIState.Y},
 				Width:      dbRes.UIState.Width,
@@ -695,32 +498,19 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 				Selectable: dbRes.UIState.Selectable,
 				ZIndex:     dbRes.UIState.ZIndex,
 			}
-			// Backward compatibility: Add position to metadata
-			metadata["position"] = map[string]interface{}{
-				"x": dbRes.UIState.X,
-				"y": dbRes.UIState.Y,
-			}
+			metadata["position"] = map[string]interface{}{"x": dbRes.UIState.X, "y": dbRes.UIState.Y}
 		} else {
-			// Backward compatibility: Default position if UI state is missing
-			metadata["position"] = map[string]interface{}{
-				"x": 0,
-				"y": 0,
-			}
+			metadata["position"] = map[string]interface{}{"x": 0, "y": 0}
 		}
-
 		metadata["isVisualOnly"] = dbRes.IsVisualOnly
+		metadata["_originalIDToName"] = originalIDToName
 
-		// Map resource type
 		resourceType := resource.ResourceType{
 			ID:         dbRes.ResourceType.Name,
 			Name:       dbRes.ResourceType.Name,
-			Category:   "",
-			Kind:       "",
 			IsRegional: dbRes.ResourceType.IsRegional,
 			IsGlobal:   dbRes.ResourceType.IsGlobal,
 		}
-
-		// Get category and kind if available
 		if dbRes.ResourceType.Category != nil {
 			resourceType.Category = dbRes.ResourceType.Category.Name
 		}
@@ -728,136 +518,92 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 			resourceType.Kind = dbRes.ResourceType.Kind.Name
 		}
 
-		domainRes := &resource.Resource{
+		domainResources = append(domainResources, &resource.Resource{
 			ID:        domainID,
 			Name:      dbRes.Name,
 			Type:      resourceType,
 			Provider:  provider,
 			Region:    project.Region,
-			ParentID:  nil,        // Will be set from containments
-			DependsOn: []string{}, // Will be set from dependencies
+			ParentID:  nil,
+			DependsOn: []string{},
 			Metadata:  metadata,
-		}
-
-		domainResources = append(domainResources, domainRes)
+		})
 	}
 
-	// Step 3.5: Build originalID → name mapping for reference resolution in Terraform generation
-	// This allows resolving references like "subnet-5" to the actual resource name "public-1"
-	originalIDToName := make(map[string]string)
-	for _, dbRes := range dbResources {
-		if dbRes.OriginalID != "" {
-			originalIDToName[dbRes.OriginalID] = dbRes.Name
-		}
+	// Step 4: Bulk-load containments (single query, no N+1)
+	allContainments, err := s.containmentRepo.FindByProjectID(ctx, projectID)
+	if err != nil {
+		// Non-fatal — proceed with empty containments
+		allContainments = nil
 	}
 
-	// Inject the mapping into each domain resource's metadata
+	containments := make(map[string][]string)
+	childToParent := make(map[string]string)
+	for _, c := range allContainments {
+		parentID := c.ParentResourceID.String()
+		childID := c.ChildResourceID.String()
+		childToParent[childID] = parentID
+		containments[parentID] = append(containments[parentID], childID)
+	}
+
+	// Set ParentID on domain resources
 	for _, domainRes := range domainResources {
-		if domainRes.Metadata == nil {
-			domainRes.Metadata = make(map[string]interface{})
-		}
-		domainRes.Metadata["_originalIDToName"] = originalIDToName
-	}
-
-	// Step 4: Load containments and build parent-child relationships
-	containments := make(map[string][]string) // parentID -> []childIDs
-	childToParent := make(map[string]string)  // childID -> parentID
-
-	for _, dbRes := range dbResources {
-		childID := dbRes.ID.String()
-		parentContainments, err := s.containmentRepo.FindParents(ctx, dbRes.ID)
-		if err != nil {
-			// Log error but continue
-			continue
-		}
-
-		for _, containment := range parentContainments {
-			// Use ParentResourceID directly (it's always set)
-			parentID := containment.ParentResourceID.String()
-			childToParent[childID] = parentID
-
-			// Add to containments map
-			if _, exists := containments[parentID]; !exists {
-				containments[parentID] = make([]string, 0)
-			}
-			containments[parentID] = append(containments[parentID], childID)
-
-			// Set parent ID on domain resource
-			for _, domainRes := range domainResources {
-				if domainRes.ID == childID {
-					domainRes.ParentID = &parentID
-					break
-				}
-			}
+		if parentID, ok := childToParent[domainRes.ID]; ok {
+			pid := parentID
+			domainRes.ParentID = &pid
 		}
 	}
 
-	// Step 5: Load dependencies
-	dependencies := make(map[string][]string) // resourceID -> []dependencyIDs
+	// Step 5: Bulk-load dependencies (single query, no N+1)
+	allDependencies, err := s.dependencyRepo.FindByProjectID(ctx, projectID)
+	if err != nil {
+		allDependencies = nil
+	}
 
-	for _, dbRes := range dbResources {
-		fromID := dbRes.ID.String()
-		dbDependencies, err := s.dependencyRepo.FindByFromResource(ctx, dbRes.ID)
-		if err != nil {
-			// Log error but continue
-			continue
-		}
+	dependencies := make(map[string][]string)
+	for _, dep := range allDependencies {
+		fromID := dep.FromResourceID.String()
+		toID := dep.ToResourceID.String()
+		dependencies[fromID] = append(dependencies[fromID], toID)
+	}
 
-		depIDs := make([]string, 0)
-		for _, dep := range dbDependencies {
-			// Use ToResourceID directly (it's always set)
-			toID := dep.ToResourceID.String()
-			depIDs = append(depIDs, toID)
-		}
-
-		if len(depIDs) > 0 {
-			dependencies[fromID] = depIDs
-
-			// Set DependsOn on domain resource
-			for _, domainRes := range domainResources {
-				if domainRes.ID == fromID {
-					domainRes.DependsOn = depIDs
-					break
-				}
-			}
+	// Set DependsOn on domain resources
+	for _, domainRes := range domainResources {
+		if depIDs, ok := dependencies[domainRes.ID]; ok {
+			domainRes.DependsOn = depIDs
 		}
 	}
 
 	// Step 6: Load variables
-	dbVariables, err := s.variableRepo.FindByProjectID(ctx, projectID)
-	domainVariables := make([]architecture.Variable, 0)
-	if err == nil {
-		for _, dbV := range dbVariables {
-			var defaultValue interface{}
-			if dbV.DefaultValue != nil {
-				json.Unmarshal(dbV.DefaultValue, &defaultValue)
-			}
-			domainVariables = append(domainVariables, architecture.Variable{
-				Name:        dbV.Name,
-				Type:        dbV.Type,
-				Description: dbV.Description,
-				Default:     defaultValue,
-				Sensitive:   dbV.Sensitive,
-			})
+	dbVariables, _ := s.variableRepo.FindByProjectID(ctx, projectID)
+	domainVariables := make([]architecture.Variable, 0, len(dbVariables))
+	for _, dbV := range dbVariables {
+		var defaultValue interface{}
+		if dbV.DefaultValue != nil {
+			json.Unmarshal(dbV.DefaultValue, &defaultValue)
 		}
+		domainVariables = append(domainVariables, architecture.Variable{
+			Name:        dbV.Name,
+			Type:        dbV.Type,
+			Description: dbV.Description,
+			Default:     defaultValue,
+			Sensitive:   dbV.Sensitive,
+		})
 	}
 
 	// Step 7: Load outputs
-	dbOutputs, err := s.outputRepo.FindByProjectID(ctx, projectID)
-	domainOutputs := make([]architecture.Output, 0)
-	if err == nil {
-		for _, dbO := range dbOutputs {
-			domainOutputs = append(domainOutputs, architecture.Output{
-				Name:        dbO.Name,
-				Value:       dbO.Value,
-				Description: dbO.Description,
-				Sensitive:   dbO.Sensitive,
-			})
-		}
+	dbOutputs, _ := s.outputRepo.FindByProjectID(ctx, projectID)
+	domainOutputs := make([]architecture.Output, 0, len(dbOutputs))
+	for _, dbO := range dbOutputs {
+		domainOutputs = append(domainOutputs, architecture.Output{
+			Name:        dbO.Name,
+			Value:       dbO.Value,
+			Description: dbO.Description,
+			Sensitive:   dbO.Sensitive,
+		})
 	}
 
-	// Step 8: Build architecture aggregate
-	arch := &architecture.Architecture{
+	return &architecture.Architecture{
 		Resources:    domainResources,
 		Region:       project.Region,
 		Provider:     provider,
@@ -865,7 +611,8 @@ func (s *ProjectServiceImpl) LoadArchitecture(ctx context.Context, projectID uui
 		Dependencies: dependencies,
 		Variables:    domainVariables,
 		Outputs:      domainOutputs,
-	}
-
-	return arch, nil
+	}, nil
 }
+
+// ensure gorm import is used by persistResources (tx *gorm.DB)
+var _ *gorm.DB

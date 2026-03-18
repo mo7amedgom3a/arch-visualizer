@@ -11,11 +11,22 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
-	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"gorm.io/datatypes"
 )
 
-// cloneProjectSnapshotOptions defines how the clone write path should behave.
+// versionedOperationResult is used internally by cloneProjectSnapshot.
+type versionedOperationResult struct {
+	NewProjectID  uuid.UUID
+	VersionID     uuid.UUID
+	VersionNumber int
+}
+
+// versionedArchitectureResult is returned by SaveArchitecture.
+type versionedArchitectureResult struct {
+	versionedOperationResult
+	Architecture *dto.ArchitectureResponse
+}
+
 type cloneProjectSnapshotOptions struct {
 	// sourceProjectID is the project to clone from.
 	sourceProjectID uuid.UUID
@@ -34,7 +45,7 @@ type cloneProjectSnapshotOptions struct {
 //  4. Insert a project_versions row linking to the previous version.
 //
 // It returns a VersionedOperationResult with the new project ID and version info.
-func (s *ProjectServiceImpl) cloneProjectSnapshot(ctx context.Context, opts cloneProjectSnapshotOptions) (*serverinterfaces.VersionedOperationResult, *models.Project, error) {
+func (s *ProjectServiceImpl) cloneProjectSnapshot(ctx context.Context, opts cloneProjectSnapshotOptions) (*versionedOperationResult, *models.Project, error) {
 	// 1. Load source project
 	srcProject, err := s.projectRepo.FindByID(ctx, opts.sourceProjectID)
 	if err != nil {
@@ -125,7 +136,7 @@ func (s *ProjectServiceImpl) cloneProjectSnapshot(ctx context.Context, opts clon
 		fmt.Printf("⚠️  Failed to create project_versions entry: %v\n", err)
 	}
 
-	return &serverinterfaces.VersionedOperationResult{
+	return &versionedOperationResult{
 		NewProjectID:  newProject.ID,
 		VersionID:     newVersion.ID,
 		VersionNumber: newVersionNumber,
@@ -355,7 +366,7 @@ func (s *ProjectServiceImpl) GetArchitecture(ctx context.Context, projectID uuid
 
 // SaveArchitecture creates a new immutable project snapshot with the given architecture.
 // Kept for backward compatibility with the scenario runners and pipeline orchestrator tests.
-func (s *ProjectServiceImpl) SaveArchitecture(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*serverinterfaces.VersionedArchitectureResult, error) {
+func (s *ProjectServiceImpl) SaveArchitecture(ctx context.Context, projectID uuid.UUID, req *dto.UpdateArchitectureRequest) (*versionedArchitectureResult, error) {
 	versionedResult, newProject, err := s.cloneProjectSnapshot(ctx, cloneProjectSnapshotOptions{
 		sourceProjectID: projectID,
 		applyArch:       req,
@@ -369,8 +380,8 @@ func (s *ProjectServiceImpl) SaveArchitecture(ctx context.Context, projectID uui
 		return nil, fmt.Errorf("SaveArchitecture: load saved architecture: %w", err)
 	}
 
-	return &serverinterfaces.VersionedArchitectureResult{
-		VersionedOperationResult: *versionedResult,
+	return &versionedArchitectureResult{
+		versionedOperationResult: *versionedResult,
 		Architecture:             arch,
 	}, nil
 }

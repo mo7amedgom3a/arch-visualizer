@@ -37,36 +37,7 @@ import (
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
-	"gorm.io/gorm"
 )
-
-// ─── local repo adapters (same pattern as scenario15) ──────────────────────
-
-type projectRepoAdapter struct{ *projectrepo.ProjectRepository }
-
-func (a *projectRepoAdapter) BeginTransaction(ctx context.Context) (interface{}, context.Context) {
-	return a.ProjectRepository.BeginTransaction(ctx)
-}
-func (a *projectRepoAdapter) CommitTransaction(tx interface{}) error {
-	if g, ok := tx.(*gorm.DB); ok {
-		return a.ProjectRepository.CommitTransaction(g)
-	}
-	return fmt.Errorf("not a *gorm.DB")
-}
-func (a *projectRepoAdapter) RollbackTransaction(tx interface{}) error {
-	if g, ok := tx.(*gorm.DB); ok {
-		return a.ProjectRepository.RollbackTransaction(g)
-	}
-	return fmt.Errorf("not a *gorm.DB")
-}
-
-type depTypeRepoAdapter struct {
-	*resourcerepo.DependencyTypeRepository
-}
-
-func (a *depTypeRepoAdapter) Create(_ context.Context, _ *models.DependencyType) error {
-	return fmt.Errorf("Create not implemented in adapter")
-}
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
@@ -145,17 +116,13 @@ func run() error {
 		fmt.Println("  ✓ seeded DependencyType: depends_on")
 	}
 
-	// ── 2. Repositories ──────────────────────────────────────────────────────
+	// ── 2. Repositories (concrete repos implement interfaces directly — no adapter wrappers needed)
 	logger := slog.Default()
 
-	projectRepoRaw, err := projectrepo.NewProjectRepository(logger)
+	projectRepo, err := projectrepo.NewProjectRepository(logger)
 	check("project repo", err)
-	projectRepo := &projectRepoAdapter{projectRepoRaw}
-
-	versionRepoRaw, err := projectrepo.NewProjectVersionRepository()
+	versionRepo, err := projectrepo.NewProjectVersionRepository()
 	check("version repo", err)
-	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
-
 	resourceRepo, err := resourcerepo.NewResourceRepository(logger)
 	check("resource repo", err)
 	resourceTypeRepo, err := resourcerepo.NewResourceTypeRepository()
@@ -164,9 +131,8 @@ func run() error {
 	check("containment repo", err)
 	depRepo, err := resourcerepo.NewResourceDependencyRepository()
 	check("dependency repo", err)
-	depTypeRepoRaw, err := resourcerepo.NewDependencyTypeRepository()
+	depTypeRepo, err := resourcerepo.NewDependencyTypeRepository()
 	check("dep type repo", err)
-	depTypeRepo := &depTypeRepoAdapter{depTypeRepoRaw}
 	userRepo, err := userrepo.NewUserRepository()
 	check("user repo", err)
 	iacTargetRepo, err := infrastructurerepo.NewIACTargetRepository()
@@ -177,7 +143,7 @@ func run() error {
 	check("output repo", err)
 
 	// ── 3. Service ──────────────────────────────────────────────────────────
-	projectService := services.NewProjectService(
+	projectService := services.NewProjectServiceWithPricing(
 		projectRepo,
 		versionRepo,
 		resourceRepo,
@@ -189,6 +155,7 @@ func run() error {
 		iacTargetRepo,
 		variableRepo,
 		outputRepo,
+		nil, // no pricing for this scenario
 	)
 	fmt.Println("✓ Services initialized")
 

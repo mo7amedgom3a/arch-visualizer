@@ -14,7 +14,6 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
 	"gorm.io/datatypes"
-	"gorm.io/gorm"
 
 	// Register mappers
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
@@ -23,41 +22,6 @@ import (
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 )
-
-// -- Adapters --
-
-type ProjectRepoAdapter struct {
-	*projectrepo.ProjectRepository
-}
-
-func (a *ProjectRepoAdapter) BeginTransaction(ctx context.Context) (interface{}, context.Context) {
-	tx, txCtx := a.ProjectRepository.BeginTransaction(ctx)
-	return tx, txCtx
-}
-
-func (a *ProjectRepoAdapter) CommitTransaction(tx interface{}) error {
-	gormTx, ok := tx.(*gorm.DB)
-	if !ok {
-		return fmt.Errorf("transaction is not *gorm.DB")
-	}
-	return a.ProjectRepository.CommitTransaction(gormTx)
-}
-
-func (a *ProjectRepoAdapter) RollbackTransaction(tx interface{}) error {
-	gormTx, ok := tx.(*gorm.DB)
-	if !ok {
-		return fmt.Errorf("transaction is not *gorm.DB")
-	}
-	return a.ProjectRepository.RollbackTransaction(gormTx)
-}
-
-type DependencyTypeRepoAdapter struct {
-	*resourcerepo.DependencyTypeRepository
-}
-
-func (a *DependencyTypeRepoAdapter) Create(ctx context.Context, depType *models.DependencyType) error {
-	return fmt.Errorf("Create not implemented in adapter")
-}
 
 func main() {
 	if err := run(); err != nil {
@@ -80,27 +44,24 @@ func run() error {
 	// Clean up previous run data for this specific project name to avoid clutter/dupes if re-run without ID cleaning
 	// For now, simpler to just create valid data.
 
-	// 2. Initialize Infrastructure (Repos & Services)
-	projectRepoRaw, _ := projectrepo.NewProjectRepository(logger)
-	projectRepo := &ProjectRepoAdapter{projectRepoRaw}
-	versionRepoRaw, _ := projectrepo.NewProjectVersionRepository()
-	versionRepo := &services.ProjectVersionRepositoryAdapter{Repo: versionRepoRaw}
+	// 2. Initialize Infrastructure (Repos & Services — concrete repos implement interfaces directly)
+	projectRepo, _ := projectrepo.NewProjectRepository(logger)
+	versionRepo, _ := projectrepo.NewProjectVersionRepository()
 	resourceRepo, _ := resourcerepo.NewResourceRepository(logger)
 	resourceTypeRepo, _ := resourcerepo.NewResourceTypeRepository()
 	containmentRepo, _ := resourcerepo.NewResourceContainmentRepository()
 	dependencyRepo, _ := resourcerepo.NewResourceDependencyRepository()
-	dependencyTypeRepoRaw, _ := resourcerepo.NewDependencyTypeRepository()
-	dependencyTypeRepo := &DependencyTypeRepoAdapter{dependencyTypeRepoRaw}
+	dependencyTypeRepo, _ := resourcerepo.NewDependencyTypeRepository()
 	userRepo, _ := userrepo.NewUserRepository()
 	iacTargetRepo, _ := infrastructurerepo.NewIACTargetRepository()
 	variableRepo, _ := projectrepo.NewProjectVariableRepository()
 	outputRepo, _ := projectrepo.NewProjectOutputRepository()
 
 	codegenService := services.NewCodegenService(logger)
-	projectService := services.NewProjectService(
+	projectService := services.NewProjectServiceWithPricing(
 		projectRepo, versionRepo, resourceRepo, resourceTypeRepo,
 		containmentRepo, dependencyRepo, dependencyTypeRepo,
-		userRepo, iacTargetRepo, variableRepo, outputRepo,
+		userRepo, iacTargetRepo, variableRepo, outputRepo, nil,
 	)
 
 	// 3. Setup Data

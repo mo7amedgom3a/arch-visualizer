@@ -1,8 +1,9 @@
 package resourcerepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
+
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 
 	"github.com/google/uuid"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
@@ -57,3 +58,14 @@ func (r *ResourceDependencyRepository) FindByToResource(ctx context.Context, toI
 	return deps, err
 }
 
+// FindByProjectID returns all dependency relationships for resources belonging to a project.
+// This is a bulk query used by LoadArchitecture to avoid N+1 per-resource queries.
+func (r *ResourceDependencyRepository) FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*models.ResourceDependency, error) {
+	var deps []*models.ResourceDependency
+	err := r.GetDB(ctx).
+		Joins("JOIN resources ON resources.id = resource_dependencies.from_resource_id").
+		Where("resources.project_id = ?", projectID).
+		Preload("DependencyType").
+		Find(&deps).Error
+	return deps, err
+}
