@@ -54,6 +54,10 @@ func setupV1Routes(api *gin.RouterGroup, srv *server.Server) {
 			// Architecture (read-only snapshot lookup)
 			projects.GET("/:id/architecture", projectCtrl.GetArchitecture)
 
+			// Non-version generation and cost endpoints
+			projects.POST("/:id/generate", generationCtrl.GenerateCode)
+			projects.GET("/:id/cost/estimate", costCtrl.GetProjectEstimate)
+
 			// ── Version CRUD ──────────────────────────────────────────────
 			versions := projects.Group("/:id/versions")
 			{
