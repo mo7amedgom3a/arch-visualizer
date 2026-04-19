@@ -7,7 +7,7 @@ import (
 	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
 	awscontainers "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/containers"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services"
-	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
+	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/errors"
 )
 
 // ContainerService implements AWSContainerService with deterministic virtual operations

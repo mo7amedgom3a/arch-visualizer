@@ -8,7 +8,7 @@ import (
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
 	awscomputeservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 // ASGRunner demonstrates Auto Scaling Group setup with Launch Template and scaling policies

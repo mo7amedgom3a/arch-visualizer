@@ -12,11 +12,11 @@ import (
 
 // Policy represents an AWS IAM policy configuration
 type Policy struct {
-	Name          string        `json:"name"`
-	Description   *string       `json:"description,omitempty"`
-	Path          *string       `json:"path,omitempty"` // Default is "/"
-	PolicyDocument string       `json:"policy_document"` // JSON string
-	Tags          []configs.Tag `json:"tags,omitempty"`
+	Name           string        `json:"name"`
+	Description    *string       `json:"description,omitempty"`
+	Path           *string       `json:"path,omitempty"`  // Default is "/"
+	PolicyDocument string        `json:"policy_document"` // JSON string
+	Tags           []configs.Tag `json:"tags,omitempty"`
 }
 
 // Validate performs AWS-specific validation

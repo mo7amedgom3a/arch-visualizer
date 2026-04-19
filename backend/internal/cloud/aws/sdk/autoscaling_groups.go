@@ -25,8 +25,8 @@ func CreateAutoScalingGroup(ctx context.Context, client *AWSClient, asg *awsauto
 
 	// Build CreateAutoScalingGroupInput
 	input := &autoscaling.CreateAutoScalingGroupInput{
-		MinSize:         aws.Int32(int32(asg.MinSize)),
-		MaxSize:         aws.Int32(int32(asg.MaxSize)),
+		MinSize:           aws.Int32(int32(asg.MinSize)),
+		MaxSize:           aws.Int32(int32(asg.MaxSize)),
 		VPCZoneIdentifier: aws.String(stringSliceToCommaSeparated(asg.VPCZoneIdentifier)),
 	}
 
@@ -309,8 +309,8 @@ func DetachInstances(ctx context.Context, client *AWSClient, asgName string, ins
 	}
 
 	input := &autoscaling.DetachInstancesInput{
-		AutoScalingGroupName:       aws.String(asgName),
-		InstanceIds:                instanceIDs,
+		AutoScalingGroupName:           aws.String(asgName),
+		InstanceIds:                    instanceIDs,
 		ShouldDecrementDesiredCapacity: aws.Bool(shouldDecrementDesiredCapacity),
 	}
 
@@ -380,20 +380,20 @@ func convertAutoScalingGroupToOutput(asg *autoscalingtypes.AutoScalingGroup) *aw
 	}
 
 	output := &awsoutputs.AutoScalingGroupOutput{
-		AutoScalingGroupARN:  aws.ToString(asg.AutoScalingGroupARN),
-		AutoScalingGroupName:  aws.ToString(asg.AutoScalingGroupName),
-		MinSize:              int(aws.ToInt32(asg.MinSize)),
-		MaxSize:              int(aws.ToInt32(asg.MaxSize)),
-		DesiredCapacity:      int(aws.ToInt32(asg.DesiredCapacity)),
-		VPCZoneIdentifier:    vpcZoneIdentifier,
-		LaunchTemplate:       launchTemplate,
-		HealthCheckType:      healthCheckType,
+		AutoScalingGroupARN:    aws.ToString(asg.AutoScalingGroupARN),
+		AutoScalingGroupName:   aws.ToString(asg.AutoScalingGroupName),
+		MinSize:                int(aws.ToInt32(asg.MinSize)),
+		MaxSize:                int(aws.ToInt32(asg.MaxSize)),
+		DesiredCapacity:        int(aws.ToInt32(asg.DesiredCapacity)),
+		VPCZoneIdentifier:      vpcZoneIdentifier,
+		LaunchTemplate:         launchTemplate,
+		HealthCheckType:        healthCheckType,
 		HealthCheckGracePeriod: healthCheckGracePeriod,
-		TargetGroupARNs:      asg.TargetGroupARNs,
-		Status:               aws.ToString(asg.Status),
-		CreatedTime:          aws.ToTime(asg.CreatedTime),
-		Instances:            instances,
-		Tags:                 tags,
+		TargetGroupARNs:        asg.TargetGroupARNs,
+		Status:                 aws.ToString(asg.Status),
+		CreatedTime:            aws.ToTime(asg.CreatedTime),
+		Instances:              instances,
+		Tags:                   tags,
 	}
 
 	return output

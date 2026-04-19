@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 type fakeEngine struct {
@@ -75,4 +75,3 @@ func TestEngineRegistry_MustGetPanicsOnMissing(t *testing.T) {
 
 	_ = reg.MustGet("missing")
 }
-

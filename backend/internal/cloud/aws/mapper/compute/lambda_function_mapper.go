@@ -6,7 +6,7 @@ import (
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda"
 	awslambdaoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda/outputs"
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 // FromDomainLambdaFunction converts domain LambdaFunction to AWS Function input model
@@ -307,26 +307,26 @@ func ToDomainLambdaFunctionOutputFromOutput(output *awslambdaoutputs.FunctionOut
 
 	return &domaincompute.LambdaFunctionOutput{
 		FunctionName:    output.FunctionName,
-		ARN:              arn,
-		InvokeARN:        invokeARN,
-		QualifiedARN:     output.QualifiedARN,
-		Region:           output.Region,
-		S3Bucket:         output.S3Bucket,
-		S3Key:            output.S3Key,
-		S3ObjectVersion:   output.S3ObjectVersion,
-		PackageType:      output.PackageType,
-		ImageURI:          output.ImageURI,
-		Runtime:          output.Runtime,
-		Handler:          output.Handler,
-		MemorySize:       memorySize,
-		Timeout:          timeout,
-		Environment:      output.Environment,
-		Layers:           output.Layers,
-		VPCConfig:        vpcConfig,
-		Version:          version,
-		LastModified:     output.LastModified,
-		CodeSize:         output.CodeSize,
-		CodeSHA256:       output.CodeSHA256,
-		CreatedAt:        createdAt,
+		ARN:             arn,
+		InvokeARN:       invokeARN,
+		QualifiedARN:    output.QualifiedARN,
+		Region:          output.Region,
+		S3Bucket:        output.S3Bucket,
+		S3Key:           output.S3Key,
+		S3ObjectVersion: output.S3ObjectVersion,
+		PackageType:     output.PackageType,
+		ImageURI:        output.ImageURI,
+		Runtime:         output.Runtime,
+		Handler:         output.Handler,
+		MemorySize:      memorySize,
+		Timeout:         timeout,
+		Environment:     output.Environment,
+		Layers:          output.Layers,
+		VPCConfig:       vpcConfig,
+		Version:         version,
+		LastModified:    output.LastModified,
+		CodeSize:        output.CodeSize,
+		CodeSHA256:      output.CodeSHA256,
+		CreatedAt:       createdAt,
 	}
 }

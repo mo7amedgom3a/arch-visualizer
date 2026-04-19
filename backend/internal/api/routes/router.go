@@ -24,7 +24,7 @@ func SetupRouter(srv *server.Server) *gin.Engine {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Swagger 
+	// Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API Group

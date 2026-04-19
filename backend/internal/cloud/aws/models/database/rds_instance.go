@@ -7,8 +7,8 @@ type RDSInstance struct {
 	Name                  string        `json:"name"`
 	Engine                string        `json:"engine"` // mysql, postgres, mariadb, oracle-ee, sqlserver-ex, etc.
 	EngineVersion         string        `json:"engine_version"`
-	InstanceClass         string        `json:"instance_class"`         // db.t3.micro, db.m5.large, etc.
-	AllocatedStorage      int           `json:"allocated_storage"`      // In GiB
+	InstanceClass         string        `json:"instance_class"`    // db.t3.micro, db.m5.large, etc.
+	AllocatedStorage      int           `json:"allocated_storage"` // In GiB
 	ReplicateSourceDB     string        `json:"replicate_source_db,omitempty"`
 	StorageType           string        `json:"storage_type,omitempty"` // gp2, gp3, io1, standard
 	Username              string        `json:"username,omitempty"`

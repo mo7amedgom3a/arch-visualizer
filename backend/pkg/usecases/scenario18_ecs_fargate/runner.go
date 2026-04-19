@@ -6,15 +6,15 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/compute"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/containers"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/iam"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	tfgen "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func Run(ctx context.Context) error {

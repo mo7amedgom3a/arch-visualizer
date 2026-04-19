@@ -3,7 +3,7 @@ package mapper
 import (
 	"testing"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 type fakeMapper struct {
@@ -74,4 +74,3 @@ func TestMapperRegistry_MustGetPanicsOnMissing(t *testing.T) {
 
 	_ = reg.MustGet("missing")
 }
-

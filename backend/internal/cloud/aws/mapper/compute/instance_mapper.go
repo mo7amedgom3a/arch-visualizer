@@ -1,10 +1,10 @@
 package compute
 
 import (
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsec2 "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2"
 	awsec2outputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 // ToDomainInstance converts AWS EC2 instance to domain instance (for backward compatibility)
@@ -44,20 +44,20 @@ func ToDomainInstanceFromOutput(output *awsec2outputs.InstanceOutput) *domaincom
 	}
 
 	domainInstance := &domaincompute.Instance{
-		ID:                output.ID,
-		ARN:               arn,
-		Name:              output.Name,
-		Region:            output.Region,
-		AvailabilityZone:  az,
-		InstanceType:      output.InstanceType,
-		AMI:               output.AMI,
-		SubnetID:          output.SubnetID,
-		SecurityGroupIDs:  output.SecurityGroupIDs,
-		PrivateIP:         &output.PrivateIP,
-		PublicIP:          output.PublicIP,
-		KeyName:           output.KeyName,
+		ID:                 output.ID,
+		ARN:                arn,
+		Name:               output.Name,
+		Region:             output.Region,
+		AvailabilityZone:   az,
+		InstanceType:       output.InstanceType,
+		AMI:                output.AMI,
+		SubnetID:           output.SubnetID,
+		SecurityGroupIDs:   output.SecurityGroupIDs,
+		PrivateIP:          &output.PrivateIP,
+		PublicIP:           output.PublicIP,
+		KeyName:            output.KeyName,
 		IAMInstanceProfile: output.IAMInstanceProfile,
-		State:             domaincompute.InstanceState(output.State),
+		State:              domaincompute.InstanceState(output.State),
 	}
 
 	return domainInstance

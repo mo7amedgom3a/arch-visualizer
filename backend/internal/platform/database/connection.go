@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 
-	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/config"
+	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

@@ -18,12 +18,12 @@ type NATGatewayTest struct {
 
 func TestNATGateway(t *testing.T) {
 	publicSubnet := &networking.Subnet{
-		Name:             "public-subnet",
-		VPCID:            "vpc-123",
-		CIDR:             "10.0.1.0/24",
-		AvailabilityZone: "us-east-1a",
+		Name:                "public-subnet",
+		VPCID:               "vpc-123",
+		CIDR:                "10.0.1.0/24",
+		AvailabilityZone:    "us-east-1a",
 		MapPublicIPOnLaunch: true,
-		Tags:             []configs.Tag{{Key: "Name", Value: "public-subnet"}},
+		Tags:                []configs.Tag{{Key: "Name", Value: "public-subnet"}},
 	}
 
 	tests := []NATGatewayTest{
@@ -31,9 +31,9 @@ func TestNATGateway(t *testing.T) {
 			name: "valid-nat-gateway-in-public-subnet",
 			natGateway: &networking.NATGateway{
 				Name:         "test-nat-gateway",
-				SubnetID:    "subnet-123",
+				SubnetID:     "subnet-123",
 				AllocationID: "eipalloc-123",
-				Tags:        []configs.Tag{{Key: "Name", Value: "test-nat-gateway"}},
+				Tags:         []configs.Tag{{Key: "Name", Value: "test-nat-gateway"}},
 			},
 			subnet:        publicSubnet,
 			expectedError: nil,
@@ -43,9 +43,9 @@ func TestNATGateway(t *testing.T) {
 			name: "invalid-nat-gateway-missing-name",
 			natGateway: &networking.NATGateway{
 				Name:         "",
-				SubnetID:    "subnet-123",
+				SubnetID:     "subnet-123",
 				AllocationID: "eipalloc-123",
-				Tags:        []configs.Tag{},
+				Tags:         []configs.Tag{},
 			},
 			subnet:        publicSubnet,
 			expectedError: fmt.Errorf("nat gateway name is required"),
@@ -55,9 +55,9 @@ func TestNATGateway(t *testing.T) {
 			name: "invalid-nat-gateway-missing-subnet-id",
 			natGateway: &networking.NATGateway{
 				Name:         "test-nat-gateway",
-				SubnetID:    "",
+				SubnetID:     "",
 				AllocationID: "eipalloc-123",
-				Tags:        []configs.Tag{{Key: "Name", Value: "test-nat-gateway"}},
+				Tags:         []configs.Tag{{Key: "Name", Value: "test-nat-gateway"}},
 			},
 			subnet:        publicSubnet,
 			expectedError: fmt.Errorf("nat gateway subnet_id is required"),
@@ -67,9 +67,9 @@ func TestNATGateway(t *testing.T) {
 			name: "invalid-nat-gateway-missing-allocation-id",
 			natGateway: &networking.NATGateway{
 				Name:         "test-nat-gateway",
-				SubnetID:    "subnet-123",
+				SubnetID:     "subnet-123",
 				AllocationID: "",
-				Tags:        []configs.Tag{{Key: "Name", Value: "test-nat-gateway"}},
+				Tags:         []configs.Tag{{Key: "Name", Value: "test-nat-gateway"}},
 			},
 			subnet:        publicSubnet,
 			expectedError: fmt.Errorf("nat gateway allocation_id is required"),
@@ -79,7 +79,7 @@ func TestNATGateway(t *testing.T) {
 			name: "valid-nat-gateway-with-tags",
 			natGateway: &networking.NATGateway{
 				Name:         "test-nat-gateway",
-				SubnetID:    "subnet-123",
+				SubnetID:     "subnet-123",
 				AllocationID: "eipalloc-123",
 				Tags: []configs.Tag{
 					{Key: "Name", Value: "test-nat-gateway"},

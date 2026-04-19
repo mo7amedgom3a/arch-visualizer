@@ -23,13 +23,13 @@ const (
 type ElasticIP struct {
 	// AllocationID is optional - if provided, uses existing EIP instead of allocating new one
 	AllocationID *string `json:"allocation_id,omitempty"` // e.g., "eipalloc-12345678"
-	
+
 	// For new allocations:
-	AddressPoolType   *ElasticIPAddressPoolType `json:"address_pool_type,omitempty"`   // Type of IP address pool
-	AddressPoolID     *string                    `json:"address_pool_id,omitempty"`     // Pool ID (for BYOIP, customer-owned, or IPAM pools)
-	NetworkBorderGroup *string                    `json:"network_border_group,omitempty"` // Network border group (AZs, Local Zones, Wavelength Zones)
-	Region            string                     `json:"region"`                        // Region where EIP is allocated
-	
+	AddressPoolType    *ElasticIPAddressPoolType `json:"address_pool_type,omitempty"`    // Type of IP address pool
+	AddressPoolID      *string                   `json:"address_pool_id,omitempty"`      // Pool ID (for BYOIP, customer-owned, or IPAM pools)
+	NetworkBorderGroup *string                   `json:"network_border_group,omitempty"` // Network border group (AZs, Local Zones, Wavelength Zones)
+	Region             string                    `json:"region"`                         // Region where EIP is allocated
+
 	// Optional tags
 	Tags []configs.Tag `json:"tags,omitempty"`
 }
@@ -54,10 +54,10 @@ func (eip *ElasticIP) Validate() error {
 	// If AddressPoolType is specified, validate it
 	if eip.AddressPoolType != nil {
 		validTypes := map[ElasticIPAddressPoolType]bool{
-			ElasticIPPoolAmazon:       true,
-			ElasticIPPoolBYOIP:        true,
+			ElasticIPPoolAmazon:        true,
+			ElasticIPPoolBYOIP:         true,
 			ElasticIPPoolCustomerOwned: true,
-			ElasticIPPoolIPAM:         true,
+			ElasticIPPoolIPAM:          true,
 		}
 		if !validTypes[*eip.AddressPoolType] {
 			return errors.New("invalid address pool type")

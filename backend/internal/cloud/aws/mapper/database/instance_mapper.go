@@ -4,7 +4,7 @@ import (
 	awsconfigs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsdatabase "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/database"
 	awsdatabaseoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/database/outputs"
-	domaindatabase "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/database"
+	domaindatabase "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/database"
 )
 
 // FromDomainRDSInstance converts a domain RDSInstance to an AWS RDSInstance

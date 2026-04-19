@@ -9,10 +9,10 @@ import (
 	awsmappernetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/networking"
 	awsmapperstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/storage"
 	awsec2 "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2"
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
-	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/storage"
 )
 
 // ResourceMapper handles mapping between database resources and domain/AWS models
@@ -49,7 +49,7 @@ func (rm *ResourceMapper) DatabaseResourceToDomain(dbResource *models.Resource) 
 // databaseResourceToDomainFallback provides backward compatibility with switch-based unmarshaling
 func (rm *ResourceMapper) databaseResourceToDomainFallback(dbResource *models.Resource) (interface{}, error) {
 	resourceTypeName := dbResource.ResourceType.Name
-	
+
 	switch resourceTypeName {
 	case "VPC":
 		var vpc domainnetworking.VPC

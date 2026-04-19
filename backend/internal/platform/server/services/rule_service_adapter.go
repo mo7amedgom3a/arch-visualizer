@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	awsrules "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/rules"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 )
 
@@ -39,9 +38,9 @@ func (a *awsRuleServiceAdapter) LoadRulesWithDefaults(ctx context.Context, dbCon
 // ValidateArchitecture validates all resources in an architecture
 func (a *awsRuleServiceAdapter) ValidateArchitecture(ctx context.Context, architecture interface{}) (map[string]interface{}, error) {
 	// Type assert to get the actual architecture type
-	engineArch, ok := architecture.(*engine.Architecture)
+	engineArch, ok := architecture.(*awsrules.Architecture)
 	if !ok {
-		return nil, fmt.Errorf("invalid architecture type, expected *engine.Architecture")
+		return nil, fmt.Errorf("invalid architecture type, expected *rules.Architecture")
 	}
 
 	// Validate using AWS rule service
@@ -51,7 +50,7 @@ func (a *awsRuleServiceAdapter) ValidateArchitecture(ctx context.Context, archit
 	}
 
 	// Convert results to map[string]interface{} format
-	// The AWS rule service returns map[string]*engine.EvaluationResult
+	// The AWS rule service returns map[string]*rules.EvaluationResult
 	resultMap := make(map[string]interface{})
 	for resID, result := range results {
 		resultMap[resID] = result

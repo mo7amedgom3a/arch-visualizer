@@ -1,10 +1,10 @@
 package iam
 
 import (
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
 )
 
 // FromDomainUser converts domain User to AWS User
@@ -52,10 +52,10 @@ func ToDomainUserFromOutput(output *awsoutputs.UserOutput) *domainiam.User {
 	}
 
 	domainUser := &domainiam.User{
-		ID:                output.ID,
-		ARN:               arn,
-		Name:              output.Name,
-		Path:              path,
+		ID:                  output.ID,
+		ARN:                 arn,
+		Name:                output.Name,
+		Path:                path,
 		PermissionsBoundary: output.PermissionsBoundary,
 	}
 

@@ -3,9 +3,9 @@ package compute
 import (
 	"strings"
 
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 // FromDomainAutoScalingGroup converts domain AutoScalingGroup to AWS AutoScalingGroup
@@ -15,9 +15,9 @@ func FromDomainAutoScalingGroup(domainASG *domaincompute.AutoScalingGroup) *awsa
 	}
 
 	awsASG := &awsautoscaling.AutoScalingGroup{
-		MinSize:         domainASG.MinSize,
-		MaxSize:         domainASG.MaxSize,
-		DesiredCapacity: domainASG.DesiredCapacity,
+		MinSize:           domainASG.MinSize,
+		MaxSize:           domainASG.MaxSize,
+		DesiredCapacity:   domainASG.DesiredCapacity,
 		VPCZoneIdentifier: domainASG.VPCZoneIdentifier,
 	}
 
@@ -130,21 +130,21 @@ func ToDomainAutoScalingGroupFromOutput(output *awsoutputs.AutoScalingGroupOutpu
 	}
 
 	domainASG := &domaincompute.AutoScalingGroup{
-		ID:                  output.AutoScalingGroupName,
-		ARN:                 arn,
-		Name:                output.AutoScalingGroupName,
-		Region:              region,
-		MinSize:             output.MinSize,
-		MaxSize:             output.MaxSize,
-		DesiredCapacity:     &output.DesiredCapacity,
-		VPCZoneIdentifier:   output.VPCZoneIdentifier,
-		LaunchTemplate:      launchTemplate,
-		HealthCheckType:     healthCheckType,
+		ID:                     output.AutoScalingGroupName,
+		ARN:                    arn,
+		Name:                   output.AutoScalingGroupName,
+		Region:                 region,
+		MinSize:                output.MinSize,
+		MaxSize:                output.MaxSize,
+		DesiredCapacity:        &output.DesiredCapacity,
+		VPCZoneIdentifier:      output.VPCZoneIdentifier,
+		LaunchTemplate:         launchTemplate,
+		HealthCheckType:        healthCheckType,
 		HealthCheckGracePeriod: output.HealthCheckGracePeriod,
-		TargetGroupARNs:     output.TargetGroupARNs,
-		Tags:                tags,
-		State:               state,
-		CreatedTime:         createdTime,
+		TargetGroupARNs:        output.TargetGroupARNs,
+		Tags:                   tags,
+		State:                  state,
+		CreatedTime:            createdTime,
 	}
 
 	return domainASG
@@ -205,20 +205,20 @@ func ToDomainAutoScalingGroupOutputFromOutput(output *awsoutputs.AutoScalingGrou
 	var namePrefix *string
 
 	return &domaincompute.AutoScalingGroupOutput{
-		ID:                    output.AutoScalingGroupName,
-		ARN:                   arn,
-		Name:                  output.AutoScalingGroupName,
-		Region:                region,
-		NamePrefix:            namePrefix,
-		MinSize:               output.MinSize,
-		MaxSize:               output.MaxSize,
-		DesiredCapacity:       &output.DesiredCapacity,
-		VPCZoneIdentifier:     output.VPCZoneIdentifier,
-		LaunchTemplate:        launchTemplate,
-		HealthCheckType:       healthCheckType,
+		ID:                     output.AutoScalingGroupName,
+		ARN:                    arn,
+		Name:                   output.AutoScalingGroupName,
+		Region:                 region,
+		NamePrefix:             namePrefix,
+		MinSize:                output.MinSize,
+		MaxSize:                output.MaxSize,
+		DesiredCapacity:        &output.DesiredCapacity,
+		VPCZoneIdentifier:      output.VPCZoneIdentifier,
+		LaunchTemplate:         launchTemplate,
+		HealthCheckType:        healthCheckType,
 		HealthCheckGracePeriod: output.HealthCheckGracePeriod,
-		TargetGroupARNs:       output.TargetGroupARNs,
-		State:                 state,
-		CreatedTime:           createdTime,
+		TargetGroupARNs:        output.TargetGroupARNs,
+		State:                  state,
+		CreatedTime:            createdTime,
 	}
 }

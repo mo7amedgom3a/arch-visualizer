@@ -1,10 +1,10 @@
 package iam
 
 import (
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
 )
 
 // FromDomainInstanceProfile converts domain InstanceProfile to AWS InstanceProfile

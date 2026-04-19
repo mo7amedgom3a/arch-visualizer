@@ -11,8 +11,8 @@ type ListenerOutput struct {
 	ID  string `json:"id"`  // Same as ARN
 
 	// Configuration (from input)
-	LoadBalancerARN string                `json:"load_balancer_arn"`
-	Port            int                   `json:"port"`
-	Protocol        string                `json:"protocol"`
+	LoadBalancerARN string                       `json:"load_balancer_arn"`
+	Port            int                          `json:"port"`
+	Protocol        string                       `json:"protocol"`
 	DefaultAction   load_balancer.ListenerAction `json:"default_action"`
 }

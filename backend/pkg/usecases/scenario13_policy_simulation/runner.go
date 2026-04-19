@@ -8,16 +8,16 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture" // Register AWS architecture generator and mappers
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/iam"   // Register IAM mappers
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	tfgen "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func main() {

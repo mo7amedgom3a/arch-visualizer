@@ -10,11 +10,10 @@ import (
 	"runtime"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	infrastructurerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/infrastructure"
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
@@ -22,6 +21,7 @@ import (
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/services"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // Run executes the architecture pipeline test scenario

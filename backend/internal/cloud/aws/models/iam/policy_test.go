@@ -14,7 +14,7 @@ func TestPolicy_Validate(t *testing.T) {
 		{
 			name: "valid-policy",
 			policy: Policy{
-				Name:          "test-policy",
+				Name:           "test-policy",
 				PolicyDocument: `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:GetObject","Resource":"*"}]}`,
 			},
 			wantErr: false,
@@ -38,7 +38,7 @@ func TestPolicy_Validate(t *testing.T) {
 		{
 			name: "invalid-policy-document-json",
 			policy: Policy{
-				Name:          "test-policy",
+				Name:           "test-policy",
 				PolicyDocument: `{invalid json}`,
 			},
 			wantErr: true,
@@ -47,7 +47,7 @@ func TestPolicy_Validate(t *testing.T) {
 		{
 			name: "name-invalid-characters",
 			policy: Policy{
-				Name:          "test@policy#invalid",
+				Name:           "test@policy#invalid",
 				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
 			},
 			wantErr: true,
@@ -56,9 +56,9 @@ func TestPolicy_Validate(t *testing.T) {
 		{
 			name: "path-invalid-format",
 			policy: Policy{
-				Name:          "test-policy",
+				Name:           "test-policy",
 				PolicyDocument: `{"Version":"2012-10-17","Statement":[]}`,
-				Path:          stringPtr("invalid-path"),
+				Path:           stringPtr("invalid-path"),
 			},
 			wantErr: true,
 			errMsg:  "policy path must start with '/'",
@@ -84,4 +84,3 @@ func TestPolicy_Validate(t *testing.T) {
 		})
 	}
 }
-

@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // S3StorageRates contains static pricing rates for AWS S3 storage classes (per GB-month)
@@ -17,8 +17,8 @@ var S3StorageRates = map[string]float64{
 
 // S3RequestRates contains static pricing rates for AWS S3 requests (per 1,000 requests)
 var S3RequestRates = map[string]float64{
-	"PUT": 0.005,   // $0.005 per 1,000 PUT requests
-	"GET": 0.0004,  // $0.0004 per 1,000 GET requests
+	"PUT": 0.005,  // $0.005 per 1,000 PUT requests
+	"GET": 0.0004, // $0.0004 per 1,000 GET requests
 }
 
 // S3DataTransferRate is the outbound data transfer rate (per GB)
@@ -27,10 +27,10 @@ const S3DataTransferRate = 0.09 // $0.09 per GB (after free tier)
 
 // S3RegionalMultipliers contains regional pricing multipliers for S3
 var S3RegionalMultipliers = map[string]float64{
-	"us-east-1":      1.0,  // Base rate multiplier
-	"us-west-2":      1.0,  // Base rate multiplier
-	"eu-west-1":      1.0,  // Base rate multiplier
-	"ap-southeast-1": 1.1,  // Slightly higher in some regions
+	"us-east-1":      1.0, // Base rate multiplier
+	"us-west-2":      1.0, // Base rate multiplier
+	"eu-west-1":      1.0, // Base rate multiplier
+	"ap-southeast-1": 1.1, // Slightly higher in some regions
 }
 
 // getS3StorageRate returns the per GB-month rate for an S3 storage class

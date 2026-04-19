@@ -38,9 +38,9 @@ func TestInstanceProfile_Validate(t *testing.T) {
 		{
 			name: "both name and name prefix provided",
 			profile: &InstanceProfile{
-				Name:      "test-profile",
+				Name:       "test-profile",
 				NamePrefix: stringPtr("test-"),
-				Path:      stringPtr("/"),
+				Path:       stringPtr("/"),
 			},
 			wantErr: true,
 			errMsg:  "name and name_prefix cannot both be provided",

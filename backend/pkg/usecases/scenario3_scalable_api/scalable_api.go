@@ -9,10 +9,10 @@ import (
 	awscomputeservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/compute"
 	awsiamservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
 	awsnetworkingservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 	usecasescommon "github.com/mo7amedgom3a/arch-visualizer/backend/pkg/usecases/common"
 )
 

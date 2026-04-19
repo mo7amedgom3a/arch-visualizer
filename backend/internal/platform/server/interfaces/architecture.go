@@ -3,9 +3,9 @@ package interfaces
 import (
 	"context"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // ArchitectureService handles architecture mapping and validation

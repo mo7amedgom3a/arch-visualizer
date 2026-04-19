@@ -15,7 +15,7 @@ func SeedResourceConstraints(
 	constraintRepo *resourcerepo.ResourceConstraintRepository,
 	resourceTypeRepo *resourcerepo.ResourceTypeRepository,
 ) error {
-	log.Println("Seeding resource constraints...")
+	log.Println("Seeding resource rules...")
 
 	// Get default rules
 	defaultRules := append(rules.DefaultNetworkingRules(), rules.DefaultComputeRules()...)

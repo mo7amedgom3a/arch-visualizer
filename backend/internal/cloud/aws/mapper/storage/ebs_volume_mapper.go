@@ -1,10 +1,10 @@
 package storage
 
 import (
-	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsebs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/ebs"
 	awsebsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/ebs/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/storage"
 )
 
 // FromDomainEBSVolume converts domain EBSVolume to AWS Volume input model

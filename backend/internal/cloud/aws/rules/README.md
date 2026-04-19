@@ -1,203 +1,279 @@
-# AWS Rules Implementation
+# Domain Rules System
 
-This package implements AWS-specific rule validation using the domain rules interfaces.
+This package provides a **cloud-agnostic rules engine** that allows different cloud providers to implement validation rules in their own way while maintaining a consistent interface.
 
 ## Purpose
 
-AWS rules implementation:
-- **Implements Domain Interfaces**: Uses domain rule interfaces
-- **AWS-Specific Mapping**: Maps domain types to AWS resource types
-- **AWS Constraints**: Applies AWS-specific limits and constraints
-- **Provider-Specific Logic**: Handles AWS-specific validation requirements
+The domain rules system enables:
+- **Multi-Cloud Support**: Same rule interfaces work across AWS, GCP, Azure
+- **Provider-Specific Implementation**: Each provider implements rules according to their constraints
+- **Data-Driven Validation**: Rules can be loaded from database without code changes
+- **Extensibility**: Easy to add new rule types and providers
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              Domain Rules (This Package)                     │
+│  - Rule interfaces                                          │
+│  - Constraint types                                         │
+│  - Rule engine & evaluator                                  │
+│  - Rule registry                                            │
+└──────────────────────┬──────────────────────────────────────┘
+                        │
+                        │ implemented by
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│          Cloud Provider Rule Implementations                │
+│  - AWS: internal/cloud/aws/rules/                           │
+│  - GCP: internal/cloud/gcp/rules/ (future)                 │
+│  - Azure: internal/cloud/azure/rules/ (future)              │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ## Structure
 
 ```
 rules/
-├── factory.go          # AWS rule factory
-├── service.go          # AWS rule service
-├── defaults.go         # Default AWS networking rules
-└── README.md           # This file
+├── types.go                    # Core rule interfaces and types
+├── constraints/                # Constraint implementations
+│   ├── parent.go              # Parent/containment rules
+│   ├── region.go              # Region requirements
+│   ├── limits.go              # Children limits
+│   └── dependency.go          # Dependency rules
+├── engine/                     # Rule evaluation engine
+│   ├── context.go             # Evaluation context builder
+│   └── evaluator.go           # Rule evaluator
+├── registry/                   # Rule registry
+│   └── registry.go            # Rule storage and factory
+└── README.md                   # This file
 ```
 
-## AWS Rule Factory
+## Core Concepts
 
-The `AWSRuleFactory` creates AWS-specific rules:
+### Rule Interface
 
-```go
-factory := rules.NewAWSRuleFactory()
-rule, err := factory.CreateRule("Subnet", "requires_parent", "VPC")
-```
-
-### Resource Type Mapping
-
-AWS maps domain resource types to AWS-specific types:
+All rules implement the `Rule` interface:
 
 ```go
-"VPC"              → "aws_vpc"
-"Subnet"           → "aws_subnet"
-"InternetGateway"  → "aws_internet_gateway"
-"EC2"              → "aws_instance"
-```
-
-### AWS-Specific Rules
-
-AWS can override default rule behavior:
-
-```go
-// AWS might have different parent requirements
-func (f *AWSRuleFactory) createRequiresParentRule(...) {
-    awsParentType := f.mapResourceTypeToAWS(parentType)
-    return constraints.NewRequiresParentRule(resourceType, awsParentType)
+type Rule interface {
+    GetType() RuleType
+    GetResourceType() string
+    GetValue() string
+    Evaluate(ctx context.Context, evalCtx *EvaluationContext) error
 }
 ```
 
-## AWS Rule Service
+### Rule Types
 
-The `AWSRuleService` provides rule evaluation for AWS:
+- `requires_parent` - Resource must have a parent
+- `allowed_parent` - Only specific parent types allowed
+- `requires_region` - Resource must (or must not) have a region
+- `max_children` - Maximum number of children
+- `min_children` - Minimum number of children
+- `allowed_dependencies` - Allowed dependency types (whitelist)
+- `forbidden_dependencies` - Forbidden dependency types (blacklist)
+
+**Dependency Rules:**
+- `allowed_dependencies` specifies which resource types a resource can depend on
+- `forbidden_dependencies` specifies which resource types a resource cannot depend on
+- Both rules can be used together for fine-grained control
+- If `allowed_dependencies` is specified, only those types are allowed
+- `forbidden_dependencies` always takes precedence over allowed dependencies
+
+### Evaluation Context
+
+Provides context for rule evaluation:
 
 ```go
-service := rules.NewAWSRuleService()
-
-// Load rules from database
-constraints := []rules.ConstraintRecord{
-    {ResourceType: "Subnet", ConstraintType: "requires_parent", ConstraintValue: "VPC"},
-    {ResourceType: "EC2", ConstraintType: "allowed_parent", ConstraintValue: "Subnet"},
+type EvaluationContext struct {
+    Resource      *resource.Resource
+    Parents       []*resource.Resource
+    Children      []*resource.Resource
+    Dependencies  []*resource.Resource
+    Architecture  *Architecture
+    Provider      string
+    Metadata      map[string]interface{}
 }
-service.LoadRulesFromConstraints(ctx, constraints)
-
-// Validate a resource
-result, err := service.ValidateResource(ctx, resource, architecture)
 ```
-
-### Default Rules and Merging
-
-AWS provides default networking rules that can be merged with database constraints:
-
-```go
-service := rules.NewAWSRuleService()
-
-// Load DB constraints and merge with defaults
-// DB constraints override defaults when they have the same resource type + constraint type
-dbConstraints := loadConstraintsFromDB("aws")
-err := service.LoadRulesWithDefaults(ctx, dbConstraints)
-```
-
-**Default Rules Include:**
-- **VPC**: Requires region, max 200 children, allowed dependencies on InternetGateway/NATGateway
-- **Subnet**: Requires VPC parent, requires region, allowed dependencies on RouteTable/NATGateway, forbidden dependencies on Subnet/VPC
-- **InternetGateway**: Requires VPC parent, requires region, allowed dependencies on RouteTable, forbidden dependencies on Subnet/NATGateway
-- **RouteTable**: Requires VPC parent, requires region, allowed dependencies on InternetGateway/NATGateway/Subnet, forbidden dependencies on SecurityGroup
-- **SecurityGroup**: Requires VPC parent, requires region, allowed dependencies on SecurityGroup, forbidden dependencies on networking infrastructure
-- **NATGateway**: Requires Subnet parent, requires region, allowed dependencies on RouteTable, forbidden dependencies on InternetGateway/VPC
-
-**Merge Strategy:**
-- Default rules are loaded first
-- Database constraints override defaults when they have the same `resource_type` + `constraint_type` combination
-- This allows customization while maintaining sensible defaults
 
 ## Usage Example
 
+### Creating Rules
+
 ```go
 import (
-    awsrules "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/rules"
+    "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/constraints"
 )
 
-// Create AWS rule service
-service := awsrules.NewAWSRuleService()
+// Create a requires_parent rule
+rule := constraints.NewRequiresParentRule("Subnet", "VPC")
 
-// Option 1: Load only DB constraints (no defaults)
-constraints := loadConstraintsFromDB("aws")
-service.LoadRulesFromConstraints(ctx, constraints)
+// Create an allowed_parent rule
+rule := constraints.NewAllowedParentRule("EC2", []string{"Subnet"})
 
-// Option 2: Load DB constraints merged with defaults (recommended)
-constraints := loadConstraintsFromDB("aws")
-service.LoadRulesWithDefaults(ctx, constraints)
+// Create a max_children rule
+rule := constraints.NewMaxChildrenRule("VPC", 10)
 
-// Validate architecture
-results, err := service.ValidateArchitecture(ctx, architecture)
-for resourceID, result := range results {
-    if !result.Valid {
-        fmt.Printf("Resource %s has validation errors:\n", resourceID)
-        for _, err := range result.Errors {
-            fmt.Printf("  - %s\n", err.Message)
-        }
+// Create an allowed_dependencies rule
+rule := constraints.NewAllowedDependenciesRule("Subnet", []string{"RouteTable", "NATGateway"})
+
+// Create a forbidden_dependencies rule
+rule := constraints.NewForbiddenDependenciesRule("Subnet", []string{"VPC", "Subnet"})
+```
+
+### Evaluating Rules
+
+```go
+import (
+    "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
+    "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/registry"
+)
+
+// Create registry and register rules
+registry := registry.NewRuleRegistry()
+registry.RegisterRule("Subnet", rule)
+
+// Create evaluator
+evaluator := engine.NewRuleEvaluator()
+
+// Build evaluation context
+evalCtx := engine.BuildEvaluationContext(resource, architecture, "aws")
+
+// Evaluate rules
+rules := registry.GetRules("Subnet")
+result := engine.EvaluateAllRules(ctx, evaluator, rules, evalCtx)
+
+if !result.Valid {
+    for _, err := range result.Errors {
+        fmt.Println(err.Message)
     }
 }
 ```
 
-### Dependency Rules Example
+## Cloud Provider Implementation
 
-Dependency rules validate relationships between resources:
+Each cloud provider implements rules using their own factory:
+
+### AWS Implementation
 
 ```go
-// Subnet can depend on RouteTable and NATGateway
-// But cannot depend on VPC or itself (prevents circular dependencies)
-service := awsrules.NewAWSRuleService()
-service.LoadRulesWithDefaults(ctx, []awsrules.ConstraintRecord{})
-
-// This will pass: Subnet depends on RouteTable
-subnet.DependsOn = []string{routeTable.ID}
-
-// This will fail: Subnet depends on VPC (forbidden)
-subnet.DependsOn = []string{vpc.ID}
+// internal/cloud/aws/rules/factory.go
+factory := rules.NewAWSRuleFactory()
+rule, err := factory.CreateRule("Subnet", "requires_parent", "VPC")
 ```
 
-## AWS-Specific Considerations
+AWS can:
+- Map resource types to AWS-specific names
+- Apply AWS-specific limits
+- Add AWS-specific validation logic
 
-### Resource Type Mapping
+### GCP Implementation (Future)
 
-AWS uses Terraform-style resource names:
-- Domain: `VPC` → AWS: `aws_vpc`
-- Domain: `Subnet` → AWS: `aws_subnet`
-- Domain: `InternetGateway` → AWS: `aws_internet_gateway`
-- Domain: `RouteTable` → AWS: `aws_route_table`
-- Domain: `SecurityGroup` → AWS: `aws_security_group`
-- Domain: `NATGateway` → AWS: `aws_nat_gateway`
-- Domain: `EC2Instance` → AWS: `aws_instance`
+```go
+// internal/cloud/gcp/rules/factory.go
+factory := rules.NewGCPRuleFactory()
+rule, err := factory.CreateRule("Subnet", "requires_parent", "VPC")
+```
 
-All domain types are automatically mapped to AWS types in the factory.
+GCP can:
+- Map to GCP resource types (e.g., "VPC" → "google_compute_network")
+- Apply GCP-specific limits
+- Add GCP-specific validation
 
-### Limits
+## Rule Registry
 
-AWS has specific limits that may differ from other providers:
-- VPC: Max 5 VPCs per region (soft limit)
-- Subnet: Max 200 subnets per VPC
-- Security Group: Max 5 security groups per instance
+The registry stores and retrieves rules:
 
-### Regional vs Global
+```go
+registry := registry.NewRuleRegistry()
 
-AWS-specific regional requirements:
-- VPC: Always regional
-- S3: Global (but region for data storage)
-- IAM: Global
+// Register a rule
+registry.RegisterRule("Subnet", rule)
 
-## Extending AWS Rules
+// Get all rules for a resource type
+rules := registry.GetRules("Subnet")
 
-To add AWS-specific rules:
+// Get all rules of a specific type
+rules := registry.GetRulesByType(rules.RuleTypeRequiresParent)
+```
 
-1. **Add to factory mapping**:
+## Rule Factory
+
+Factories create rules from database constraint records:
+
+```go
+factory := registry.NewRuleFactory()
+rule, err := factory.CreateRule(
+    "Subnet",              // resource type
+    "requires_parent",     // constraint type
+    "VPC",                 // constraint value
+)
+```
+
+Cloud providers can implement their own factories to customize rule creation.
+
+## Database Integration
+
+Rules are typically loaded from the `resource_constraints` table:
+
+```sql
+SELECT resource_type, constraint_type, constraint_value
+FROM resource_constraints
+WHERE cloud_provider = 'aws';
+```
+
+Then converted to rules:
+
+```go
+for _, constraint := range constraints {
+    rule, err := factory.CreateRule(
+        constraint.ResourceType,
+        constraint.ConstraintType,
+        constraint.ConstraintValue,
+    )
+    registry.RegisterRule(constraint.ResourceType, rule)
+}
+```
+
+## Adding New Rule Types
+
+1. **Add RuleType constant** in `types.go`:
    ```go
-   mapping := map[string]string{
-       "NewResource": "aws_new_resource",
+   RuleTypeNewRule RuleType = "new_rule"
+   ```
+
+2. **Create constraint implementation** in `constraints/`:
+   ```go
+   type NewRule struct {
+       ResourceType string
+       // ... fields
+   }
+   
+   func (r *NewRule) Evaluate(...) error {
+       // ... validation logic
    }
    ```
 
-2. **Add custom rule creation**:
+3. **Add to factory** in `registry/registry.go`:
    ```go
-   func (f *AWSRuleFactory) createCustomRule(...) (rules.Rule, error) {
-       // AWS-specific logic
-   }
+   case rules.RuleTypeNewRule:
+       return constraints.NewNewRule(...), nil
    ```
 
-3. **Update CreateRule switch**:
-   ```go
-   case rules.RuleTypeCustom:
-       return f.createCustomRule(...)
-   ```
+4. **Update cloud provider factories** if needed
+
+## Benefits
+
+1. **Cloud-Agnostic**: Same rule interfaces across all providers
+2. **Provider Flexibility**: Each provider implements rules their way
+3. **Data-Driven**: Rules loaded from database, no code changes needed
+4. **Extensible**: Easy to add new rule types
+5. **Testable**: Rules can be tested independently
+6. **Type-Safe**: Compile-time checks ensure correctness
 
 ## Related Documentation
 
-- [Domain Rules](../../../domain/rules/README.md) - Domain rules system
-- [AWS Models](../models/README.md) - AWS resource models
-- [AWS Adapters](../adapters/README.md) - AWS adapters
+- [AWS Rules Implementation](../../cloud/aws/rules/README.md) - AWS-specific rule implementation
+- [Resource Domain Models](../resource/README.md) - Domain resource models
+- [Architecture Validation](../architecture/validation.go) - Architecture-level validation

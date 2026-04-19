@@ -4,8 +4,8 @@ import "fmt"
 
 // BucketVersioning represents AWS S3 bucket versioning configuration
 type BucketVersioning struct {
-	Bucket string `json:"bucket"`
-	Status string `json:"status"` // Enabled | Suspended | Disabled
+	Bucket    string  `json:"bucket"`
+	Status    string  `json:"status"`               // Enabled | Suspended | Disabled
 	MFADelete *string `json:"mfa_delete,omitempty"` // Enabled | Disabled
 }
 

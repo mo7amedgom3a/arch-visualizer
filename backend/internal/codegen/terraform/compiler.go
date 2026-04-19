@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 )
 
@@ -34,4 +34,3 @@ func (c *Compiler) Compile(ctx context.Context, arch *architecture.Architecture)
 
 	return c.engine.Generate(ctx, arch, sorted)
 }
-

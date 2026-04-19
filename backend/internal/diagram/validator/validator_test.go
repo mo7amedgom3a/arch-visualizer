@@ -107,7 +107,7 @@ func TestValidateContainmentCycle(t *testing.T) {
 			"cidr":               "10.0.1.0/24",
 			"availabilityZoneId": "us-east-1a",
 		},
-		ParentID:     stringPtr("node-1"),
+		ParentID: stringPtr("node-1"),
 	}
 
 	// Validate with options

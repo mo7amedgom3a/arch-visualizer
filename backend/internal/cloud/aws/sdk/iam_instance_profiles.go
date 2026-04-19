@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/iam/types"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 )
 
 // CreateInstanceProfile creates a new IAM instance profile using AWS SDK

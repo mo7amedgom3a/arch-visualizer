@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func TestNewInventory(t *testing.T) {

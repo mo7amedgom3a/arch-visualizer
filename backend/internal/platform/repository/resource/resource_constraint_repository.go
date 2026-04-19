@@ -1,14 +1,15 @@
 package resourcerepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
+
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 )
 
-// ResourceConstraintRepository provides operations for resource constraints.
+// ResourceConstraintRepository provides operations for resource rules.
 type ResourceConstraintRepository struct {
 	*repository.BaseRepository
 }
@@ -22,7 +23,7 @@ func NewResourceConstraintRepository() (*ResourceConstraintRepository, error) {
 	return &ResourceConstraintRepository{BaseRepository: base}, nil
 }
 
-// Create creates a new resource constraint.
+// Create creates a new resource rules.
 func (r *ResourceConstraintRepository) Create(ctx context.Context, constraint *models.ResourceConstraint) error {
 	return r.GetDB(ctx).Create(constraint).Error
 }

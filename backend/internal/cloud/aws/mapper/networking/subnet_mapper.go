@@ -1,10 +1,10 @@
 package networking
 
 import (
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 // ToDomainSubnet converts AWS Subnet to domain Subnet (for backward compatibility)
@@ -12,15 +12,15 @@ func ToDomainSubnet(awsSubnet *awsnetworking.Subnet) *domainnetworking.Subnet {
 	if awsSubnet == nil {
 		return nil
 	}
-	
+
 	domainSubnet := &domainnetworking.Subnet{
-		Name:            awsSubnet.Name,
-		VPCID:           awsSubnet.VPCID,
-		CIDR:            awsSubnet.CIDR,
+		Name:             awsSubnet.Name,
+		VPCID:            awsSubnet.VPCID,
+		CIDR:             awsSubnet.CIDR,
 		AvailabilityZone: &awsSubnet.AvailabilityZone,
-		IsPublic:        awsSubnet.MapPublicIPOnLaunch,
+		IsPublic:         awsSubnet.MapPublicIPOnLaunch,
 	}
-	
+
 	return domainSubnet
 }
 
@@ -29,22 +29,22 @@ func ToDomainSubnetFromOutput(output *awsoutputs.SubnetOutput) *domainnetworking
 	if output == nil {
 		return nil
 	}
-	
+
 	arn := &output.ARN
 	if output.ARN == "" {
 		arn = nil
 	}
-	
+
 	domainSubnet := &domainnetworking.Subnet{
-		ID:              output.ID,
-		ARN:             arn,
-		Name:            output.Name,
-		VPCID:           output.VPCID,
-		CIDR:            output.CIDR,
+		ID:               output.ID,
+		ARN:              arn,
+		Name:             output.Name,
+		VPCID:            output.VPCID,
+		CIDR:             output.CIDR,
 		AvailabilityZone: &output.AvailabilityZone,
-		IsPublic:        output.MapPublicIPOnLaunch,
+		IsPublic:         output.MapPublicIPOnLaunch,
 	}
-	
+
 	return domainSubnet
 }
 
@@ -53,21 +53,21 @@ func FromDomainSubnet(domainSubnet *domainnetworking.Subnet, availabilityZone st
 	if domainSubnet == nil {
 		return nil
 	}
-	
+
 	az := availabilityZone
 	if domainSubnet.AvailabilityZone != nil {
 		az = *domainSubnet.AvailabilityZone
 	}
-	
+
 	awsSubnet := &awsnetworking.Subnet{
-		Name:              domainSubnet.Name,
-		VPCID:             domainSubnet.VPCID,
-		CIDR:              domainSubnet.CIDR,
-		AvailabilityZone:  az,
+		Name:                domainSubnet.Name,
+		VPCID:               domainSubnet.VPCID,
+		CIDR:                domainSubnet.CIDR,
+		AvailabilityZone:    az,
 		MapPublicIPOnLaunch: domainSubnet.IsPublic,
-		Tags:              []configs.Tag{{Key: "Name", Value: domainSubnet.Name}},
+		Tags:                []configs.Tag{{Key: "Name", Value: domainSubnet.Name}},
 	}
-	
+
 	return awsSubnet
 }
 

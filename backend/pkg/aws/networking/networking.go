@@ -1,17 +1,17 @@
 package networking
+
 import (
+	"context"
 	"fmt"
+	"time"
+
 	awsmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/networking"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awspricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
 	networkingpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing/networking"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
-	domainrules "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
-	domainconstraints "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/constraints"
-	registry "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/registry"
-	"context"
-	"time"
+	domainrules "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/rules"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 func NetworkingRunner() {
@@ -36,20 +36,20 @@ func NetworkingRunner() {
 	fmt.Println("InstanceTenancy", awsVPC.InstanceTenancy)
 	fmt.Println("--------------------------------")
 	fmt.Println("Registering rules")
-	ruleRegistry := registry.NewRuleRegistry()                        // InMemoryRuleRegistry
-	rule1 := domainconstraints.NewRequiresParentRule("VPC", "Subnet") // RequiresParentRule
-	err := ruleRegistry.RegisterRule("VPC", rule1)                    // RegisterRule
+	ruleRegistry := domainrules.NewRuleRegistry()               // InMemoryRuleRegistry
+	rule1 := domainrules.NewRequiresParentRule("VPC", "Subnet") // RequiresParentRule
+	err := ruleRegistry.RegisterRule("VPC", rule1)              // RegisterRule
 	if err != nil {
 		fmt.Println("Error registering rule:", err)
 		return
 	}
-	rule2 := domainconstraints.NewRequiresRegionRule("VPC", true)
+	rule2 := domainrules.NewRequiresRegionRule("VPC", true)
 	err = ruleRegistry.RegisterRule("VPC", rule2)
 	if err != nil {
 		fmt.Println("Error registering rule:", err)
 		return
 	}
-	rule3 := domainconstraints.NewAllowedParentRule("Subnet", []string{"VPC"})
+	rule3 := domainrules.NewAllowedParentRule("Subnet", []string{"VPC"})
 	err = ruleRegistry.RegisterRule("Subnet", rule3)
 	if err != nil {
 		fmt.Println("Error registering rule:", err)

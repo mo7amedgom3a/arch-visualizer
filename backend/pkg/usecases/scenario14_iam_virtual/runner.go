@@ -6,12 +6,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/iam" // Register IAM mappers
 	awsmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package inventory
 
 import (
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // GetAWSResourceClassifications returns all AWS resource classifications

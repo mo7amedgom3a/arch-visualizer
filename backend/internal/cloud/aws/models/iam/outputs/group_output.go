@@ -9,8 +9,8 @@ import (
 // GroupOutput represents AWS IAM group output/response data after creation
 type GroupOutput struct {
 	// AWS-generated identifiers
-	ARN      string `json:"arn"`       // e.g., "arn:aws:iam::123456789012:group/my-group"
-	ID       string `json:"id"`         // Same as name for groups
+	ARN      string `json:"arn"` // e.g., "arn:aws:iam::123456789012:group/my-group"
+	ID       string `json:"id"`  // Same as name for groups
 	Name     string `json:"name"`
 	UniqueID string `json:"unique_id"` // Stable unique identifier
 

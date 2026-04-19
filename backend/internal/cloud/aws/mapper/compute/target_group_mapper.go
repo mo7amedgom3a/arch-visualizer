@@ -1,10 +1,10 @@
 package compute
 
 import (
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 // FromDomainTargetGroup converts domain TargetGroup to AWS TargetGroup
@@ -83,12 +83,12 @@ func ToDomainTargetGroupFromOutput(output *awsoutputs.TargetGroupOutput) *domain
 	}
 
 	domainTG := &domaincompute.TargetGroup{
-		ID:   output.ID,
-		ARN:  arn,
-		Name: output.Name,
-		VPCID: output.VPCID,
-		Port: output.Port,
-		Protocol: protocol,
+		ID:         output.ID,
+		ARN:        arn,
+		Name:       output.Name,
+		VPCID:      output.VPCID,
+		Port:       output.Port,
+		Protocol:   protocol,
 		TargetType: targetType,
 		HealthCheck: domaincompute.HealthCheckConfig{
 			Path:               output.HealthCheck.Path,
@@ -142,12 +142,12 @@ func ToDomainTargetGroupOutputFromOutput(output *awsoutputs.TargetGroupOutput) *
 	createdAt := &output.CreatedTime
 
 	return &domaincompute.TargetGroupOutput{
-		ID:   output.ID,
-		ARN:  arn,
-		Name: output.Name,
-		VPCID: output.VPCID,
-		Port: output.Port,
-		Protocol: protocol,
+		ID:         output.ID,
+		ARN:        arn,
+		Name:       output.Name,
+		VPCID:      output.VPCID,
+		Port:       output.Port,
+		Protocol:   protocol,
 		TargetType: targetType,
 		HealthCheck: domaincompute.HealthCheckConfig{
 			Path:               output.HealthCheck.Path,
@@ -159,7 +159,7 @@ func ToDomainTargetGroupOutputFromOutput(output *awsoutputs.TargetGroupOutput) *
 			Protocol:           output.HealthCheck.Protocol,
 			Port:               output.HealthCheck.Port,
 		},
-		State: state,
+		State:     state,
 		CreatedAt: createdAt,
 	}
 }

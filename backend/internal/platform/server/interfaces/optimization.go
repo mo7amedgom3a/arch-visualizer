@@ -3,7 +3,7 @@ package interfaces
 import (
 	"context"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 )
 
 // OptimizationService provides cost optimization suggestions

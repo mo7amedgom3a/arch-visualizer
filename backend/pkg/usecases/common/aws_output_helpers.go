@@ -20,10 +20,10 @@ import (
 	awsiamservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/iam"
 	awsnetworkingservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/networking"
 	awsstorageservice "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services/storage"
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
-	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/storage"
 )
 
 // Networking helpers using AWS output models

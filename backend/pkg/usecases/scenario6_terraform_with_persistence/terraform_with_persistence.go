@@ -11,14 +11,12 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/mapper/terraform"
 	awsrules "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/rules"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	rulesengine "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	tfgen "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/generator"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
@@ -27,6 +25,7 @@ import (
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	userrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/user"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 	"gorm.io/datatypes"
 )
 
@@ -407,7 +406,7 @@ func validateAWSRules(ctx context.Context, arch *architecture.Architecture) erro
 	}
 
 	// Adapt domain architecture to rules engine architecture view.
-	engineArch := &rulesengine.Architecture{
+	engineArch := &awsrules.Architecture{
 		Resources: arch.Resources,
 	}
 

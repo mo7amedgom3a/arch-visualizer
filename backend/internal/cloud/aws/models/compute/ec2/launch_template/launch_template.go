@@ -14,26 +14,26 @@ import (
 type LaunchTemplate struct {
 	// Naming
 	NamePrefix *string `json:"name_prefix,omitempty"` // Recommended: creates unique name
-	Name       *string `json:"name,omitempty"`         // Alternative to name_prefix
+	Name       *string `json:"name,omitempty"`        // Alternative to name_prefix
 
 	// Compute Configuration
-	ImageID      string `json:"image_id"`       // AMI ID (note: image_id not ami)
+	ImageID      string `json:"image_id"`      // AMI ID (note: image_id not ami)
 	InstanceType string `json:"instance_type"` // e.g., "t3.micro", "m5.large"
 
 	// Networking & Security
 	VpcSecurityGroupIds []string `json:"vpc_security_group_ids"` // Required: at least one
 
 	// Access & Permissions
-	KeyName            *string            `json:"key_name,omitempty"`
+	KeyName            *string             `json:"key_name,omitempty"`
 	IAMInstanceProfile *IAMInstanceProfile `json:"iam_instance_profile,omitempty"` // Structured block
 
 	// Storage
-	RootVolumeID         *string  `json:"root_volume_id,omitempty"`         // Reference to storage volume for root device
+	RootVolumeID        *string  `json:"root_volume_id,omitempty"`        // Reference to storage volume for root device
 	AdditionalVolumeIDs []string `json:"additional_volume_ids,omitempty"` // References to additional storage volumes
 
 	// Configuration
-	UserData        *string          `json:"user_data,omitempty"`         // Base64 encoded (max 16KB)
-	MetadataOptions *MetadataOptions `json:"metadata_options,omitempty"`  // IMDSv2 settings
+	UserData        *string          `json:"user_data,omitempty"`        // Base64 encoded (max 16KB)
+	MetadataOptions *MetadataOptions `json:"metadata_options,omitempty"` // IMDSv2 settings
 
 	// Version Management
 	UpdateDefaultVersion *bool `json:"update_default_version,omitempty"` // Default: true

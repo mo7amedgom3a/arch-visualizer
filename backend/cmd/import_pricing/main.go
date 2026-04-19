@@ -63,14 +63,14 @@ func main() {
 	fmt.Printf("\n📊 Import Statistics:\n")
 	fmt.Printf("  Total Instances Processed: %d\n", stats.TotalInstances)
 	fmt.Printf("  Total Rates Imported: %d\n", stats.TotalRates)
-	
+
 	if len(stats.RegionsProcessed) > 0 {
 		fmt.Printf("\n  Regions Processed:\n")
 		for region, count := range stats.RegionsProcessed {
 			fmt.Printf("    %s: %d rates\n", region, count)
 		}
 	}
-	
+
 	if len(stats.OSProcessed) > 0 {
 		fmt.Printf("\n  Operating Systems Processed:\n")
 		for os, count := range stats.OSProcessed {

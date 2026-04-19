@@ -1,10 +1,10 @@
 package networking
 
 import (
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 // ToDomainNATGateway converts AWS NAT Gateway to domain NAT Gateway (for backward compatibility)
@@ -12,11 +12,11 @@ func ToDomainNATGateway(awsNAT *awsnetworking.NATGateway) *domainnetworking.NATG
 	if awsNAT == nil {
 		return nil
 	}
-	
+
 	return &domainnetworking.NATGateway{
-		Name:          awsNAT.Name,
-		SubnetID:      awsNAT.SubnetID,
-		AllocationID:  &awsNAT.AllocationID,
+		Name:         awsNAT.Name,
+		SubnetID:     awsNAT.SubnetID,
+		AllocationID: &awsNAT.AllocationID,
 	}
 }
 
@@ -25,17 +25,17 @@ func ToDomainNATGatewayFromOutput(output *awsoutputs.NATGatewayOutput) *domainne
 	if output == nil {
 		return nil
 	}
-	
+
 	arn := &output.ARN
 	if output.ARN == "" {
 		arn = nil
 	}
-	
+
 	allocationID := &output.AllocationID
 	if output.AllocationID == "" {
 		allocationID = nil
 	}
-	
+
 	return &domainnetworking.NATGateway{
 		ID:           output.ID,
 		ARN:          arn,
@@ -50,12 +50,12 @@ func FromDomainNATGateway(domainNAT *domainnetworking.NATGateway) *awsnetworking
 	if domainNAT == nil {
 		return nil
 	}
-	
+
 	allocationID := ""
 	if domainNAT.AllocationID != nil {
 		allocationID = *domainNAT.AllocationID
 	}
-	
+
 	return &awsnetworking.NATGateway{
 		Name:         domainNAT.Name,
 		SubnetID:     domainNAT.SubnetID,

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func TestAWSPricingCalculator_CalculateResourceCost(t *testing.T) {

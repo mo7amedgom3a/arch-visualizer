@@ -1,9 +1,9 @@
 package storage
 
 import (
-	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 	awss3 "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/s3"
 	awss3outputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/s3/outputs"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/storage"
 )
 
 // FromDomainS3BucketVersioning converts domain versioning to AWS model

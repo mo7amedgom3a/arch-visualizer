@@ -19,7 +19,7 @@ type VolumeOutput struct {
 	VolumeType string `json:"volume_type"` // gp3, gp2, io1, io2, etc.
 
 	// Performance
-	IOPS      *int `json:"iops,omitempty"`       // IOPS for gp3/io1/io2
+	IOPS       *int `json:"iops,omitempty"`       // IOPS for gp3/io1/io2
 	Throughput *int `json:"throughput,omitempty"` // Throughput for gp3 (MB/s)
 
 	// Security & Backups
@@ -28,7 +28,7 @@ type VolumeOutput struct {
 	SnapshotID *string `json:"snapshot_id,omitempty"`
 
 	// State
-	State      string  `json:"state"`        // creating, available, in-use, deleting, deleted, error
+	State      string  `json:"state"`                 // creating, available, in-use, deleting, deleted, error
 	AttachedTo *string `json:"attached_to,omitempty"` // Instance ID if attached
 
 	// Metadata

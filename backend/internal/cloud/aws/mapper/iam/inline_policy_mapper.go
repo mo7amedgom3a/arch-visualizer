@@ -1,8 +1,8 @@
 package iam
 
 import (
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
 	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
 )
 
 // FromDomainInlinePolicy converts domain InlinePolicy to AWS InlinePolicy

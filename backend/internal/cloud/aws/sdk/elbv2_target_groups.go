@@ -231,14 +231,14 @@ func ListTargetGroups(ctx context.Context, client *AWSClient, filters map[string
 // convertTargetGroupToOutput converts AWS SDK TargetGroup to output model
 func convertTargetGroupToOutput(tg *elbv2types.TargetGroup) *awsoutputs.TargetGroupOutput {
 	output := &awsoutputs.TargetGroupOutput{
-		ARN:        aws.ToString(tg.TargetGroupArn),
-		ID:         aws.ToString(tg.TargetGroupArn),
-		Name:       aws.ToString(tg.TargetGroupName),
-		Port:       int(aws.ToInt32(tg.Port)),
-		Protocol:   string(tg.Protocol),
-		VPCID:      aws.ToString(tg.VpcId),
-		TargetType: string(tg.TargetType),
-		State:      "active", // Default state, actual state would require separate health check call
+		ARN:         aws.ToString(tg.TargetGroupArn),
+		ID:          aws.ToString(tg.TargetGroupArn),
+		Name:        aws.ToString(tg.TargetGroupName),
+		Port:        int(aws.ToInt32(tg.Port)),
+		Protocol:    string(tg.Protocol),
+		VPCID:       aws.ToString(tg.VpcId),
+		TargetType:  string(tg.TargetType),
+		State:       "active",   // Default state, actual state would require separate health check call
 		CreatedTime: time.Now(), // CreatedTime not available in TargetGroup type, use current time as placeholder
 	}
 

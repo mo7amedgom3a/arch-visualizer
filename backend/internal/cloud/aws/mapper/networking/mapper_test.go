@@ -1,9 +1,9 @@
 package networking
 
 import (
-	"testing"
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
+	"testing"
 )
 
 func TestVPCMapper(t *testing.T) {
@@ -15,12 +15,12 @@ func TestVPCMapper(t *testing.T) {
 		EnableDNS:          true,
 		EnableDNSHostnames: true,
 	}
-	
+
 	awsVPC := FromDomainVPC(domainVPC)
 	if awsVPC == nil {
 		t.Fatal("Expected AWS VPC, got nil")
 	}
-	
+
 	if awsVPC.Name != domainVPC.Name {
 		t.Errorf("Expected name %s, got %s", domainVPC.Name, awsVPC.Name)
 	}
@@ -33,13 +33,13 @@ func TestVPCMapper(t *testing.T) {
 	if awsVPC.EnableDNSSupport != domainVPC.EnableDNS {
 		t.Errorf("Expected EnableDNSSupport %v, got %v", domainVPC.EnableDNS, awsVPC.EnableDNSSupport)
 	}
-	
+
 	// Test AWS -> domain mapping
 	convertedDomainVPC := ToDomainVPC(awsVPC)
 	if convertedDomainVPC == nil {
 		t.Fatal("Expected domain VPC, got nil")
 	}
-	
+
 	if convertedDomainVPC.Name != domainVPC.Name {
 		t.Errorf("Expected name %s, got %s", domainVPC.Name, convertedDomainVPC.Name)
 	}
@@ -51,18 +51,18 @@ func TestVPCMapper(t *testing.T) {
 func TestSubnetMapper(t *testing.T) {
 	az := "us-east-1a"
 	domainSubnet := &domainnetworking.Subnet{
-		Name:            "test-subnet",
-		VPCID:           "vpc-123",
-		CIDR:            "10.0.1.0/24",
+		Name:             "test-subnet",
+		VPCID:            "vpc-123",
+		CIDR:             "10.0.1.0/24",
 		AvailabilityZone: &az,
-		IsPublic:        true,
+		IsPublic:         true,
 	}
-	
+
 	awsSubnet := FromDomainSubnet(domainSubnet, az)
 	if awsSubnet == nil {
 		t.Fatal("Expected AWS Subnet, got nil")
 	}
-	
+
 	if awsSubnet.Name != domainSubnet.Name {
 		t.Errorf("Expected name %s, got %s", domainSubnet.Name, awsSubnet.Name)
 	}
@@ -72,13 +72,13 @@ func TestSubnetMapper(t *testing.T) {
 	if awsSubnet.MapPublicIPOnLaunch != domainSubnet.IsPublic {
 		t.Errorf("Expected MapPublicIPOnLaunch %v, got %v", domainSubnet.IsPublic, awsSubnet.MapPublicIPOnLaunch)
 	}
-	
+
 	// Test AWS -> domain mapping
 	convertedDomainSubnet := ToDomainSubnet(awsSubnet)
 	if convertedDomainSubnet == nil {
 		t.Fatal("Expected domain Subnet, got nil")
 	}
-	
+
 	if convertedDomainSubnet.Name != domainSubnet.Name {
 		t.Errorf("Expected name %s, got %s", domainSubnet.Name, convertedDomainSubnet.Name)
 	}
@@ -89,21 +89,21 @@ func TestInternetGatewayMapper(t *testing.T) {
 		Name:  "test-igw",
 		VPCID: "vpc-123",
 	}
-	
+
 	awsIGW := FromDomainInternetGateway(domainIGW)
 	if awsIGW == nil {
 		t.Fatal("Expected AWS IGW, got nil")
 	}
-	
+
 	if awsIGW.Name != domainIGW.Name {
 		t.Errorf("Expected name %s, got %s", domainIGW.Name, awsIGW.Name)
 	}
-	
+
 	convertedDomainIGW := ToDomainInternetGateway(awsIGW)
 	if convertedDomainIGW == nil {
 		t.Fatal("Expected domain IGW, got nil")
 	}
-	
+
 	if convertedDomainIGW.Name != domainIGW.Name {
 		t.Errorf("Expected name %s, got %s", domainIGW.Name, convertedDomainIGW.Name)
 	}

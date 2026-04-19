@@ -1,8 +1,8 @@
 package infrastructurerepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
@@ -59,4 +59,3 @@ func (r *IACTargetRepository) List(ctx context.Context, limit, offset int) ([]*m
 	err := db.Find(&targets).Error
 	return targets, err
 }
-

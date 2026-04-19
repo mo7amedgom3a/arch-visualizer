@@ -1,10 +1,10 @@
 package networking
 
 import (
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 // ToDomainNetworkACL converts AWS Network ACL to domain Network ACL (for backward compatibility)
@@ -12,17 +12,17 @@ func ToDomainNetworkACL(awsACL *awsnetworking.NetworkACL) *domainnetworking.Netw
 	if awsACL == nil {
 		return nil
 	}
-	
+
 	domainInboundRules := make([]domainnetworking.ACLRule, len(awsACL.InboundRules))
 	for i, awsRule := range awsACL.InboundRules {
 		domainInboundRules[i] = convertACLRule(awsRule)
 	}
-	
+
 	domainOutboundRules := make([]domainnetworking.ACLRule, len(awsACL.OutboundRules))
 	for i, awsRule := range awsACL.OutboundRules {
 		domainOutboundRules[i] = convertACLRule(awsRule)
 	}
-	
+
 	return &domainnetworking.NetworkACL{
 		Name:          awsACL.Name,
 		VPCID:         awsACL.VPCID,
@@ -36,28 +36,28 @@ func ToDomainNetworkACLFromOutput(output *awsoutputs.NetworkACLOutput) *domainne
 	if output == nil {
 		return nil
 	}
-	
+
 	arn := &output.ARN
 	if output.ARN == "" {
 		arn = nil
 	}
-	
+
 	domainInboundRules := make([]domainnetworking.ACLRule, len(output.InboundRules))
 	for i, awsRule := range output.InboundRules {
 		domainInboundRules[i] = convertACLRule(awsRule)
 	}
-	
+
 	domainOutboundRules := make([]domainnetworking.ACLRule, len(output.OutboundRules))
 	for i, awsRule := range output.OutboundRules {
 		domainOutboundRules[i] = convertACLRule(awsRule)
 	}
-	
+
 	// Extract subnet IDs from associations
 	subnetIDs := make([]string, 0, len(output.Associations))
 	for _, assoc := range output.Associations {
 		subnetIDs = append(subnetIDs, assoc.SubnetID)
 	}
-	
+
 	return &domainnetworking.NetworkACL{
 		ID:            output.ID,
 		ARN:           arn,
@@ -75,17 +75,17 @@ func FromDomainNetworkACL(domainACL *domainnetworking.NetworkACL) *awsnetworking
 	if domainACL == nil {
 		return nil
 	}
-	
+
 	awsInboundRules := make([]awsnetworking.ACLRule, len(domainACL.InboundRules))
 	for i, domainRule := range domainACL.InboundRules {
 		awsInboundRules[i] = convertDomainACLRule(domainRule)
 	}
-	
+
 	awsOutboundRules := make([]awsnetworking.ACLRule, len(domainACL.OutboundRules))
 	for i, domainRule := range domainACL.OutboundRules {
 		awsOutboundRules[i] = convertDomainACLRule(domainRule)
 	}
-	
+
 	return &awsnetworking.NetworkACL{
 		Name:          domainACL.Name,
 		VPCID:         domainACL.VPCID,
@@ -104,14 +104,14 @@ func convertACLRule(awsRule awsnetworking.ACLRule) domainnetworking.ACLRule {
 		CIDR:       awsRule.CIDR,
 		Action:     domainnetworking.ACLRuleAction(awsRule.Action),
 	}
-	
+
 	if awsRule.PortRange != nil {
 		domainRule.PortRange = &domainnetworking.PortRange{
 			From: awsRule.PortRange.From,
 			To:   awsRule.PortRange.To,
 		}
 	}
-	
+
 	return domainRule
 }
 
@@ -124,14 +124,14 @@ func convertDomainACLRule(domainRule domainnetworking.ACLRule) awsnetworking.ACL
 		CIDR:       domainRule.CIDR,
 		Action:     awsnetworking.ACLRuleAction(domainRule.Action),
 	}
-	
+
 	if domainRule.PortRange != nil {
 		awsRule.PortRange = &awsnetworking.PortRange{
 			From: domainRule.PortRange.From,
 			To:   domainRule.PortRange.To,
 		}
 	}
-	
+
 	return awsRule
 }
 

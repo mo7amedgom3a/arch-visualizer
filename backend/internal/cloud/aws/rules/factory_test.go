@@ -2,33 +2,31 @@ package rules
 
 import (
 	"testing"
-
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
 )
 
 func TestAWSRuleFactory_CreateRule_ForbiddenDependencies(t *testing.T) {
 	factory := NewAWSRuleFactory()
 
 	tests := []struct {
-		name           string
-		resourceType   string
-		constraintType string
+		name            string
+		resourceType    string
+		constraintType  string
 		constraintValue string
-		expectedType    rules.RuleType
+		expectedType    RuleType
 	}{
 		{
-			name:           "forbidden dependencies rule",
-			resourceType:   "Subnet",
+			name:            "forbidden dependencies rule",
+			resourceType:    "Subnet",
 			constraintType:  "forbidden_dependencies",
 			constraintValue: "VPC,Subnet",
-			expectedType:   rules.RuleTypeForbiddenDependencies,
+			expectedType:    RuleTypeForbiddenDependencies,
 		},
 		{
-			name:           "allowed dependencies rule",
-			resourceType:   "Subnet",
+			name:            "allowed dependencies rule",
+			resourceType:    "Subnet",
 			constraintType:  "allowed_dependencies",
 			constraintValue: "RouteTable,NATGateway",
-			expectedType:   rules.RuleTypeAllowedDependencies,
+			expectedType:    RuleTypeAllowedDependencies,
 		},
 	}
 

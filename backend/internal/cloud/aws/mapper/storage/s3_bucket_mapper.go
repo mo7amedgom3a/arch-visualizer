@@ -1,10 +1,10 @@
 package storage
 
 import (
-	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awss3 "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/s3"
 	awss3outputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/storage/s3/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/storage"
 )
 
 // FromDomainS3Bucket converts domain S3Bucket to AWS Bucket input model
@@ -93,13 +93,13 @@ func ToDomainS3BucketFromOutput(output *awss3outputs.BucketOutput) *domainstorag
 	}
 
 	domain := &domainstorage.S3Bucket{
-		ID:                     output.ID,
-		ARN:                    &output.ARN,
-		Name:                   output.Name,
-		NamePrefix:             output.NamePrefix,
-		ForceDestroy:           output.ForceDestroy,
-		Region:                 output.Region,
-		BucketDomainName:       &output.BucketDomainName,
+		ID:                       output.ID,
+		ARN:                      &output.ARN,
+		Name:                     output.Name,
+		NamePrefix:               output.NamePrefix,
+		ForceDestroy:             output.ForceDestroy,
+		Region:                   output.Region,
+		BucketDomainName:         &output.BucketDomainName,
 		BucketRegionalDomainName: &output.BucketRegionalDomainName,
 	}
 

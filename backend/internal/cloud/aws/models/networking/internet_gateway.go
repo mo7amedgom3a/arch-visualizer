@@ -7,9 +7,9 @@ import (
 
 // InternetGateway represents an AWS-specific Internet Gateway
 type InternetGateway struct {
-	Name   string `json:"name"`
-	VPCID  string `json:"vpc_id"`
-	Tags   []configs.Tag `json:"tags"`
+	Name  string        `json:"name"`
+	VPCID string        `json:"vpc_id"`
+	Tags  []configs.Tag `json:"tags"`
 }
 
 // Validate performs AWS-specific validation

@@ -3,7 +3,7 @@ package networking
 import (
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // CalculateNATGatewayCost calculates the cost for a NAT Gateway
@@ -14,17 +14,17 @@ func CalculateNATGatewayCost(duration time.Duration, dataProcessedGB float64, re
 	// Base rates (from rates.go, but accessed directly to avoid import cycle)
 	baseHourlyRate := 0.045
 	dataProcessingRate := 0.045
-	
+
 	// Get regional multiplier (default to 1.0)
 	multiplier := 1.0
-	
+
 	// Calculate hourly cost
 	hours := duration.Hours()
 	hourlyCost := baseHourlyRate * multiplier * hours
-	
+
 	// Calculate data processing cost
 	dataProcessingCost := dataProcessingRate * multiplier * dataProcessedGB
-	
+
 	return hourlyCost + dataProcessingCost
 }
 
@@ -33,7 +33,7 @@ func GetNATGatewayPricing(region string) *domainpricing.ResourcePricing {
 	// Base rates
 	baseHourlyRate := 0.045
 	dataProcessingRate := 0.045
-	
+
 	// Get regional multiplier (default to 1.0)
 	multiplier := 1.0
 	hourlyRate := baseHourlyRate * multiplier
@@ -41,21 +41,21 @@ func GetNATGatewayPricing(region string) *domainpricing.ResourcePricing {
 
 	components := []domainpricing.PriceComponent{
 		{
-			Name:      "NAT Gateway Hourly",
-			Model:     domainpricing.PerHour,
-			Unit:      "hour",
-			Rate:      hourlyRate,
-			Currency:  domainpricing.USD,
-			Region:    &region,
+			Name:        "NAT Gateway Hourly",
+			Model:       domainpricing.PerHour,
+			Unit:        "hour",
+			Rate:        hourlyRate,
+			Currency:    domainpricing.USD,
+			Region:      &region,
 			Description: "Base hourly charge for NAT Gateway",
 		},
 		{
-			Name:      "NAT Gateway Data Processing",
-			Model:     domainpricing.PerGB,
-			Unit:      "GB",
-			Rate:      dataProcRate,
-			Currency:  domainpricing.USD,
-			Region:    &region,
+			Name:        "NAT Gateway Data Processing",
+			Model:       domainpricing.PerGB,
+			Unit:        "GB",
+			Rate:        dataProcRate,
+			Currency:    domainpricing.USD,
+			Region:      &region,
 			Description: "Data processing charge per GB",
 		},
 	}
@@ -63,9 +63,9 @@ func GetNATGatewayPricing(region string) *domainpricing.ResourcePricing {
 	return &domainpricing.ResourcePricing{
 		ResourceType: "nat_gateway",
 		Provider:     domainpricing.AWS,
-		Components:  components,
+		Components:   components,
 		Metadata: map[string]interface{}{
-			"base_hourly_rate": hourlyRate,
+			"base_hourly_rate":     hourlyRate,
 			"data_processing_rate": dataProcRate,
 		},
 	}

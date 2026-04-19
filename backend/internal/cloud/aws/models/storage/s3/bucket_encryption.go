@@ -4,14 +4,14 @@ import "fmt"
 
 // BucketEncryption represents AWS S3 bucket encryption configuration
 type BucketEncryption struct {
-	Bucket string             `json:"bucket"`
+	Bucket string               `json:"bucket"`
 	Rule   BucketEncryptionRule `json:"rule"`
 }
 
 // BucketEncryptionRule represents encryption rule
 type BucketEncryptionRule struct {
-	BucketKeyEnabled   bool                      `json:"bucket_key_enabled"`
-	DefaultEncryption  BucketDefaultEncryption   `json:"default_encryption"`
+	BucketKeyEnabled  bool                    `json:"bucket_key_enabled"`
+	DefaultEncryption BucketDefaultEncryption `json:"default_encryption"`
 }
 
 // BucketDefaultEncryption represents default encryption settings

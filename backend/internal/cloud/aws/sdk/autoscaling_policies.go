@@ -228,9 +228,9 @@ func ExecuteScalingPolicy(ctx context.Context, client *AWSClient, policyName, as
 func convertScalingPolicyToOutput(policy *autoscalingtypes.ScalingPolicy) *awsoutputs.ScalingPolicyOutput {
 	output := &awsoutputs.ScalingPolicyOutput{
 		PolicyARN:            aws.ToString(policy.PolicyARN),
-		PolicyName:            aws.ToString(policy.PolicyName),
-		AutoScalingGroupName:  aws.ToString(policy.AutoScalingGroupName),
-		PolicyType:            awsautoscaling.ScalingPolicyType(aws.ToString(policy.PolicyType)),
+		PolicyName:           aws.ToString(policy.PolicyName),
+		AutoScalingGroupName: aws.ToString(policy.AutoScalingGroupName),
+		PolicyType:           awsautoscaling.ScalingPolicyType(aws.ToString(policy.PolicyType)),
 	}
 
 	// Convert alarms

@@ -50,4 +50,3 @@ func (r *MapperRegistry) MustGet(provider string) ResourceMapper {
 	}
 	return m
 }
-

@@ -293,7 +293,7 @@ func validateRegionNode(g *graph.DiagramGraph, result *ValidationResult) {
 	}
 }
 
-// validateConfigSchemaWithRegistry performs dynamic config validation using the schema registry.
+// validateConfigSchemaWithRegistry performs dynamic config validation using the schema rules.
 // This replaces the hardcoded switch statement with schema-driven validation.
 func validateConfigSchemaWithRegistry(g *graph.DiagramGraph, result *ValidationResult, opts *ValidationOptions) {
 	// Get schema registry

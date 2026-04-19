@@ -1,10 +1,10 @@
 package networking
 
 import (
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 // ToDomainRouteTable converts AWS Route Table to domain Route Table (for backward compatibility)
@@ -12,13 +12,13 @@ func ToDomainRouteTable(awsRT *awsnetworking.RouteTable) *domainnetworking.Route
 	if awsRT == nil {
 		return nil
 	}
-	
+
 	domainRoutes := make([]domainnetworking.Route, len(awsRT.Routes))
 	for i, awsRoute := range awsRT.Routes {
 		route := domainnetworking.Route{
 			DestinationCIDR: awsRoute.DestinationCIDRBlock,
 		}
-		
+
 		// Determine target type and ID
 		if awsRoute.GatewayID != nil && *awsRoute.GatewayID != "" {
 			route.TargetType = "internet_gateway"
@@ -33,10 +33,10 @@ func ToDomainRouteTable(awsRT *awsnetworking.RouteTable) *domainnetworking.Route
 			route.TargetType = "vpc_peering"
 			route.TargetID = *awsRoute.VpcPeeringConnectionID
 		}
-		
+
 		domainRoutes[i] = route
 	}
-	
+
 	return &domainnetworking.RouteTable{
 		Name:   awsRT.Name,
 		VPCID:  awsRT.VPCID,
@@ -49,18 +49,18 @@ func ToDomainRouteTableFromOutput(output *awsoutputs.RouteTableOutput) *domainne
 	if output == nil {
 		return nil
 	}
-	
+
 	arn := &output.ARN
 	if output.ARN == "" {
 		arn = nil
 	}
-	
+
 	domainRoutes := make([]domainnetworking.Route, len(output.Routes))
 	for i, awsRoute := range output.Routes {
 		route := domainnetworking.Route{
 			DestinationCIDR: awsRoute.DestinationCIDRBlock,
 		}
-		
+
 		// Determine target type and ID
 		if awsRoute.GatewayID != nil && *awsRoute.GatewayID != "" {
 			route.TargetType = "internet_gateway"
@@ -75,16 +75,16 @@ func ToDomainRouteTableFromOutput(output *awsoutputs.RouteTableOutput) *domainne
 			route.TargetType = "vpc_peering"
 			route.TargetID = *awsRoute.VpcPeeringConnectionID
 		}
-		
+
 		domainRoutes[i] = route
 	}
-	
+
 	// Extract subnet IDs from associations
 	subnetIDs := make([]string, 0, len(output.Associations))
 	for _, assoc := range output.Associations {
 		subnetIDs = append(subnetIDs, assoc.SubnetID)
 	}
-	
+
 	return &domainnetworking.RouteTable{
 		ID:      output.ID,
 		ARN:     arn,
@@ -100,13 +100,13 @@ func FromDomainRouteTable(domainRT *domainnetworking.RouteTable) *awsnetworking.
 	if domainRT == nil {
 		return nil
 	}
-	
+
 	awsRoutes := make([]awsnetworking.Route, len(domainRT.Routes))
 	for i, domainRoute := range domainRT.Routes {
 		awsRoute := awsnetworking.Route{
 			DestinationCIDRBlock: domainRoute.DestinationCIDR,
 		}
-		
+
 		// Set target based on type
 		switch domainRoute.TargetType {
 		case "internet_gateway":
@@ -118,10 +118,10 @@ func FromDomainRouteTable(domainRT *domainnetworking.RouteTable) *awsnetworking.
 		case "vpc_peering":
 			awsRoute.VpcPeeringConnectionID = &domainRoute.TargetID
 		}
-		
+
 		awsRoutes[i] = awsRoute
 	}
-	
+
 	return &awsnetworking.RouteTable{
 		Name:   domainRT.Name,
 		VPCID:  domainRT.VPCID,

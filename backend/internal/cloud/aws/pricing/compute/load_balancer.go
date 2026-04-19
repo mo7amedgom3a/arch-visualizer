@@ -3,7 +3,7 @@ package compute
 import (
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // LoadBalancerType represents the type of load balancer
@@ -12,7 +12,7 @@ type LoadBalancerType string
 const (
 	LoadBalancerTypeALB LoadBalancerType = "application" // Application Load Balancer
 	LoadBalancerTypeNLB LoadBalancerType = "network"     // Network Load Balancer
-	LoadBalancerTypeCLB LoadBalancerType = "classic"    // Classic Load Balancer
+	LoadBalancerTypeCLB LoadBalancerType = "classic"     // Classic Load Balancer
 )
 
 // LoadBalancerRates contains static pricing rates for AWS Load Balancers
@@ -20,7 +20,7 @@ const (
 var LoadBalancerRates = map[LoadBalancerType]float64{
 	LoadBalancerTypeALB: 0.0225, // $0.0225 per hour
 	LoadBalancerTypeNLB: 0.0225, // $0.0225 per hour
-	LoadBalancerTypeCLB: 0.025,   // $0.025 per hour
+	LoadBalancerTypeCLB: 0.025,  // $0.025 per hour
 }
 
 // LoadBalancerRegionalMultipliers contains regional pricing multipliers for Load Balancers

@@ -14,12 +14,12 @@ type LoadBalancerOutput struct {
 	ZoneID  string `json:"zone_id"`  // Route53 hosted zone ID
 
 	// Configuration (from input)
-	Type             string   `json:"type"`              // application or network
+	Type             string   `json:"type"` // application or network
 	Internal         bool     `json:"internal"`
 	SecurityGroupIDs []string `json:"security_group_ids"`
 	SubnetIDs        []string `json:"subnet_ids"`
 
 	// AWS-specific output fields
-	State       string    `json:"state"`        // active, provisioning, active_impaired, failed
+	State       string    `json:"state"` // active, provisioning, active_impaired, failed
 	CreatedTime time.Time `json:"created_time"`
 }

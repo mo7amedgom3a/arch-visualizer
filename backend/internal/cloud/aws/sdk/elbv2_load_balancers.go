@@ -203,15 +203,15 @@ func ListLoadBalancers(ctx context.Context, client *AWSClient, filters map[strin
 // convertLoadBalancerToOutput converts AWS SDK LoadBalancer to output model
 func convertLoadBalancerToOutput(lb *elbv2types.LoadBalancer) *awsoutputs.LoadBalancerOutput {
 	output := &awsoutputs.LoadBalancerOutput{
-		ARN:             aws.ToString(lb.LoadBalancerArn),
-		ID:              aws.ToString(lb.LoadBalancerArn),
-		Name:            aws.ToString(lb.LoadBalancerName),
-		DNSName:         aws.ToString(lb.DNSName),
-		ZoneID:          aws.ToString(lb.CanonicalHostedZoneId),
-		Type:            string(lb.Type),
-		Internal:        lb.Scheme == elbv2types.LoadBalancerSchemeEnumInternal,
-		State:           string(lb.State.Code),
-		CreatedTime:     aws.ToTime(lb.CreatedTime),
+		ARN:         aws.ToString(lb.LoadBalancerArn),
+		ID:          aws.ToString(lb.LoadBalancerArn),
+		Name:        aws.ToString(lb.LoadBalancerName),
+		DNSName:     aws.ToString(lb.DNSName),
+		ZoneID:      aws.ToString(lb.CanonicalHostedZoneId),
+		Type:        string(lb.Type),
+		Internal:    lb.Scheme == elbv2types.LoadBalancerSchemeEnumInternal,
+		State:       string(lb.State.Code),
+		CreatedTime: aws.ToTime(lb.CreatedTime),
 	}
 
 	// Convert security groups

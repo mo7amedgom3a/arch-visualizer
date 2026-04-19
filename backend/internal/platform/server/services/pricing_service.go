@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	awspricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // PricingServiceImpl implements PricingService interface

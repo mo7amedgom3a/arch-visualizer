@@ -163,7 +163,7 @@ func ListLaunchTemplates(ctx context.Context, client *AWSClient, filters map[str
 func GetLaunchTemplateVersion(ctx context.Context, client *AWSClient, id string, version int) (*awslttemplate.LaunchTemplateVersion, error) {
 	input := &ec2.DescribeLaunchTemplateVersionsInput{
 		LaunchTemplateId: aws.String(id),
-		Versions:          []string{fmt.Sprintf("%d", version)},
+		Versions:         []string{fmt.Sprintf("%d", version)},
 	}
 
 	output, err := client.EC2.DescribeLaunchTemplateVersions(ctx, input)
@@ -270,9 +270,9 @@ func convertLaunchTemplateToOutput(lt *types.LaunchTemplate) *awslttemplateoutpu
 	}
 
 	output := &awslttemplateoutputs.LaunchTemplateOutput{
-		ID:    aws.ToString(lt.LaunchTemplateId),
-		ARN:   arn,
-		Name:  aws.ToString(lt.LaunchTemplateName),
+		ID:         aws.ToString(lt.LaunchTemplateId),
+		ARN:        arn,
+		Name:       aws.ToString(lt.LaunchTemplateName),
 		CreateTime: aws.ToTime(lt.CreateTime),
 	}
 
@@ -312,9 +312,9 @@ func convertLaunchTemplateToOutput(lt *types.LaunchTemplate) *awslttemplateoutpu
 // convertLaunchTemplateVersion converts AWS SDK LaunchTemplateVersion to model
 func convertLaunchTemplateVersion(ltv *types.LaunchTemplateVersion, templateID string) *awslttemplate.LaunchTemplateVersion {
 	version := &awslttemplate.LaunchTemplateVersion{
-		TemplateID:    templateID,
-		IsDefault:     ltv.DefaultVersion != nil && *ltv.DefaultVersion,
-		CreateTime:    aws.ToTime(ltv.CreateTime),
+		TemplateID: templateID,
+		IsDefault:  ltv.DefaultVersion != nil && *ltv.DefaultVersion,
+		CreateTime: aws.ToTime(ltv.CreateTime),
 	}
 
 	if ltv.VersionNumber != nil {

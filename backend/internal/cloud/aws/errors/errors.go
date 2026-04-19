@@ -1,7 +1,7 @@
 package errors
 
 import (
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/errors"
 )
 
 // AWS-specific error codes

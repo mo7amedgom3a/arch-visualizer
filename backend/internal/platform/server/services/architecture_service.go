@@ -7,12 +7,11 @@ import (
 
 	"log/slog"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/rules"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // ArchitectureServiceImpl implements ArchitectureService interface
@@ -64,7 +63,7 @@ func (s *ArchitectureServiceImpl) ValidateRules(ctx context.Context, arch *archi
 	}
 
 	// Adapt domain architecture to rules engine architecture view
-	engineArch := &engine.Architecture{
+	engineArch := &rules.Architecture{
 		Resources: arch.Resources,
 	}
 
@@ -84,16 +83,16 @@ func (s *ArchitectureServiceImpl) ValidateRules(ctx context.Context, arch *archi
 	for resID, resResult := range resultsMap {
 		// Type assert to get the actual result type
 		// The rule service returns map[string]interface{}, we need to convert it
-		var evalResult *engine.EvaluationResult
+		var evalResult *rules.EvaluationResult
 		if resultMap, ok := resResult.(map[string]interface{}); ok {
 			// Try to extract the actual EvaluationResult
 			// This is a bit of a workaround - ideally the interface would be more specific
 			evalResult = convertToEvaluationResult(resultMap)
-		} else if er, ok := resResult.(*engine.EvaluationResult); ok {
+		} else if er, ok := resResult.(*rules.EvaluationResult); ok {
 			evalResult = er
 		} else {
 			// Fallback: create a valid result
-			evalResult = &engine.EvaluationResult{
+			evalResult = &rules.EvaluationResult{
 				Valid:   true,
 				Results: []*rules.RuleResult{},
 			}
@@ -136,8 +135,8 @@ func (s *ArchitectureServiceImpl) ValidateRules(ctx context.Context, arch *archi
 
 // convertToEvaluationResult converts a map to EvaluationResult
 // This is a workaround for the interface returning map[string]interface{}
-func convertToEvaluationResult(m map[string]interface{}) *engine.EvaluationResult {
-	result := &engine.EvaluationResult{
+func convertToEvaluationResult(m map[string]interface{}) *rules.EvaluationResult {
+	result := &rules.EvaluationResult{
 		Valid:   true,
 		Results: []*rules.RuleResult{},
 	}

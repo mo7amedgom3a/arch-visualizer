@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/writer"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 type Engine struct {

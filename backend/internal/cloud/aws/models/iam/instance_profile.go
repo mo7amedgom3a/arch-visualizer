@@ -10,11 +10,11 @@ import (
 
 // InstanceProfile represents an AWS IAM instance profile configuration
 type InstanceProfile struct {
-	Name      string        `json:"name,omitempty"`       // Optional if NamePrefix is provided
-	NamePrefix *string      `json:"name_prefix,omitempty"` // Optional, conflicts with Name
-	Path      *string       `json:"path,omitempty"`     // Default is "/"
-	Role      *string       `json:"role,omitempty"`     // IAM Role name to attach
-	Tags      []configs.Tag `json:"tags,omitempty"`
+	Name       string        `json:"name,omitempty"`        // Optional if NamePrefix is provided
+	NamePrefix *string       `json:"name_prefix,omitempty"` // Optional, conflicts with Name
+	Path       *string       `json:"path,omitempty"`        // Default is "/"
+	Role       *string       `json:"role,omitempty"`        // IAM Role name to attach
+	Tags       []configs.Tag `json:"tags,omitempty"`
 }
 
 // Validate performs AWS-specific validation

@@ -49,8 +49,8 @@ func TestRole_Validate(t *testing.T) {
 		{
 			name: "invalid-managed-policy-arn",
 			role: Role{
-				Name:             "test-role",
-				AssumeRolePolicy: validAssumeRolePolicy,
+				Name:              "test-role",
+				AssumeRolePolicy:  validAssumeRolePolicy,
 				ManagedPolicyARNs: []string{"invalid-arn"},
 			},
 			wantErr: true,
@@ -59,8 +59,8 @@ func TestRole_Validate(t *testing.T) {
 		{
 			name: "valid-role-with-managed-policies",
 			role: Role{
-				Name:             "test-role",
-				AssumeRolePolicy: validAssumeRolePolicy,
+				Name:              "test-role",
+				AssumeRolePolicy:  validAssumeRolePolicy,
 				ManagedPolicyARNs: []string{"arn:aws:iam::123456789012:policy/test-policy"},
 			},
 			wantErr: false,
@@ -109,4 +109,3 @@ func TestRole_Validate(t *testing.T) {
 		})
 	}
 }
-

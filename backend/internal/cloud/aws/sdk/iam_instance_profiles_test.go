@@ -121,4 +121,3 @@ func TestListInstanceProfiles(t *testing.T) {
 		t.Error("Profiles list is nil")
 	}
 }
-

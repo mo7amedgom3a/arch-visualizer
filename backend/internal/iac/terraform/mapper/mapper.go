@@ -1,6 +1,6 @@
 package mapper
 
-import "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+import "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 
 // ResourceMapper maps a domain resource into one or more Terraform blocks.
 // Implementations must be provider-specific (AWS/GCP/Azure...), but the interface
@@ -15,4 +15,3 @@ type ResourceMapper interface {
 	// The returned blocks are expected to be in a stable order.
 	MapResource(res *resource.Resource) ([]TerraformBlock, error)
 }
-

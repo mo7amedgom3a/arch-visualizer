@@ -10,14 +10,14 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/graph"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/validator"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/models"
 	projectrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/project"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 	"gorm.io/datatypes"
 )
 

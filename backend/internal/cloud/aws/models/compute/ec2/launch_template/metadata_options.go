@@ -7,8 +7,8 @@ import (
 
 // MetadataOptions represents instance metadata service options (IMDSv2)
 type MetadataOptions struct {
-	HTTPEndpoint            *string `json:"http_endpoint,omitempty"`             // "enabled" or "disabled"
-	HTTPTokens              *string `json:"http_tokens,omitempty"`                // "required" (IMDSv2) or "optional" (IMDSv1)
+	HTTPEndpoint            *string `json:"http_endpoint,omitempty"`               // "enabled" or "disabled"
+	HTTPTokens              *string `json:"http_tokens,omitempty"`                 // "required" (IMDSv2) or "optional" (IMDSv1)
 	HTTPPutResponseHopLimit *int    `json:"http_put_response_hop_limit,omitempty"` // Hop limit for PUT requests (1-64)
 }
 

@@ -1,10 +1,10 @@
 package iam
 
 import (
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
 )
 
 // FromDomainRole converts domain Role to AWS Role
@@ -14,10 +14,10 @@ func FromDomainRole(domainRole *domainiam.Role) *awsiam.Role {
 	}
 
 	awsRole := &awsiam.Role{
-		Name:              domainRole.Name,
-		Description:       domainRole.Description,
-		Path:              domainRole.Path,
-		AssumeRolePolicy:  domainRole.AssumeRolePolicy,
+		Name:                domainRole.Name,
+		Description:         domainRole.Description,
+		Path:                domainRole.Path,
+		AssumeRolePolicy:    domainRole.AssumeRolePolicy,
 		PermissionsBoundary: domainRole.PermissionsBoundary,
 	}
 
@@ -53,12 +53,12 @@ func ToDomainRoleFromOutput(output *awsoutputs.RoleOutput) *domainiam.Role {
 	}
 
 	domainRole := &domainiam.Role{
-		ID:                output.ID,
-		ARN:               arn,
-		Name:              output.Name,
-		Description:       output.Description,
-		Path:              path,
-		AssumeRolePolicy:  output.AssumeRolePolicy,
+		ID:                  output.ID,
+		ARN:                 arn,
+		Name:                output.Name,
+		Description:         output.Description,
+		Path:                path,
+		AssumeRolePolicy:    output.AssumeRolePolicy,
 		PermissionsBoundary: output.PermissionsBoundary,
 	}
 
@@ -112,16 +112,16 @@ func ToDomainRoleOutputFromOutput(output *awsoutputs.RoleOutput) *domainiam.Role
 	createDate := &output.CreateDate
 
 	return &domainiam.RoleOutput{
-		ID:                output.ID,
-		ARN:               arn,
-		Name:              output.Name,
-		Description:       output.Description,
-		Path:              path,
-		UniqueID:          uniqueID,
-		AssumeRolePolicy:  output.AssumeRolePolicy,
+		ID:                  output.ID,
+		ARN:                 arn,
+		Name:                output.Name,
+		Description:         output.Description,
+		Path:                path,
+		UniqueID:            uniqueID,
+		AssumeRolePolicy:    output.AssumeRolePolicy,
 		PermissionsBoundary: output.PermissionsBoundary,
-		Tags:              tags,
-		MaxSessionDuration: output.MaxSessionDuration,
-		CreateDate:        createDate,
+		Tags:                tags,
+		MaxSessionDuration:  output.MaxSessionDuration,
+		CreateDate:          createDate,
 	}
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
-	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
+	awssdk "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/sdk"
 )
 
 // IAMInstanceProfileRunner demonstrates IAM instance profile operations using AWS SDK
@@ -171,4 +171,3 @@ func displayInstanceProfileInfo() {
 	fmt.Println("    - Enable instances to write to CloudWatch Logs")
 	fmt.Println("    - Grant instances permissions to access other AWS services")
 }
-

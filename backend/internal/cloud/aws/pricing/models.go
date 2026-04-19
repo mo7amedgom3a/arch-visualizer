@@ -1,7 +1,7 @@
 package pricing
 
 import (
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // AWSPricingRate represents AWS-specific pricing rate information

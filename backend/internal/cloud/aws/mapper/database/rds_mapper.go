@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/database"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // FromResource converts a generic domain resource to an AWS RDS Instance model

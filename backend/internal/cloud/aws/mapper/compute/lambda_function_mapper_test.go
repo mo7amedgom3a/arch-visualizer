@@ -3,15 +3,15 @@ package compute
 import (
 	"testing"
 
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
 	awslambda "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda"
 	awslambdaoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/lambda/outputs"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 func TestFromDomainLambdaFunction(t *testing.T) {
 	tests := []struct {
-		name     string
-		domain   *domaincompute.LambdaFunction
+		name      string
+		domain    *domaincompute.LambdaFunction
 		checkFunc func(*testing.T, *awslambda.Function)
 	}{
 		{
@@ -135,8 +135,8 @@ func TestFromDomainLambdaFunction(t *testing.T) {
 
 func TestToDomainLambdaFunctionFromOutput(t *testing.T) {
 	tests := []struct {
-		name     string
-		output   *awslambdaoutputs.FunctionOutput
+		name      string
+		output    *awslambdaoutputs.FunctionOutput
 		checkFunc func(*testing.T, *domaincompute.LambdaFunction)
 	}{
 		{

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	architecture "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	architecture "github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func TestGetDefaultInventory(t *testing.T) {

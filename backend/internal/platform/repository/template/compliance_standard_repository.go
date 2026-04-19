@@ -1,8 +1,8 @@
 package templaterepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 
 	"github.com/google/uuid"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
@@ -60,4 +60,3 @@ func (r *ComplianceStandardRepository) List(ctx context.Context, limit, offset i
 	err := db.Order("name ASC").Find(&standards).Error
 	return standards, err
 }
-

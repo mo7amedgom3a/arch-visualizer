@@ -16,14 +16,14 @@ import (
 
 // StaticPolicyEntry represents a policy entry in the static JSON file
 type StaticPolicyEntry struct {
-	ARN              string   `json:"arn"`
-	Name             string   `json:"name"`
-	Description      *string  `json:"description,omitempty"`
-	Path             string   `json:"path"`
-	PolicyDocument   string   `json:"policy_document"`
-	IsAWSManaged     bool     `json:"is_aws_managed"`
+	ARN                string   `json:"arn"`
+	Name               string   `json:"name"`
+	Description        *string  `json:"description,omitempty"`
+	Path               string   `json:"path"`
+	PolicyDocument     string   `json:"policy_document"`
+	IsAWSManaged       bool     `json:"is_aws_managed"`
 	ResourceCategories []string `json:"resource_categories"`
-	RelatedResources  []string `json:"related_resources"`
+	RelatedResources   []string `json:"related_resources"`
 }
 
 // PolicyService provides IAM policy information with caching and fallback to static data
@@ -212,17 +212,17 @@ func (s *PolicyService) loadFromStatic() error {
 		for _, entry := range entries {
 			arn := strings.ToLower(entry.ARN)
 			policyOutput := &awsoutputs.PolicyOutput{
-				ARN:            entry.ARN,
-				ID:             entry.ARN,
-				Name:           entry.Name,
-				Description:    entry.Description,
-				Path:           entry.Path,
-				PolicyDocument: entry.PolicyDocument,
-				IsAWSManaged:   entry.IsAWSManaged,
-				CreateDate:     time.Time{}, // Static data doesn't have creation date
-				UpdateDate:     time.Time{}, // Static data doesn't have update date
-				AttachmentCount: 0,          // Unknown for static data
-				IsAttachable:   true,        // AWS managed policies are attachable
+				ARN:             entry.ARN,
+				ID:              entry.ARN,
+				Name:            entry.Name,
+				Description:     entry.Description,
+				Path:            entry.Path,
+				PolicyDocument:  entry.PolicyDocument,
+				IsAWSManaged:    entry.IsAWSManaged,
+				CreateDate:      time.Time{}, // Static data doesn't have creation date
+				UpdateDate:      time.Time{}, // Static data doesn't have update date
+				AttachmentCount: 0,           // Unknown for static data
+				IsAttachable:    true,        // AWS managed policies are attachable
 			}
 			s.staticData[arn] = policyOutput
 		}
@@ -266,17 +266,17 @@ func (s *PolicyService) loadFromLegacyFile() error {
 	for _, entry := range staticPolicies {
 		arn := strings.ToLower(entry.ARN)
 		policyOutput := &awsoutputs.PolicyOutput{
-			ARN:            entry.ARN,
-			ID:             entry.ARN,
-			Name:           entry.Name,
-			Description:    entry.Description,
-			Path:           entry.Path,
-			PolicyDocument: entry.PolicyDocument,
-			IsAWSManaged:   entry.IsAWSManaged,
-			CreateDate:     time.Time{},
-			UpdateDate:     time.Time{},
+			ARN:             entry.ARN,
+			ID:              entry.ARN,
+			Name:            entry.Name,
+			Description:     entry.Description,
+			Path:            entry.Path,
+			PolicyDocument:  entry.PolicyDocument,
+			IsAWSManaged:    entry.IsAWSManaged,
+			CreateDate:      time.Time{},
+			UpdateDate:      time.Time{},
 			AttachmentCount: 0,
-			IsAttachable:   true,
+			IsAttachable:    true,
 		}
 		s.staticData[arn] = policyOutput
 	}

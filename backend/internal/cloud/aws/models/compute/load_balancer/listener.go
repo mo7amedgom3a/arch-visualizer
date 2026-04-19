@@ -17,9 +17,9 @@ const (
 
 // RedirectConfig represents redirect configuration
 type RedirectConfig struct {
-	Protocol   *string `json:"protocol,omitempty"`   // HTTP or HTTPS
-	Port       *string `json:"port,omitempty"`        // Port number or "443"
-	StatusCode string  `json:"status_code"`          // HTTP_301 or HTTP_302
+	Protocol   *string `json:"protocol,omitempty"` // HTTP or HTTPS
+	Port       *string `json:"port,omitempty"`     // Port number or "443"
+	StatusCode string  `json:"status_code"`        // HTTP_301 or HTTP_302
 	Host       *string `json:"host,omitempty"`
 	Path       *string `json:"path,omitempty"`
 	Query      *string `json:"query,omitempty"`
@@ -27,25 +27,25 @@ type RedirectConfig struct {
 
 // FixedResponseConfig represents fixed response configuration
 type FixedResponseConfig struct {
-	ContentType string  `json:"content_type"`         // text/plain, text/css, text/html, application/json
+	ContentType string  `json:"content_type"` // text/plain, text/css, text/html, application/json
 	MessageBody *string `json:"message_body,omitempty"`
-	StatusCode  string  `json:"status_code"`          // 200-599
+	StatusCode  string  `json:"status_code"` // 200-599
 }
 
 // ListenerAction represents an action for a listener
 type ListenerAction struct {
-	Type               ListenerActionType   `json:"type"` // forward, redirect, fixed-response
-	TargetGroupARN     *string              `json:"target_group_arn,omitempty"` // Required if type is forward
-	RedirectConfig     *RedirectConfig       `json:"redirect_config,omitempty"` // Required if type is redirect
+	Type                ListenerActionType   `json:"type"`                            // forward, redirect, fixed-response
+	TargetGroupARN      *string              `json:"target_group_arn,omitempty"`      // Required if type is forward
+	RedirectConfig      *RedirectConfig      `json:"redirect_config,omitempty"`       // Required if type is redirect
 	FixedResponseConfig *FixedResponseConfig `json:"fixed_response_config,omitempty"` // Required if type is fixed-response
 }
 
 // Listener represents an AWS Load Balancer Listener configuration
 type Listener struct {
-	LoadBalancerARN string         `json:"load_balancer_arn"` // Required
-	Port            int            `json:"port"`              // Required
-	Protocol        string         `json:"protocol"`          // Required: HTTP, HTTPS, TCP, TLS
-	DefaultAction   ListenerAction `json:"default_action"`    // Required
+	LoadBalancerARN string         `json:"load_balancer_arn"`         // Required
+	Port            int            `json:"port"`                      // Required
+	Protocol        string         `json:"protocol"`                  // Required: HTTP, HTTPS, TCP, TLS
+	DefaultAction   ListenerAction `json:"default_action"`            // Required
 	CertificateARN  *string        `json:"certificate_arn,omitempty"` // Required for HTTPS/TLS
 	SSLPolicy       *string        `json:"ssl_policy,omitempty"`      // Optional for HTTPS/TLS
 }

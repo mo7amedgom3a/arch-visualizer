@@ -13,23 +13,23 @@ import (
 type HealthCheckConfig struct {
 	Path               *string `json:"path,omitempty"`                // Default: "/"
 	Matcher            *string `json:"matcher,omitempty"`             // Default: "200"
-	Interval           *int    `json:"interval,omitempty"`           // Default: 30 seconds
-	Timeout            *int    `json:"timeout,omitempty"`            // Default: 5 seconds
-	HealthyThreshold   *int    `json:"healthy_threshold,omitempty"`  // Default: 2
+	Interval           *int    `json:"interval,omitempty"`            // Default: 30 seconds
+	Timeout            *int    `json:"timeout,omitempty"`             // Default: 5 seconds
+	HealthyThreshold   *int    `json:"healthy_threshold,omitempty"`   // Default: 2
 	UnhealthyThreshold *int    `json:"unhealthy_threshold,omitempty"` // Default: 2
-	Protocol           *string `json:"protocol,omitempty"`           // Default: HTTP
-	Port               *string `json:"port,omitempty"`               // Default: "traffic-port"
+	Protocol           *string `json:"protocol,omitempty"`            // Default: HTTP
+	Port               *string `json:"port,omitempty"`                // Default: "traffic-port"
 }
 
 // TargetGroup represents an AWS Target Group configuration
 type TargetGroup struct {
-	Name       string        `json:"name"`        // Required
-	Port       int           `json:"port"`        // Required
-	Protocol   string        `json:"protocol"`   // Required: HTTP, HTTPS, TCP, TLS
-	VPCID      string        `json:"vpc_id"`     // Required
-	TargetType *string       `json:"target_type,omitempty"` // Optional: instance, ip, lambda (default: instance)
+	Name        string            `json:"name"`                  // Required
+	Port        int               `json:"port"`                  // Required
+	Protocol    string            `json:"protocol"`              // Required: HTTP, HTTPS, TCP, TLS
+	VPCID       string            `json:"vpc_id"`                // Required
+	TargetType  *string           `json:"target_type,omitempty"` // Optional: instance, ip, lambda (default: instance)
 	HealthCheck HealthCheckConfig `json:"health_check"`
-	Tags       []configs.Tag `json:"tags,omitempty"`
+	Tags        []configs.Tag     `json:"tags,omitempty"`
 }
 
 // Validate performs AWS-specific validation

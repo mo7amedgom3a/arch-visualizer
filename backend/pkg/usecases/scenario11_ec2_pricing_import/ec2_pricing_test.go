@@ -13,13 +13,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/database"
 	pricingrepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/pricing"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/services/pricing_importer"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // EC2PricingImportTestRunner tests the new EC2 pricing import and calculation feature:

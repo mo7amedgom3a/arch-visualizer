@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
-	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	awserrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/errors"
 	awsautoscaling "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling"
 	awsautoscalingoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/autoscaling/outputs"
 	awsec2 "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2"
@@ -19,6 +18,7 @@ import (
 	awsloadbalancer "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer"
 	awsloadbalanceroutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/load_balancer/outputs"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services"
+	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/errors"
 )
 
 // ComputeService implements AWSComputeService with deterministic virtual operations

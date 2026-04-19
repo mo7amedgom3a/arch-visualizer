@@ -1,7 +1,7 @@
 package networking
 
 import (
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // DataTransferDirection represents the direction of data transfer
@@ -20,9 +20,9 @@ const (
 
 // DataTransferPricing contains data transfer pricing rates
 var DataTransferPricing = map[DataTransferDirection]float64{
-	Inbound:    0.0,  // Free
-	Outbound:   0.09, // $0.09 per GB (after free tier)
-	InterAZ:    0.01, // $0.01 per GB
+	Inbound:     0.0,  // Free
+	Outbound:    0.09, // $0.09 per GB (after free tier)
+	InterAZ:     0.01, // $0.01 per GB
 	IntraRegion: 0.01, // $0.01 per GB
 }
 
@@ -68,30 +68,30 @@ func CalculateDataTransferCost(amountGB float64, direction DataTransferDirection
 func GetDataTransferPricing(region string) *domainpricing.ResourcePricing {
 	components := []domainpricing.PriceComponent{
 		{
-			Name:     "Data Transfer Inbound",
-			Model:    domainpricing.PerGB,
-			Unit:     "GB",
-			Rate:     0.0,
-			Currency: domainpricing.USD,
-			Region:   &region,
+			Name:        "Data Transfer Inbound",
+			Model:       domainpricing.PerGB,
+			Unit:        "GB",
+			Rate:        0.0,
+			Currency:    domainpricing.USD,
+			Region:      &region,
 			Description: "Inbound data transfer is free",
 		},
 		{
-			Name:     "Data Transfer Outbound",
-			Model:    domainpricing.PerGB,
-			Unit:     "GB",
-			Rate:     0.09,
-			Currency: domainpricing.USD,
-			Region:   &region,
+			Name:        "Data Transfer Outbound",
+			Model:       domainpricing.PerGB,
+			Unit:        "GB",
+			Rate:        0.09,
+			Currency:    domainpricing.USD,
+			Region:      &region,
 			Description: "First 1GB per month free, then $0.09/GB",
 		},
 		{
-			Name:     "Data Transfer Inter-AZ",
-			Model:    domainpricing.PerGB,
-			Unit:     "GB",
-			Rate:     0.01,
-			Currency: domainpricing.USD,
-			Region:   &region,
+			Name:        "Data Transfer Inter-AZ",
+			Model:       domainpricing.PerGB,
+			Unit:        "GB",
+			Rate:        0.01,
+			Currency:    domainpricing.USD,
+			Region:      &region,
 			Description: "Data transfer between availability zones",
 		},
 	}
@@ -99,9 +99,9 @@ func GetDataTransferPricing(region string) *domainpricing.ResourcePricing {
 	return &domainpricing.ResourcePricing{
 		ResourceType: "data_transfer",
 		Provider:     domainpricing.AWS,
-		Components:  components,
+		Components:   components,
 		Metadata: map[string]interface{}{
-			"free_tier_gb": FreeTierDataTransfer,
+			"free_tier_gb":     FreeTierDataTransfer,
 			"free_tier_period": "monthly",
 		},
 	}

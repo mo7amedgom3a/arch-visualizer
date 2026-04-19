@@ -134,7 +134,7 @@ func TestSubnetAZConstraint(t *testing.T) {
 
 			// Check AZ format and constraint
 			if test.subnet.AvailabilityZone != "" {
-				fmt.Printf("\nChecking AZ constraint...\n")
+				fmt.Printf("\nChecking AZ rules...\n")
 				// AWS AZ format is typically: region-az (e.g., us-east-1a)
 				// A subnet must be in a single AZ and cannot span multiple AZs
 				// This is enforced by AWS - a subnet is created in a specific AZ

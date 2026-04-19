@@ -3,8 +3,8 @@ package hiddendeps
 import (
 	"fmt"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // GetHiddenDependenciesForResourceType returns hardcoded hidden dependencies for a resource type

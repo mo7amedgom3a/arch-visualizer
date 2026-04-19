@@ -3,10 +3,10 @@ package inventory
 import (
 	"time"
 
-	architecture "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	architecture "github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 var (
@@ -16,14 +16,14 @@ var (
 
 func init() {
 	DefaultAWSInventory = NewInventory()
-	
+
 	// Register all resources (without function mappings - those are set lazily)
 	classifications := GetAWSResourceClassifications()
 	for _, classification := range classifications {
 		// Register with empty function registry - functions will be set by the mapper/pricing services
 		DefaultAWSInventory.RegisterResource(classification, FunctionRegistry{})
 	}
-	
+
 	// Register AWS inventory as IR type mapper for the domain architecture layer
 	registerAWSInventoryAsMapper()
 }
@@ -69,8 +69,6 @@ func (inv *Inventory) SetPricingInfoGetter(resourceName string, getter func(stri
 		inv.Functions[resourceName] = functions
 	}
 }
-
-
 
 // GetDefaultInventory returns the default AWS inventory
 func GetDefaultInventory() *Inventory {

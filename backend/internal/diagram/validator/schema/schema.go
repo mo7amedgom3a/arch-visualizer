@@ -4,14 +4,14 @@ package schema
 type FieldType string
 
 const (
-	FieldTypeString  FieldType = "string"
-	FieldTypeInt     FieldType = "int"
-	FieldTypeFloat   FieldType = "float"
-	FieldTypeBool    FieldType = "bool"
-	FieldTypeCIDR    FieldType = "cidr"
-	FieldTypeArray   FieldType = "array"
-	FieldTypeObject  FieldType = "object"
-	FieldTypeAny     FieldType = "any"
+	FieldTypeString FieldType = "string"
+	FieldTypeInt    FieldType = "int"
+	FieldTypeFloat  FieldType = "float"
+	FieldTypeBool   FieldType = "bool"
+	FieldTypeCIDR   FieldType = "cidr"
+	FieldTypeArray  FieldType = "array"
+	FieldTypeObject FieldType = "object"
+	FieldTypeAny    FieldType = "any"
 )
 
 // FieldConstraint represents validation constraints for a field

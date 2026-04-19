@@ -6,10 +6,10 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
-	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/storage"
 	resourcerepo "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository/resource"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
+	domainstorage "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/storage"
 )
 
 // DatabaseQueryService provides functions to query database and convert to domain models
@@ -430,7 +430,11 @@ func (dqs *DatabaseQueryService) PrintProjectResourcesSummary(ctx context.Contex
 	if len(lambdas) > 0 {
 		fmt.Printf("\n  Lambda Functions (%d):\n", len(lambdas))
 		for _, lambda := range lambdas {
-			fmt.Printf("    - %s (ARN: %s)\n", lambda.FunctionName, getARN(lambda.ARN))
+			arnStr := ""
+			if lambda.ARN != nil {
+				arnStr = *lambda.ARN
+			}
+			fmt.Printf("    - %s (ARN: %s)\n", lambda.FunctionName, arnStr)
 		}
 	}
 

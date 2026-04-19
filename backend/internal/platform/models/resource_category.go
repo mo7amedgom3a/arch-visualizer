@@ -6,7 +6,7 @@ type ResourceCategory struct {
 	Name string `gorm:"type:text;uniqueIndex;not null" json:"name"`
 
 	// Relationships
-	ResourceTypes []ResourceType `gorm:"foreignKey:CategoryID" json:"resource_types,omitempty"`
+	ResourceTypes  []ResourceType   `gorm:"foreignKey:CategoryID" json:"resource_types,omitempty"`
 	ServicePricing []ServicePricing `gorm:"foreignKey:CategoryID" json:"service_pricing,omitempty"`
 }
 

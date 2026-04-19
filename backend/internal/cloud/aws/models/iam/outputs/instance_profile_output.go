@@ -9,8 +9,8 @@ import (
 // InstanceProfileOutput represents AWS IAM instance profile output/response data after creation
 type InstanceProfileOutput struct {
 	// AWS-generated identifiers
-	ARN string `json:"arn"` // e.g., "arn:aws:iam::123456789012:instance-profile/my-profile"
-	ID  string `json:"id"`  // Same as name for instance profiles
+	ARN  string `json:"arn"` // e.g., "arn:aws:iam::123456789012:instance-profile/my-profile"
+	ID   string `json:"id"`  // Same as name for instance profiles
 	Name string `json:"name"`
 
 	// Configuration (from input)

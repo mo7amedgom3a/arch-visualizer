@@ -1,7 +1,7 @@
 package pricing
 
 import (
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // NetworkingPricingRates contains static pricing rates for AWS networking resources
@@ -13,9 +13,9 @@ var NetworkingPricingRates = map[string]AWSPricingRate{
 		DataProcessingRate: 0.045, // $0.045 per GB of data processed
 		RegionalVariations: map[string]float64{
 			// Some regions may have different rates
-			"us-east-1": 1.0,  // Base rate multiplier
-			"us-west-2": 1.0,  // Base rate multiplier
-			"eu-west-1": 1.0,  // Base rate multiplier
+			"us-east-1": 1.0, // Base rate multiplier
+			"us-west-2": 1.0, // Base rate multiplier
+			"eu-west-1": 1.0, // Base rate multiplier
 		},
 	},
 	"elastic_ip": {
@@ -40,7 +40,7 @@ var NetworkingPricingRates = map[string]AWSPricingRate{
 		// Data transfer pricing is complex and depends on direction and destination
 		// These are base rates, actual calculation is in data_transfer.go
 		FreeTierAllowance: &FreeTierAllowance{
-			Amount: 1.0,              // First 1GB free per month
+			Amount: 1.0, // First 1GB free per month
 			Unit:   "GB",
 			Period: pricing.Monthly,
 		},
@@ -74,4 +74,3 @@ func GetRegionalMultiplier(resourceType, region string) float64 {
 	}
 	return 1.0
 }
-

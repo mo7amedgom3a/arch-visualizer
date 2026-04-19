@@ -14,7 +14,7 @@ func main() {
 	ctx := context.Background()
 
 	// Seed the database
-	if err := seed.SeedDatabaseWithAdapters(); err != nil {
+	if err := seed.SeedDatabase(); err != nil {
 		log.Fatalf("Failed to seed database: %v", err)
 	}
 

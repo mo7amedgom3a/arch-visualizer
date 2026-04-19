@@ -216,7 +216,7 @@ func seedECSPricingRates(ctx context.Context) error {
 }
 
 func seedECSConstraints(ctx context.Context) error {
-	log.Println("Seeding ECS constraints...")
+	log.Println("Seeding ECS rules...")
 
 	db := database.DB
 

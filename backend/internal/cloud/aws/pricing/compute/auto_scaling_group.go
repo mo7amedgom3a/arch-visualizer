@@ -3,7 +3,7 @@ package compute
 import (
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // CalculateAutoScalingGroupCost calculates the cost for an Auto Scaling Group
@@ -61,14 +61,14 @@ func GetAutoScalingGroupPricing(instanceType string, minSize, maxSize int, regio
 	}
 
 	metadata := map[string]interface{}{
-		"instance_type":      instanceType,
-		"min_size":           minSize,
-		"max_size":           maxSize,
-		"average_capacity":   avgCapacity,
-		"instance_hourly_rate": instanceRate,
+		"instance_type":         instanceType,
+		"min_size":              minSize,
+		"max_size":              maxSize,
+		"average_capacity":      avgCapacity,
+		"instance_hourly_rate":  instanceRate,
 		"effective_hourly_rate": effectiveHourlyRate,
-		"pricing_model":      "on_demand",
-		"note":               "ASG itself has no cost; pricing is for managed EC2 instances",
+		"pricing_model":         "on_demand",
+		"note":                  "ASG itself has no cost; pricing is for managed EC2 instances",
 	}
 
 	return &domainpricing.ResourcePricing{

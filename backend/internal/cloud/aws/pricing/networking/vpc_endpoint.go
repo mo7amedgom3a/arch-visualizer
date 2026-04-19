@@ -3,7 +3,7 @@ package networking
 import (
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // CalculateVPCEndpointCost calculates the cost for a VPC Endpoint

@@ -23,12 +23,12 @@ const (
 
 // ACLRule represents a single Network ACL rule
 type ACLRule struct {
-	RuleNumber int           `json:"rule_number"` // Evaluated by rule number (lowest first, 1-32766)
-	Type       ACLRuleType   `json:"type"`        // ingress or egress
-	Protocol   string        `json:"protocol"`    // tcp, udp, icmp, -1 (all)
+	RuleNumber int           `json:"rule_number"`          // Evaluated by rule number (lowest first, 1-32766)
+	Type       ACLRuleType   `json:"type"`                 // ingress or egress
+	Protocol   string        `json:"protocol"`             // tcp, udp, icmp, -1 (all)
 	PortRange  *PortRange    `json:"port_range,omitempty"` // Optional port range
-	CIDR       string        `json:"cidr"`        // Source (for ingress) or Destination (for egress)
-	Action     ACLRuleAction `json:"action"`      // allow or deny
+	CIDR       string        `json:"cidr"`                 // Source (for ingress) or Destination (for egress)
+	Action     ACLRuleAction `json:"action"`               // allow or deny
 }
 
 // PortRange represents a port range
@@ -40,10 +40,10 @@ type PortRange struct {
 // NetworkACL represents an AWS-specific Network ACL
 // Network ACLs are stateless and operate at the subnet level
 type NetworkACL struct {
-	Name          string     `json:"name"`
-	VPCID         string     `json:"vpc_id"`
-	InboundRules  []ACLRule  `json:"inbound_rules,omitempty"`  // Ingress rules
-	OutboundRules []ACLRule  `json:"outbound_rules,omitempty"`  // Egress rules
+	Name          string        `json:"name"`
+	VPCID         string        `json:"vpc_id"`
+	InboundRules  []ACLRule     `json:"inbound_rules,omitempty"`  // Ingress rules
+	OutboundRules []ACLRule     `json:"outbound_rules,omitempty"` // Egress rules
 	Tags          []configs.Tag `json:"tags,omitempty"`
 }
 

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 type fakeAWSMapper struct {
@@ -75,7 +75,6 @@ func TestEngine_Generate_HappyPath(t *testing.T) {
 		},
 		Provider: resource.AWS,
 		Region:   "us-east-1",
-		
 	}
 
 	arch := &architecture.Architecture{
@@ -109,4 +108,3 @@ func TestEngine_Generate_HappyPath(t *testing.T) {
 		t.Fatalf("expected mapper to receive resource, got %#v", mapper.mapped)
 	}
 }
-

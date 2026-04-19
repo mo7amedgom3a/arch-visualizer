@@ -1,10 +1,10 @@
 package networking
 
 import (
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 // ToDomainInternetGateway converts AWS Internet Gateway to domain Internet Gateway (for backward compatibility)
@@ -12,7 +12,7 @@ func ToDomainInternetGateway(awsIGW *awsnetworking.InternetGateway) *domainnetwo
 	if awsIGW == nil {
 		return nil
 	}
-	
+
 	return &domainnetworking.InternetGateway{
 		Name:  awsIGW.Name,
 		VPCID: awsIGW.VPCID,
@@ -24,12 +24,12 @@ func ToDomainInternetGatewayFromOutput(output *awsoutputs.InternetGatewayOutput)
 	if output == nil {
 		return nil
 	}
-	
+
 	arn := &output.ARN
 	if output.ARN == "" {
 		arn = nil
 	}
-	
+
 	return &domainnetworking.InternetGateway{
 		ID:    output.ID,
 		ARN:   arn,
@@ -43,7 +43,7 @@ func FromDomainInternetGateway(domainIGW *domainnetworking.InternetGateway) *aws
 	if domainIGW == nil {
 		return nil
 	}
-	
+
 	return &awsnetworking.InternetGateway{
 		Name:  domainIGW.Name,
 		VPCID: domainIGW.VPCID,

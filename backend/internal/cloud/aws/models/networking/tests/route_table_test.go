@@ -28,7 +28,7 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "0.0.0.0/0",
-						GatewayID:           &igwID,
+						GatewayID:            &igwID,
 					},
 				},
 				Tags: []configs.Tag{{Key: "Name", Value: "public-rt"}},
@@ -44,7 +44,7 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "0.0.0.0/0",
-						NatGatewayID:        &natGatewayID,
+						NatGatewayID:         &natGatewayID,
 					},
 				},
 				Tags: []configs.Tag{{Key: "Name", Value: "private-rt"}},
@@ -60,7 +60,7 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "0.0.0.0/0",
-						GatewayID:           &igwID,
+						GatewayID:            &igwID,
 					},
 				},
 			},
@@ -75,7 +75,7 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "0.0.0.0/0",
-						GatewayID:           &igwID,
+						GatewayID:            &igwID,
 					},
 				},
 			},
@@ -90,7 +90,7 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "",
-						GatewayID:           &igwID,
+						GatewayID:            &igwID,
 					},
 				},
 			},
@@ -119,8 +119,8 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "0.0.0.0/0",
-						GatewayID:           &igwID,
-						NatGatewayID:        &natGatewayID,
+						GatewayID:            &igwID,
+						NatGatewayID:         &natGatewayID,
 					},
 				},
 			},
@@ -150,11 +150,11 @@ func TestRouteTable(t *testing.T) {
 				Routes: []networking.Route{
 					{
 						DestinationCIDRBlock: "10.0.0.0/16",
-						GatewayID:           nil, // Local route
+						GatewayID:            nil, // Local route
 					},
 					{
 						DestinationCIDRBlock: "0.0.0.0/0",
-						GatewayID:           &igwID,
+						GatewayID:            &igwID,
 					},
 				},
 			},

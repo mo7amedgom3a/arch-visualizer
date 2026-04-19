@@ -7,9 +7,9 @@ import (
 
 // TargetGroupAttachment represents an AWS Target Group Attachment configuration
 type TargetGroupAttachment struct {
-	TargetGroupARN   string  `json:"target_group_arn"`   // Required
-	TargetID         string  `json:"target_id"`          // Required (instance ID or IP)
-	Port             *int    `json:"port,omitempty"`     // Optional
+	TargetGroupARN   string  `json:"target_group_arn"`            // Required
+	TargetID         string  `json:"target_id"`                   // Required (instance ID or IP)
+	Port             *int    `json:"port,omitempty"`              // Optional
 	AvailabilityZone *string `json:"availability_zone,omitempty"` // Optional
 }
 

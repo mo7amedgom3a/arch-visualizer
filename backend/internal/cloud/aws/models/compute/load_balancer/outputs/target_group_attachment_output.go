@@ -7,5 +7,5 @@ type TargetGroupAttachmentOutput struct {
 	Port             *int    `json:"port,omitempty"`
 	AvailabilityZone *string `json:"availability_zone,omitempty"`
 	HealthStatus     string  `json:"health_status"` // healthy, unhealthy, initial, draining
-	State            string  `json:"state"`        // initial, healthy, unhealthy, unused, draining, unavailable
+	State            string  `json:"state"`         // initial, healthy, unhealthy, unused, draining, unavailable
 }

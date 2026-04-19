@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // MapVPCEndpoint maps a VPC Endpoint resource to Terraform blocks

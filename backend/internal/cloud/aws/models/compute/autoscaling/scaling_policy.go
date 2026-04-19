@@ -10,8 +10,8 @@ type ScalingPolicyType string
 
 const (
 	ScalingPolicyTypeTargetTrackingScaling ScalingPolicyType = "TargetTrackingScaling"
-	ScalingPolicyTypeStepScaling            ScalingPolicyType = "StepScaling"
-	ScalingPolicyTypeSimpleScaling          ScalingPolicyType = "SimpleScaling"
+	ScalingPolicyTypeStepScaling           ScalingPolicyType = "StepScaling"
+	ScalingPolicyTypeSimpleScaling         ScalingPolicyType = "SimpleScaling"
 )
 
 // AdjustmentType represents how to adjust capacity
@@ -25,10 +25,10 @@ const (
 
 // TargetTrackingConfiguration represents target tracking scaling configuration
 type TargetTrackingConfiguration struct {
-	TargetValue     float64  `json:"target_value"`     // Required: target metric value
+	TargetValue                   float64                        `json:"target_value"` // Required: target metric value
 	PredefinedMetricSpecification *PredefinedMetricSpecification `json:"predefined_metric_specification,omitempty"`
 	CustomizedMetricSpecification *CustomizedMetricSpecification `json:"customized_metric_specification,omitempty"`
-	DisableScaleIn  *bool    `json:"disable_scale_in,omitempty"` // Optional: prevent scale-in
+	DisableScaleIn                *bool                          `json:"disable_scale_in,omitempty"` // Optional: prevent scale-in
 }
 
 // PredefinedMetricSpecification represents a predefined metric for target tracking
@@ -39,11 +39,11 @@ type PredefinedMetricSpecification struct {
 
 // CustomizedMetricSpecification represents a custom metric for target tracking
 type CustomizedMetricSpecification struct {
-	MetricName string   `json:"metric_name"`
-	Namespace  string   `json:"namespace"`
-	Statistic  string   `json:"statistic"` // Average, Sum, Minimum, Maximum, SampleCount
+	MetricName string            `json:"metric_name"`
+	Namespace  string            `json:"namespace"`
+	Statistic  string            `json:"statistic"` // Average, Sum, Minimum, Maximum, SampleCount
 	Dimensions []MetricDimension `json:"dimensions,omitempty"`
-	Unit       *string  `json:"unit,omitempty"`
+	Unit       *string           `json:"unit,omitempty"`
 }
 
 // MetricDimension represents a metric dimension
@@ -61,31 +61,31 @@ type StepAdjustment struct {
 
 // StepScalingConfiguration represents step scaling configuration
 type StepScalingConfiguration struct {
-	AdjustmentType       AdjustmentType   `json:"adjustment_type"`       // Required
-	StepAdjustments      []StepAdjustment `json:"step_adjustments"`      // Required
-	MinAdjustmentMagnitude *int           `json:"min_adjustment_magnitude,omitempty"`
-	Cooldown             *int            `json:"cooldown,omitempty"`    // Seconds
-	MetricAggregationType *string         `json:"metric_aggregation_type,omitempty"` // Average, Minimum, Maximum
+	AdjustmentType         AdjustmentType   `json:"adjustment_type"`  // Required
+	StepAdjustments        []StepAdjustment `json:"step_adjustments"` // Required
+	MinAdjustmentMagnitude *int             `json:"min_adjustment_magnitude,omitempty"`
+	Cooldown               *int             `json:"cooldown,omitempty"`                // Seconds
+	MetricAggregationType  *string          `json:"metric_aggregation_type,omitempty"` // Average, Minimum, Maximum
 }
 
 // SimpleScalingConfiguration represents simple scaling configuration
 type SimpleScalingConfiguration struct {
-	AdjustmentType       AdjustmentType `json:"adjustment_type"`       // Required
-	ScalingAdjustment    int            `json:"scaling_adjustment"`    // Required
-	Cooldown             *int           `json:"cooldown,omitempty"`    // Seconds
+	AdjustmentType    AdjustmentType `json:"adjustment_type"`    // Required
+	ScalingAdjustment int            `json:"scaling_adjustment"` // Required
+	Cooldown          *int           `json:"cooldown,omitempty"` // Seconds
 }
 
 // ScalingPolicy represents an AWS Auto Scaling scaling policy configuration
 type ScalingPolicy struct {
-	PolicyName           string                      `json:"policy_name"`            // Required
-	AutoScalingGroupName string                      `json:"auto_scaling_group_name"` // Required
-	PolicyType           ScalingPolicyType           `json:"policy_type"`            // Required
+	PolicyName                  string                       `json:"policy_name"`             // Required
+	AutoScalingGroupName        string                       `json:"auto_scaling_group_name"` // Required
+	PolicyType                  ScalingPolicyType            `json:"policy_type"`             // Required
 	TargetTrackingConfiguration *TargetTrackingConfiguration `json:"target_tracking_configuration,omitempty"`
-	StepScalingConfiguration    *StepScalingConfiguration   `json:"step_scaling_configuration,omitempty"`
+	StepScalingConfiguration    *StepScalingConfiguration    `json:"step_scaling_configuration,omitempty"`
 	SimpleScalingConfiguration  *SimpleScalingConfiguration  `json:"simple_scaling_configuration,omitempty"`
 	AdjustmentType              *AdjustmentType              `json:"adjustment_type,omitempty"` // For backward compatibility
-	Cooldown                    *int                        `json:"cooldown,omitempty"`
-	MinAdjustmentMagnitude      *int                        `json:"min_adjustment_magnitude,omitempty"`
+	Cooldown                    *int                         `json:"cooldown,omitempty"`
+	MinAdjustmentMagnitude      *int                         `json:"min_adjustment_magnitude,omitempty"`
 }
 
 // Validate performs validation for scaling policy

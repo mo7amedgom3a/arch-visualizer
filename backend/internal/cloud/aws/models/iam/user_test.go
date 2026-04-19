@@ -19,8 +19,8 @@ func TestUser_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "missing-name",
-			user: User{},
+			name:    "missing-name",
+			user:    User{},
 			wantErr: true,
 			errMsg:  "user name is required",
 		},
@@ -70,4 +70,3 @@ func TestUser_Validate(t *testing.T) {
 		})
 	}
 }
-

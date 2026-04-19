@@ -10,16 +10,16 @@ import (
 
 // Volume represents an AWS EBS volume configuration
 type Volume struct {
-	Name             string        `json:"name"`               // Required
-	AvailabilityZone string        `json:"availability_zone"`  // Required
-	Size             int           `json:"size"`               // Size in GiB (required)
-	VolumeType       string        `json:"volume_type"`        // gp3, gp2, io1, io2, sc1, st1, standard
-	IOPS             *int          `json:"iops,omitempty"`      // Optional for gp3/io1/io2
-	Throughput       *int          `json:"throughput,omitempty"` // Optional for gp3 (MB/s)
-	Encrypted        bool          `json:"encrypted"`           // Default: false
-	KMSKeyID         *string       `json:"kms_key_id,omitempty"` // Optional KMS key ARN
+	Name             string        `json:"name"`                  // Required
+	AvailabilityZone string        `json:"availability_zone"`     // Required
+	Size             int           `json:"size"`                  // Size in GiB (required)
+	VolumeType       string        `json:"volume_type"`           // gp3, gp2, io1, io2, sc1, st1, standard
+	IOPS             *int          `json:"iops,omitempty"`        // Optional for gp3/io1/io2
+	Throughput       *int          `json:"throughput,omitempty"`  // Optional for gp3 (MB/s)
+	Encrypted        bool          `json:"encrypted"`             // Default: false
+	KMSKeyID         *string       `json:"kms_key_id,omitempty"`  // Optional KMS key ARN
 	SnapshotID       *string       `json:"snapshot_id,omitempty"` // Optional snapshot ID
-	Tags             []configs.Tag `json:"tags,omitempty"`      // Optional tags
+	Tags             []configs.Tag `json:"tags,omitempty"`        // Optional tags
 }
 
 // Validate performs AWS-specific validation

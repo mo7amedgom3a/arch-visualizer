@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/inventory"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	tfmapper "github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // AWSMapper maps domain resources (AWS provider) into Terraform blocks.

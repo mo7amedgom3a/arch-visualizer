@@ -3,7 +3,7 @@ package storage
 import (
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // EBSVolumeRates contains static pricing rates for AWS EBS volume types
@@ -20,10 +20,10 @@ var EBSVolumeRates = map[string]float64{
 
 // EBSRegionalMultipliers contains regional pricing multipliers for EBS volumes
 var EBSRegionalMultipliers = map[string]float64{
-	"us-east-1":      1.0,  // Base rate multiplier
-	"us-west-2":      1.0,  // Base rate multiplier
-	"eu-west-1":      1.0,  // Base rate multiplier
-	"ap-southeast-1": 1.1,  // Slightly higher in some regions
+	"us-east-1":      1.0, // Base rate multiplier
+	"us-west-2":      1.0, // Base rate multiplier
+	"eu-west-1":      1.0, // Base rate multiplier
+	"ap-southeast-1": 1.1, // Slightly higher in some regions
 }
 
 // getEBSVolumeRate returns the per GB-month rate for an EBS volume type
@@ -34,12 +34,12 @@ func getEBSVolumeRate(volumeType, region string) (float64, bool) {
 		baseRate = EBSVolumeRates["gp3"]
 		exists = true
 	}
-	
+
 	multiplier := 1.0
 	if m, ok := EBSRegionalMultipliers[region]; ok {
 		multiplier = m
 	}
-	
+
 	return baseRate * multiplier, true
 }
 
@@ -83,7 +83,7 @@ func GetEBSVolumePricing(volumeType, region string) *domainpricing.ResourcePrici
 	}
 
 	metadata := map[string]interface{}{
-		"volume_type":   volumeType,
+		"volume_type":       volumeType,
 		"rate_per_gb_month": rate,
 	}
 

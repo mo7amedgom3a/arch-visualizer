@@ -1,10 +1,10 @@
 package networking
 
 import (
-	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/networking"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/networking/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainnetworking "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/networking"
 )
 
 // ToDomainElasticIP converts AWS Elastic IP to domain Elastic IP (for backward compatibility)
@@ -12,13 +12,13 @@ func ToDomainElasticIP(awsEIP *awsnetworking.ElasticIP) *domainnetworking.Elasti
 	if awsEIP == nil {
 		return nil
 	}
-	
+
 	var poolType *domainnetworking.ElasticIPAddressPoolType
 	if awsEIP.AddressPoolType != nil {
 		dt := domainnetworking.ElasticIPAddressPoolType(*awsEIP.AddressPoolType)
 		poolType = &dt
 	}
-	
+
 	return &domainnetworking.ElasticIP{
 		AllocationID:       awsEIP.AllocationID,
 		AddressPoolType:    poolType,
@@ -33,22 +33,22 @@ func ToDomainElasticIPFromOutput(output *awsoutputs.ElasticIPOutput) *domainnetw
 	if output == nil {
 		return nil
 	}
-	
+
 	arn := &output.ARN
 	if output.ARN == "" {
 		arn = nil
 	}
-	
+
 	publicIP := &output.PublicIP
 	if output.PublicIP == "" {
 		publicIP = nil
 	}
-	
+
 	allocationID := &output.AllocationID
 	if output.AllocationID == "" {
 		allocationID = nil
 	}
-	
+
 	return &domainnetworking.ElasticIP{
 		ID:                 output.ID,
 		ARN:                arn,
@@ -64,13 +64,13 @@ func FromDomainElasticIP(domainEIP *domainnetworking.ElasticIP) *awsnetworking.E
 	if domainEIP == nil {
 		return nil
 	}
-	
+
 	var poolType *awsnetworking.ElasticIPAddressPoolType
 	if domainEIP.AddressPoolType != nil {
 		at := awsnetworking.ElasticIPAddressPoolType(*domainEIP.AddressPoolType)
 		poolType = &at
 	}
-	
+
 	return &awsnetworking.ElasticIP{
 		AllocationID:       domainEIP.AllocationID,
 		AddressPoolType:    poolType,

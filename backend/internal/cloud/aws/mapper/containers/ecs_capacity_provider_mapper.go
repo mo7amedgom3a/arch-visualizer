@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/containers"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // CapacityProviderFromResource converts a generic domain resource to an ECS Capacity Provider model

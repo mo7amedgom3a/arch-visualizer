@@ -15,17 +15,17 @@ type LaunchTemplateSpecification struct {
 
 // AutoScalingGroup represents an AWS Auto Scaling Group configuration
 type AutoScalingGroup struct {
-	AutoScalingGroupName      *string  `json:"auto_scaling_group_name,omitempty"`      // Optional: exact name
-	AutoScalingGroupNamePrefix *string `json:"auto_scaling_group_name_prefix,omitempty"` // Optional: name prefix
-	MinSize                   int      `json:"min_size"`                               // Required
-	MaxSize                   int      `json:"max_size"`                               // Required
-	DesiredCapacity           *int     `json:"desired_capacity,omitempty"`             // Optional
-	VPCZoneIdentifier         []string `json:"vpc_zone_identifier"`                    // Required: subnet IDs
-	LaunchTemplate            *LaunchTemplateSpecification `json:"launch_template"`  // Required
-	HealthCheckType           *string  `json:"health_check_type,omitempty"`           // Optional: "EC2" or "ELB" (default: "EC2")
-	HealthCheckGracePeriod    *int     `json:"health_check_grace_period,omitempty"`  // Optional: seconds (default: 300)
-	TargetGroupARNs          []string `json:"target_group_arns,omitempty"`          // Optional: required for ELB health checks
-	Tags                     []Tag    `json:"tags,omitempty"`                        // Optional: tags with propagation
+	AutoScalingGroupName       *string                      `json:"auto_scaling_group_name,omitempty"`        // Optional: exact name
+	AutoScalingGroupNamePrefix *string                      `json:"auto_scaling_group_name_prefix,omitempty"` // Optional: name prefix
+	MinSize                    int                          `json:"min_size"`                                 // Required
+	MaxSize                    int                          `json:"max_size"`                                 // Required
+	DesiredCapacity            *int                         `json:"desired_capacity,omitempty"`               // Optional
+	VPCZoneIdentifier          []string                     `json:"vpc_zone_identifier"`                      // Required: subnet IDs
+	LaunchTemplate             *LaunchTemplateSpecification `json:"launch_template"`                          // Required
+	HealthCheckType            *string                      `json:"health_check_type,omitempty"`              // Optional: "EC2" or "ELB" (default: "EC2")
+	HealthCheckGracePeriod     *int                         `json:"health_check_grace_period,omitempty"`      // Optional: seconds (default: 300)
+	TargetGroupARNs            []string                     `json:"target_group_arns,omitempty"`              // Optional: required for ELB health checks
+	Tags                       []Tag                        `json:"tags,omitempty"`                           // Optional: tags with propagation
 }
 
 // Tag represents an AWS tag with propagation flag

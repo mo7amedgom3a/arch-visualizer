@@ -4,7 +4,7 @@ package dto
 type ProcessDiagramRequest struct {
 	ProjectName string `json:"project_name"`
 	IACToolID   uint   `json:"iac_tool_id"` // 1 = Terraform, 2 = Pulumi, etc.
-	UserID      string `json:"user_id"`      // UUID string
+	UserID      string `json:"user_id"`     // UUID string
 }
 
 // ProcessDiagramResponse represents the response after processing a diagram

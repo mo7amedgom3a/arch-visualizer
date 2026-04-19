@@ -1,10 +1,10 @@
 package compute
 
 import (
-	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/compute"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awslttemplate "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2/launch_template"
 	awslttemplateoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/compute/ec2/launch_template/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domaincompute "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/compute"
 )
 
 // FromDomainLaunchTemplate converts domain LaunchTemplate to AWS LaunchTemplate input model
@@ -14,8 +14,8 @@ func FromDomainLaunchTemplate(domain *domaincompute.LaunchTemplate) *awslttempla
 	}
 
 	awsTemplate := &awslttemplate.LaunchTemplate{
-		ImageID:      domain.ImageID,
-		InstanceType: domain.InstanceType,
+		ImageID:             domain.ImageID,
+		InstanceType:        domain.InstanceType,
 		VpcSecurityGroupIds: domain.SecurityGroupIDs,
 	}
 
@@ -88,8 +88,8 @@ func ToDomainLaunchTemplate(aws *awslttemplate.LaunchTemplate) *domaincompute.La
 	}
 
 	domain := &domaincompute.LaunchTemplate{
-		ImageID:      aws.ImageID,
-		InstanceType: aws.InstanceType,
+		ImageID:          aws.ImageID,
+		InstanceType:     aws.InstanceType,
 		SecurityGroupIDs: aws.VpcSecurityGroupIds,
 	}
 
@@ -191,15 +191,15 @@ func ToDomainLaunchTemplateOutputFromOutput(output *awslttemplateoutputs.LaunchT
 	createdBy := &output.CreatedBy
 
 	return &domaincompute.LaunchTemplateOutput{
-		ID:            output.ID,
-		ARN:           arn,
-		Name:          output.Name,
-		Region:        "", // Region should be set from context
-		NamePrefix:    namePrefix,
+		ID:             output.ID,
+		ARN:            arn,
+		Name:           output.Name,
+		Region:         "", // Region should be set from context
+		NamePrefix:     namePrefix,
 		DefaultVersion: defaultVersion,
 		LatestVersion:  latestVersion,
-		CreatedAt:     createdAt,
-		CreatedBy:     createdBy,
+		CreatedAt:      createdAt,
+		CreatedBy:      createdBy,
 	}
 }
 

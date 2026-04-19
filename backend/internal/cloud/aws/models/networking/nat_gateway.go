@@ -7,10 +7,10 @@ import (
 
 // NATGateway represents an AWS-specific NAT Gateway
 type NATGateway struct {
-	Name          string `json:"name"`
-	SubnetID      string `json:"subnet_id"`
-	AllocationID  string `json:"allocation_id"` // Elastic IP allocation ID
-	Tags          []configs.Tag `json:"tags"`
+	Name         string        `json:"name"`
+	SubnetID     string        `json:"subnet_id"`
+	AllocationID string        `json:"allocation_id"` // Elastic IP allocation ID
+	Tags         []configs.Tag `json:"tags"`
 }
 
 // Validate performs AWS-specific validation

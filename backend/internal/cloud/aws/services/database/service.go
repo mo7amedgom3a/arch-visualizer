@@ -8,7 +8,7 @@ import (
 	awsdatabase "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/database"
 	awsdatabaseoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/database/outputs"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/services"
-	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/errors"
+	domainerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/errors"
 )
 
 // DatabaseService implements AWSDatabaseService with deterministic virtual operations

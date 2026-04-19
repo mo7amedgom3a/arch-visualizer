@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 func TestCalculateAutoScalingGroupCost(t *testing.T) {

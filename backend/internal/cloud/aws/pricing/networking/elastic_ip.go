@@ -3,7 +3,7 @@ package networking
 import (
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // CalculateElasticIPCost calculates the cost for an Elastic IP
@@ -18,10 +18,10 @@ func CalculateElasticIPCost(duration time.Duration, isAttached bool, region stri
 
 	// Base rate
 	baseHourlyRate := 0.005
-	
+
 	// Get regional multiplier (default to 1.0)
 	multiplier := 1.0
-	
+
 	// Calculate hourly cost
 	hours := duration.Hours()
 	return baseHourlyRate * multiplier * hours
@@ -31,19 +31,19 @@ func CalculateElasticIPCost(duration time.Duration, isAttached bool, region stri
 func GetElasticIPPricing(region string) *domainpricing.ResourcePricing {
 	// Base rate
 	baseHourlyRate := 0.005
-	
+
 	// Get regional multiplier (default to 1.0)
 	multiplier := 1.0
 	hourlyRate := baseHourlyRate * multiplier
 
 	components := []domainpricing.PriceComponent{
 		{
-			Name:      "Elastic IP Hourly (Unattached)",
-			Model:     domainpricing.PerHour,
-			Unit:      "hour",
-			Rate:      hourlyRate,
-			Currency:  domainpricing.USD,
-			Region:    &region,
+			Name:        "Elastic IP Hourly (Unattached)",
+			Model:       domainpricing.PerHour,
+			Unit:        "hour",
+			Rate:        hourlyRate,
+			Currency:    domainpricing.USD,
+			Region:      &region,
 			Description: "Hourly charge when not attached to a running instance. Free when attached.",
 		},
 	}
@@ -51,9 +51,9 @@ func GetElasticIPPricing(region string) *domainpricing.ResourcePricing {
 	return &domainpricing.ResourcePricing{
 		ResourceType: "elastic_ip",
 		Provider:     domainpricing.AWS,
-		Components:  components,
+		Components:   components,
 		Metadata: map[string]interface{}{
-			"base_hourly_rate": hourlyRate,
+			"base_hourly_rate":   hourlyRate,
 			"free_when_attached": true,
 		},
 	}

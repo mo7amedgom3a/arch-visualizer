@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/diagram/parser"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 
 	// Register AWS generator and mapper
 	_ "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/architecture"

@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // LambdaComputeRate is the per GB-second rate for Lambda compute
@@ -73,12 +73,12 @@ func CalculateLambdaFunctionCost(
 
 	// Calculate compute cost (GB-seconds)
 	// Formula: (memorySizeGB * durationSeconds * requestCount) * computeRate
-	memorySizeGB := memorySizeMB / 1024.0 // Convert MB to GB
+	memorySizeGB := memorySizeMB / 1024.0         // Convert MB to GB
 	durationSeconds := averageDurationMs / 1000.0 // Convert ms to seconds
-	
+
 	// Total GB-seconds = memory (GB) * duration (seconds) * requests
 	totalGBSeconds := memorySizeGB * durationSeconds * requestCount
-	
+
 	computeRate := getLambdaComputeRate(region)
 	totalCost += computeRate * totalGBSeconds
 
@@ -87,12 +87,12 @@ func CalculateLambdaFunctionCost(
 	requestRate := getLambdaRequestRate(region)
 	hoursPerMonth := 720.0
 	months := duration.Hours() / hoursPerMonth
-	
+
 	// Free tier: 1M requests per month
 	freeTierPerMonth := LambdaFreeTierRequests
 	freeTierTotal := freeTierPerMonth * months
 	chargeableRequests := math.Max(0, requestCount-freeTierTotal)
-	
+
 	// Rate is per million requests
 	if chargeableRequests > 0 {
 		totalCost += (requestRate / 1000000.0) * chargeableRequests
@@ -147,11 +147,11 @@ func GetLambdaFunctionPricing(memorySizeMB float64, region string) *domainpricin
 	}
 
 	metadata := map[string]interface{}{
-		"memory_size_mb":        memorySizeMB,
-		"compute_rate_per_gbs":  computeRate,
-		"request_rate_per_1m":   requestRate,
-		"data_transfer_rate":    dataTransferRate,
-		"free_tier_requests":    LambdaFreeTierRequests,
+		"memory_size_mb":       memorySizeMB,
+		"compute_rate_per_gbs": computeRate,
+		"request_rate_per_1m":  requestRate,
+		"data_transfer_rate":   dataTransferRate,
+		"free_tier_requests":   LambdaFreeTierRequests,
 	}
 
 	return &domainpricing.ResourcePricing{

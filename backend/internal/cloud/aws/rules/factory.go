@@ -3,48 +3,44 @@ package rules
 import (
 	"strconv"
 	"strings"
-
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/constraints"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/registry"
 )
 
 // AWSRuleFactory creates AWS-specific rules
 // This allows AWS to implement rules in its own way while following domain interfaces
 type AWSRuleFactory struct {
-	registry.RuleFactory
+	RuleFactory
 }
 
 // NewAWSRuleFactory creates a new AWS rule factory
 func NewAWSRuleFactory() *AWSRuleFactory {
 	return &AWSRuleFactory{
-		RuleFactory: registry.NewRuleFactory(),
+		RuleFactory: NewRuleFactory(),
 	}
 }
 
 // CreateRule creates an AWS-specific rule from constraint data
 // AWS can override default behavior or add AWS-specific rules
-func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, constraintValue string) (rules.Rule, error) {
-	ruleType := rules.RuleType(constraintType)
+func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, constraintValue string) (Rule, error) {
+	ruleType := RuleType(constraintType)
 
 	// AWS-specific rule handling
 	switch ruleType {
-	case rules.RuleTypeRequiresParent:
+	case RuleTypeRequiresParent:
 		// AWS might have different parent requirements
 		return f.createRequiresParentRule(resourceType, constraintValue)
-	case rules.RuleTypeAllowedParent:
+	case RuleTypeAllowedParent:
 		return f.createAllowedParentRule(resourceType, constraintValue)
-	case rules.RuleTypeRequiresRegion:
+	case RuleTypeRequiresRegion:
 		return f.createRequiresRegionRule(resourceType, constraintValue)
-	case rules.RuleTypeMaxChildren:
+	case RuleTypeMaxChildren:
 		return f.createMaxChildrenRule(resourceType, constraintValue)
-	case rules.RuleTypeMinChildren:
+	case RuleTypeMinChildren:
 		return f.createMinChildrenRule(resourceType, constraintValue)
-	case rules.RuleTypeAllowedDependencies:
+	case RuleTypeAllowedDependencies:
 		return f.createAllowedDependenciesRule(resourceType, constraintValue)
-	case rules.RuleTypeForbiddenDependencies:
+	case RuleTypeForbiddenDependencies:
 		return f.createForbiddenDependenciesRule(resourceType, constraintValue)
-	case rules.RuleTypeRequiresDependency:
+	case RuleTypeRequiresDependency:
 		return f.createRequiresDependencyRule(resourceType, constraintValue)
 	default:
 		// Fall back to default factory for unknown types
@@ -53,53 +49,53 @@ func (f *AWSRuleFactory) CreateRule(resourceType string, constraintType string, 
 }
 
 // AWS-specific rule creation methods
-func (f *AWSRuleFactory) createRequiresParentRule(resourceType, parentType string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createRequiresParentRule(resourceType, parentType string) (Rule, error) {
 	// Use domain resource type names for parent relationships so rules work directly
 	// with the domain architecture (e.g., "VPC", "Subnet").
-	return constraints.NewRequiresParentRule(resourceType, parentType), nil
+	return NewRequiresParentRule(resourceType, parentType), nil
 }
 
-func (f *AWSRuleFactory) createAllowedParentRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createAllowedParentRule(resourceType, constraintValue string) (Rule, error) {
 	allowedTypes := f.parseCommaSeparated(constraintValue)
 	// Keep allowed parent types in domain form (e.g., "VPC") so they match
 	// resource.Type.Name directly.
-	return constraints.NewAllowedParentRule(resourceType, allowedTypes), nil
+	return NewAllowedParentRule(resourceType, allowedTypes), nil
 }
 
-func (f *AWSRuleFactory) createRequiresRegionRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createRequiresRegionRule(resourceType, constraintValue string) (Rule, error) {
 	required := constraintValue == "true"
 	// AWS-specific: Some resources are always regional, some are global
-	return constraints.NewRequiresRegionRule(resourceType, required), nil
+	return NewRequiresRegionRule(resourceType, required), nil
 }
 
-func (f *AWSRuleFactory) createMaxChildrenRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createMaxChildrenRule(resourceType, constraintValue string) (Rule, error) {
 	maxCount := f.parseInt(constraintValue)
 	// AWS might have different limits
-	return constraints.NewMaxChildrenRule(resourceType, maxCount), nil
+	return NewMaxChildrenRule(resourceType, maxCount), nil
 }
 
-func (f *AWSRuleFactory) createMinChildrenRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createMinChildrenRule(resourceType, constraintValue string) (Rule, error) {
 	minCount := f.parseInt(constraintValue)
-	return constraints.NewMinChildrenRule(resourceType, minCount), nil
+	return NewMinChildrenRule(resourceType, minCount), nil
 }
 
-func (f *AWSRuleFactory) createAllowedDependenciesRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createAllowedDependenciesRule(resourceType, constraintValue string) (Rule, error) {
 	allowedTypes := f.parseCommaSeparated(constraintValue)
 	// Use domain type names (e.g., "RouteTable", "NATGateway") so dependency
 	// checks operate on the same names as the domain architecture.
-	return constraints.NewAllowedDependenciesRule(resourceType, allowedTypes), nil
+	return NewAllowedDependenciesRule(resourceType, allowedTypes), nil
 }
 
-func (f *AWSRuleFactory) createForbiddenDependenciesRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createForbiddenDependenciesRule(resourceType, constraintValue string) (Rule, error) {
 	forbiddenTypes := f.parseCommaSeparated(constraintValue)
 	// Use domain type names (e.g., "VPC", "Subnet") for forbidden dependencies.
-	return constraints.NewForbiddenDependenciesRule(resourceType, forbiddenTypes), nil
+	return NewForbiddenDependenciesRule(resourceType, forbiddenTypes), nil
 }
 
-func (f *AWSRuleFactory) createRequiresDependencyRule(resourceType, constraintValue string) (rules.Rule, error) {
+func (f *AWSRuleFactory) createRequiresDependencyRule(resourceType, constraintValue string) (Rule, error) {
 	requiredType := constraintValue
 	// Use domain type names
-	return constraints.NewRequiresDependencyRule(resourceType, requiredType), nil
+	return NewRequiresDependencyRule(resourceType, requiredType), nil
 }
 
 // mapResourceTypeToAWS maps domain resource types to AWS-specific types

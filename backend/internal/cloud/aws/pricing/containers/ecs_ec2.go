@@ -1,7 +1,7 @@
 package containers
 
 import (
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 // ECS on EC2 does not have additional ECS charges.

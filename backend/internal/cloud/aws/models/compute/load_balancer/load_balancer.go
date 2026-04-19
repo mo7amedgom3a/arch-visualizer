@@ -11,11 +11,11 @@ import (
 
 // LoadBalancer represents an AWS Load Balancer configuration
 type LoadBalancer struct {
-	Name             string        `json:"name"`              // Required
-	LoadBalancerType string        `json:"load_balancer_type"` // Required: "application" or "network"
-	Internal         *bool         `json:"internal,omitempty"` // Optional, default false
-	SecurityGroupIDs []string      `json:"security_group_ids"` // Required for ALB
-	SubnetIDs        []string      `json:"subnet_ids"`        // Required, at least 2 in different AZs
+	Name             string        `json:"name"`                      // Required
+	LoadBalancerType string        `json:"load_balancer_type"`        // Required: "application" or "network"
+	Internal         *bool         `json:"internal,omitempty"`        // Optional, default false
+	SecurityGroupIDs []string      `json:"security_group_ids"`        // Required for ALB
+	SubnetIDs        []string      `json:"subnet_ids"`                // Required, at least 2 in different AZs
 	IPAddressType    *string       `json:"ip_address_type,omitempty"` // Optional: "ipv4" or "dualstack"
 	Tags             []configs.Tag `json:"tags,omitempty"`
 }

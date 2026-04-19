@@ -19,8 +19,8 @@ func TestGroup_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "missing-name",
-			group: Group{},
+			name:    "missing-name",
+			group:   Group{},
 			wantErr: true,
 			errMsg:  "group name is required",
 		},
@@ -70,4 +70,3 @@ func TestGroup_Validate(t *testing.T) {
 		})
 	}
 }
-

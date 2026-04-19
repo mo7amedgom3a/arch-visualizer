@@ -62,9 +62,9 @@ func TestCalculateNATGatewayCost(t *testing.T) {
 
 func TestGetNATGatewayPricing(t *testing.T) {
 	tests := []struct {
-		name     string
-		region   string
-		wantNil  bool
+		name    string
+		region  string
+		wantNil bool
 	}{
 		{
 			name:    "get-nat-gateway-pricing-us-east-1",

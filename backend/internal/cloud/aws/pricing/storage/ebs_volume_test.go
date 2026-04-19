@@ -4,64 +4,64 @@ import (
 	"testing"
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 func TestCalculateEBSVolumeCost(t *testing.T) {
 	tests := []struct {
-		name       string
-		duration   time.Duration
-		sizeGB     float64
-		volumeType string
-		region     string
+		name         string
+		duration     time.Duration
+		sizeGB       float64
+		volumeType   string
+		region       string
 		expectedCost float64
 	}{
 		{
-			name:        "gp3-100gb-1-month",
-			duration:    720 * time.Hour, // 30 days = 1 month
-			sizeGB:      100.0,
-			volumeType:  "gp3",
-			region:      "us-east-1",
+			name:         "gp3-100gb-1-month",
+			duration:     720 * time.Hour, // 30 days = 1 month
+			sizeGB:       100.0,
+			volumeType:   "gp3",
+			region:       "us-east-1",
 			expectedCost: 8.0, // 0.08 * 100 * 1
 		},
 		{
-			name:        "gp3-100gb-2-months",
-			duration:    1440 * time.Hour, // 60 days = 2 months
-			sizeGB:      100.0,
-			volumeType:  "gp3",
-			region:      "us-east-1",
+			name:         "gp3-100gb-2-months",
+			duration:     1440 * time.Hour, // 60 days = 2 months
+			sizeGB:       100.0,
+			volumeType:   "gp3",
+			region:       "us-east-1",
 			expectedCost: 16.0, // 0.08 * 100 * 2
 		},
 		{
-			name:        "gp3-100gb-15-days",
-			duration:    360 * time.Hour, // 15 days = 0.5 months
-			sizeGB:      100.0,
-			volumeType:  "gp3",
-			region:      "us-east-1",
+			name:         "gp3-100gb-15-days",
+			duration:     360 * time.Hour, // 15 days = 0.5 months
+			sizeGB:       100.0,
+			volumeType:   "gp3",
+			region:       "us-east-1",
 			expectedCost: 4.0, // 0.08 * 100 * 0.5
 		},
 		{
-			name:        "gp2-50gb-1-month",
-			duration:    720 * time.Hour,
-			sizeGB:      50.0,
-			volumeType:  "gp2",
-			region:      "us-east-1",
+			name:         "gp2-50gb-1-month",
+			duration:     720 * time.Hour,
+			sizeGB:       50.0,
+			volumeType:   "gp2",
+			region:       "us-east-1",
 			expectedCost: 5.0, // 0.10 * 50 * 1
 		},
 		{
-			name:        "io1-200gb-1-month",
-			duration:    720 * time.Hour,
-			sizeGB:      200.0,
-			volumeType:  "io1",
-			region:      "us-east-1",
+			name:         "io1-200gb-1-month",
+			duration:     720 * time.Hour,
+			sizeGB:       200.0,
+			volumeType:   "io1",
+			region:       "us-east-1",
 			expectedCost: 25.0, // 0.125 * 200 * 1
 		},
 		{
-			name:        "unknown-volume-type-defaults-to-gp3",
-			duration:    720 * time.Hour,
-			sizeGB:      100.0,
-			volumeType:  "unknown",
-			region:      "us-east-1",
+			name:         "unknown-volume-type-defaults-to-gp3",
+			duration:     720 * time.Hour,
+			sizeGB:       100.0,
+			volumeType:   "unknown",
+			region:       "us-east-1",
 			expectedCost: 8.0, // Defaults to gp3 rate
 		},
 	}
@@ -78,12 +78,12 @@ func TestCalculateEBSVolumeCost(t *testing.T) {
 
 func TestGetEBSVolumePricing(t *testing.T) {
 	tests := []struct {
-		name          string
-		volumeType    string
-		region        string
-		expectedType  string
-		expectedRate  float64
-		expectError   bool
+		name         string
+		volumeType   string
+		region       string
+		expectedType string
+		expectedRate float64
+		expectError  bool
 	}{
 		{
 			name:         "gp3-pricing",

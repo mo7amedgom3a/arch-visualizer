@@ -4,9 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	domainrules "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func TestAWSRuleService_LoadRulesWithDefaults(t *testing.T) {
@@ -24,7 +22,7 @@ func TestAWSRuleService_LoadRulesWithDefaults(t *testing.T) {
 		loadedRules := service.registry.GetRules(defaultRule.ResourceType)
 		found := false
 		for _, rule := range loadedRules {
-			if rule.GetType() == domainrules.RuleType(defaultRule.ConstraintType) {
+			if rule.GetType() == RuleType(defaultRule.ConstraintType) {
 				found = true
 				break
 			}
@@ -52,7 +50,7 @@ func TestAWSRuleService_LoadRulesWithDefaults_Override(t *testing.T) {
 	loadedRules := service.registry.GetRules("Subnet")
 	foundOverride := false
 	for _, rule := range loadedRules {
-		if rule.GetType() == domainrules.RuleTypeMaxChildren {
+		if rule.GetType() == RuleTypeMaxChildren {
 			if rule.GetValue() == "100" {
 				foundOverride = true
 			}
@@ -71,8 +69,8 @@ func TestAWSRuleFactory_CreateForbiddenDependenciesRule(t *testing.T) {
 		t.Fatalf("Expected no error but got: %v", err)
 	}
 
-	if rule.GetType() != domainrules.RuleTypeForbiddenDependencies {
-		t.Errorf("Expected rule type %s but got %s", domainrules.RuleTypeForbiddenDependencies, rule.GetType())
+	if rule.GetType() != RuleTypeForbiddenDependencies {
+		t.Errorf("Expected rule type %s but got %s", RuleTypeForbiddenDependencies, rule.GetType())
 	}
 
 	if rule.GetResourceType() != "Subnet" {
@@ -104,7 +102,7 @@ func TestAWSRuleService_ValidateResource_WithDependencyRules(t *testing.T) {
 		ParentID:  stringPtr("vpc-1"),
 	}
 
-	architecture := &engine.Architecture{
+	architecture := &Architecture{
 		Resources: []*resource.Resource{vpc, subnet},
 	}
 
@@ -121,7 +119,7 @@ func TestAWSRuleService_ValidateResource_WithDependencyRules(t *testing.T) {
 	// Check that we have a forbidden dependency error
 	hasForbiddenError := false
 	for _, ruleErr := range result.Errors {
-		if ruleErr.RuleType == domainrules.RuleTypeForbiddenDependencies {
+		if ruleErr.RuleType == RuleTypeForbiddenDependencies {
 			hasForbiddenError = true
 			break
 		}
@@ -164,7 +162,7 @@ func TestAWSRuleService_ValidateResource_WithAllowedDependencies(t *testing.T) {
 		ParentID:  stringPtr("vpc-1"),
 	}
 
-	architecture := &engine.Architecture{
+	architecture := &Architecture{
 		Resources: []*resource.Resource{vpc, routeTable, subnet},
 	}
 

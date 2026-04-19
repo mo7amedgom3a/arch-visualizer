@@ -1,8 +1,8 @@
 package templaterepo
 
 import (
-"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 	"context"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/repository"
 
 	"github.com/google/uuid"
 	platformerrors "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/errors"
@@ -80,4 +80,3 @@ func (r *ReviewRepository) IncrementHelpfulCount(ctx context.Context, id uuid.UU
 		Where("id = ?", id).
 		UpdateColumn("helpful_count", gorm.Expr("helpful_count + 1")).Error
 }
-

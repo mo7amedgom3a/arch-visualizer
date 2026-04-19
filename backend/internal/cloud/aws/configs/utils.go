@@ -1,16 +1,17 @@
 package configs
+
 import "encoding/json"
+
 // contains global configurations for AWS resources
 type Tag struct {
-	Key string `json:"key"`
+	Key   string `json:"key"`
 	Value string `json:"value"`
 }
-
 
 // marchal and unmarchal the tag to and from json
 func (t Tag) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]string{
-		"key": t.Key,
+		"key":   t.Key,
 		"value": t.Value,
 	})
 }

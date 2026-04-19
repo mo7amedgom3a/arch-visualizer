@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // PipelineOrchestratorImpl implements PipelineOrchestrator interface

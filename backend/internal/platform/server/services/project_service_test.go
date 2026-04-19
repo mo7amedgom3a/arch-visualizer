@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/architecture"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/architecture"
 	serverinterfaces "github.com/mo7amedgom3a/arch-visualizer/backend/internal/platform/server/interfaces"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // Mock repositories for testing
 type mockProjectRepository struct {
-	createFunc func(ctx context.Context, project interface{}) error
+	createFunc   func(ctx context.Context, project interface{}) error
 	findByIDFunc func(ctx context.Context, id uuid.UUID) (interface{}, error)
 }
 
@@ -210,9 +210,9 @@ func TestProjectService_GetByID(t *testing.T) {
 func TestProjectService_PersistArchitecture(t *testing.T) {
 	// Create a minimal architecture
 	arch := &architecture.Architecture{
-		Provider: resource.AWS,
-		Region:   "us-east-1",
-		Resources: []*resource.Resource{},
+		Provider:     resource.AWS,
+		Region:       "us-east-1",
+		Resources:    []*resource.Resource{},
 		Containments: make(map[string][]string),
 		Dependencies: make(map[string][]string),
 	}

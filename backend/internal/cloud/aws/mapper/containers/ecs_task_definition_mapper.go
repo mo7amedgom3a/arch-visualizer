@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/containers"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
 	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/iac/terraform/mapper"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // TaskDefinitionFromResource converts a generic domain resource to an ECS Task Definition model

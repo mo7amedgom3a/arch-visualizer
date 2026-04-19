@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 func TestAWSPricingService_GetPricing(t *testing.T) {

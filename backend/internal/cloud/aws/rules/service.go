@@ -3,26 +3,23 @@ package rules
 import (
 	"context"
 
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/engine"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/rules/registry"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource"
 )
 
 // AWSRuleService provides AWS-specific rule evaluation services
 type AWSRuleService struct {
-	registry  registry.RuleRegistry
+	registry  RuleRegistry
 	factory   *AWSRuleFactory
-	evaluator engine.RuleEvaluator
+	evaluator RuleEvaluator
 }
 
 // NewAWSRuleService creates a new AWS rule service
 // Use LoadRulesWithDefaults() to load default rules and merge with DB constraints
 func NewAWSRuleService() *AWSRuleService {
 	return &AWSRuleService{
-		registry:  registry.NewRuleRegistry(),
+		registry:  NewRuleRegistry(),
 		factory:   NewAWSRuleFactory(),
-		evaluator: engine.NewRuleEvaluator(),
+		evaluator: NewRuleEvaluator(),
 	}
 }
 
@@ -94,13 +91,13 @@ func constraintKey(resourceType, constraintType string) string {
 func (s *AWSRuleService) ValidateResource(
 	ctx context.Context,
 	res *resource.Resource,
-	architecture *engine.Architecture,
-) (*engine.EvaluationResult, error) {
+	architecture *Architecture,
+) (*EvaluationResult, error) {
 	// Check if resource is visual-only
 	if isVisualOnly, ok := res.Metadata["isVisualOnly"].(bool); ok && isVisualOnly {
-		return &engine.EvaluationResult{
+		return &EvaluationResult{
 			Valid:   true,
-			Results: []*rules.RuleResult{},
+			Results: []*RuleResult{},
 		}, nil
 	}
 
@@ -108,17 +105,17 @@ func (s *AWSRuleService) ValidateResource(
 	resourceRules := s.registry.GetRules(res.Type.Name)
 	if len(resourceRules) == 0 {
 		// No rules to evaluate
-		return &engine.EvaluationResult{
+		return &EvaluationResult{
 			Valid:   true,
-			Results: []*rules.RuleResult{},
+			Results: []*RuleResult{},
 		}, nil
 	}
 
 	// Build evaluation context
-	evalCtx := engine.BuildEvaluationContext(res, architecture, "aws")
+	evalCtx := BuildEvaluationContext(res, architecture, "aws")
 
 	// Evaluate all rules
-	result := engine.EvaluateAllRules(ctx, s.evaluator, resourceRules, evalCtx)
+	result := EvaluateAllRules(ctx, s.evaluator, resourceRules, evalCtx)
 
 	return result, nil
 }
@@ -126,9 +123,9 @@ func (s *AWSRuleService) ValidateResource(
 // ValidateArchitecture validates all resources in an architecture
 func (s *AWSRuleService) ValidateArchitecture(
 	ctx context.Context,
-	architecture *engine.Architecture,
-) (map[string]*engine.EvaluationResult, error) {
-	results := make(map[string]*engine.EvaluationResult)
+	architecture *Architecture,
+) (map[string]*EvaluationResult, error) {
+	results := make(map[string]*EvaluationResult)
 
 	for _, res := range architecture.Resources {
 		result, err := s.ValidateResource(ctx, res, architecture)

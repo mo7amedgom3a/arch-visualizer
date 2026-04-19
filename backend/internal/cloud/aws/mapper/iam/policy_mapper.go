@@ -1,10 +1,10 @@
 package iam
 
 import (
-	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/resource/iam"
+	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
 	awsiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam"
 	awsoutputs "github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/models/iam/outputs"
-	"github.com/mo7amedgom3a/arch-visualizer/backend/internal/cloud/aws/configs"
+	domainiam "github.com/mo7amedgom3a/arch-visualizer/backend/internal/resource/iam"
 )
 
 // FromDomainPolicy converts domain Policy to AWS Policy
@@ -14,9 +14,9 @@ func FromDomainPolicy(domainPolicy *domainiam.Policy) *awsiam.Policy {
 	}
 
 	awsPolicy := &awsiam.Policy{
-		Name:          domainPolicy.Name,
-		Description:   domainPolicy.Description,
-		Path:          domainPolicy.Path,
+		Name:           domainPolicy.Name,
+		Description:    domainPolicy.Description,
+		Path:           domainPolicy.Path,
 		PolicyDocument: domainPolicy.PolicyDocument,
 	}
 
@@ -62,14 +62,14 @@ func ToDomainPolicyFromOutput(output *awsoutputs.PolicyOutput) *domainiam.Policy
 	isAttachable := output.IsAttachable
 
 	domainPolicy := &domainiam.Policy{
-		ID:            output.ID,
-		ARN:           arn,
-		Name:          output.Name,
-		Description:   output.Description,
-		Path:          path,
+		ID:             output.ID,
+		ARN:            arn,
+		Name:           output.Name,
+		Description:    output.Description,
+		Path:           path,
 		PolicyDocument: output.PolicyDocument,
-		Type:          policyType,
-		IsAttachable:  &isAttachable,
+		Type:           policyType,
+		IsAttachable:   &isAttachable,
 	}
 
 	// Convert tags

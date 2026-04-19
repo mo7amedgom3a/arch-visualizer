@@ -5,97 +5,97 @@ import (
 	"testing"
 	"time"
 
-	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/domain/pricing"
+	domainpricing "github.com/mo7amedgom3a/arch-visualizer/backend/internal/pricing"
 )
 
 func TestCalculateLambdaFunctionCost(t *testing.T) {
 	tests := []struct {
-		name             string
-		duration         time.Duration
-		memorySizeMB     float64
+		name              string
+		duration          time.Duration
+		memorySizeMB      float64
 		averageDurationMs float64
-		requestCount     float64
-		dataTransferGB   float64
-		region           string
-		expectedCost     float64
-		epsilon          float64 // For floating point comparison
+		requestCount      float64
+		dataTransferGB    float64
+		region            string
+		expectedCost      float64
+		epsilon           float64 // For floating point comparison
 	}{
 		{
-			name:             "compute-only-128mb-100ms-1m-requests-1-month",
-			duration:         720 * time.Hour, // 1 month
-			memorySizeMB:     128.0,
+			name:              "compute-only-128mb-100ms-1m-requests-1-month",
+			duration:          720 * time.Hour, // 1 month
+			memorySizeMB:      128.0,
 			averageDurationMs: 100.0,
-			requestCount:     1000000.0, // 1M requests
-			dataTransferGB:   0.0,
-			region:           "us-east-1",
-			expectedCost:     0.0000166667 * (128.0/1024.0) * (100.0/1000.0) * 1000000.0, // GB-seconds * rate
-			epsilon:          0.0001,
+			requestCount:      1000000.0, // 1M requests
+			dataTransferGB:    0.0,
+			region:            "us-east-1",
+			expectedCost:      0.0000166667 * (128.0 / 1024.0) * (100.0 / 1000.0) * 1000000.0, // GB-seconds * rate
+			epsilon:           0.0001,
 		},
 		{
-			name:             "compute-only-256mb-200ms-500k-requests-1-month",
-			duration:         720 * time.Hour,
-			memorySizeMB:     256.0,
+			name:              "compute-only-256mb-200ms-500k-requests-1-month",
+			duration:          720 * time.Hour,
+			memorySizeMB:      256.0,
 			averageDurationMs: 200.0,
-			requestCount:     500000.0,
-			dataTransferGB:   0.0,
-			region:           "us-east-1",
-			expectedCost:     0.0000166667 * (256.0/1024.0) * (200.0/1000.0) * 500000.0,
-			epsilon:          0.0001,
+			requestCount:      500000.0,
+			dataTransferGB:    0.0,
+			region:            "us-east-1",
+			expectedCost:      0.0000166667 * (256.0 / 1024.0) * (200.0 / 1000.0) * 500000.0,
+			epsilon:           0.0001,
 		},
 		{
-			name:             "requests-with-free-tier",
-			duration:         720 * time.Hour,
-			memorySizeMB:     128.0,
+			name:              "requests-with-free-tier",
+			duration:          720 * time.Hour,
+			memorySizeMB:      128.0,
 			averageDurationMs: 100.0,
-			requestCount:     2000000.0, // 2M requests, first 1M free
-			dataTransferGB:   0.0,
-			region:           "us-east-1",
-			expectedCost:     0.0000166667*(128.0/1024.0)*(100.0/1000.0)*2000000.0 + (0.20/1000000.0)*1000000.0,
-			epsilon:          0.0001,
+			requestCount:      2000000.0, // 2M requests, first 1M free
+			dataTransferGB:    0.0,
+			region:            "us-east-1",
+			expectedCost:      0.0000166667*(128.0/1024.0)*(100.0/1000.0)*2000000.0 + (0.20/1000000.0)*1000000.0,
+			epsilon:           0.0001,
 		},
 		{
-			name:             "with-data-transfer",
-			duration:         720 * time.Hour,
-			memorySizeMB:     128.0,
+			name:              "with-data-transfer",
+			duration:          720 * time.Hour,
+			memorySizeMB:      128.0,
 			averageDurationMs: 100.0,
-			requestCount:     1000000.0,
-			dataTransferGB:   10.0, // 10 GB, first 1GB free
-			region:           "us-east-1",
-			expectedCost:     0.0000166667*(128.0/1024.0)*(100.0/1000.0)*1000000.0 + 0.09*9.0,
-			epsilon:          0.0001,
+			requestCount:      1000000.0,
+			dataTransferGB:    10.0, // 10 GB, first 1GB free
+			region:            "us-east-1",
+			expectedCost:      0.0000166667*(128.0/1024.0)*(100.0/1000.0)*1000000.0 + 0.09*9.0,
+			epsilon:           0.0001,
 		},
 		{
-			name:             "full-cost-calculation",
-			duration:         720 * time.Hour,
-			memorySizeMB:     512.0,
+			name:              "full-cost-calculation",
+			duration:          720 * time.Hour,
+			memorySizeMB:      512.0,
 			averageDurationMs: 300.0,
-			requestCount:     5000000.0, // 5M requests, first 1M free
-			dataTransferGB:   20.0,       // 20 GB, first 1GB free
-			region:           "us-east-1",
-			expectedCost:     0.0000166667*(512.0/1024.0)*(300.0/1000.0)*5000000.0 + (0.20/1000000.0)*4000000.0 + 0.09*19.0,
-			epsilon:          0.01,
+			requestCount:      5000000.0, // 5M requests, first 1M free
+			dataTransferGB:    20.0,      // 20 GB, first 1GB free
+			region:            "us-east-1",
+			expectedCost:      0.0000166667*(512.0/1024.0)*(300.0/1000.0)*5000000.0 + (0.20/1000000.0)*4000000.0 + 0.09*19.0,
+			epsilon:           0.01,
 		},
 		{
-			name:             "zero-requests",
-			duration:         720 * time.Hour,
-			memorySizeMB:     128.0,
+			name:              "zero-requests",
+			duration:          720 * time.Hour,
+			memorySizeMB:      128.0,
 			averageDurationMs: 100.0,
-			requestCount:     0.0,
-			dataTransferGB:   0.0,
-			region:           "us-east-1",
-			expectedCost:     0.0,
-			epsilon:          0.0,
+			requestCount:      0.0,
+			dataTransferGB:    0.0,
+			region:            "us-east-1",
+			expectedCost:      0.0,
+			epsilon:           0.0,
 		},
 		{
-			name:             "regional-variation",
-			duration:         720 * time.Hour,
-			memorySizeMB:     128.0,
+			name:              "regional-variation",
+			duration:          720 * time.Hour,
+			memorySizeMB:      128.0,
 			averageDurationMs: 100.0,
-			requestCount:     1000000.0,
-			dataTransferGB:   0.0,
-			region:           "ap-southeast-1", // 10% higher
-			expectedCost:     0.0000166667 * 1.1 * (128.0/1024.0) * (100.0/1000.0) * 1000000.0,
-			epsilon:          0.0001,
+			requestCount:      1000000.0,
+			dataTransferGB:    0.0,
+			region:            "ap-southeast-1", // 10% higher
+			expectedCost:      0.0000166667 * 1.1 * (128.0 / 1024.0) * (100.0 / 1000.0) * 1000000.0,
+			epsilon:           0.0001,
 		},
 	}
 
