@@ -1,0 +1,377 @@
+{
+  "architecture_id": "arch-demo-001",
+  "run_duration_ms": 746559,
+  "validation_issues": [
+    {
+      "component_id": "alb-6",
+      "severity": "error",
+      "field": "subnets",
+      "message": "Application Load Balancer must be associated with at least two subnets in distinct availability zones.",
+      "suggestion": "Add another public subnet in a different AZ and associate it with the ALB."
+    },
+    {
+      "component_id": "alb-6",
+      "severity": "error",
+      "field": "securityGroups",
+      "message": "Load balancer does not have any security groups attached.",
+      "suggestion": "Create and attach an appropriate security group to the ALB."
+    },
+    {
+      "component_id": "alb-6",
+      "severity": "error",
+      "field": "listeners[0].target",
+      "message": "ALB listener target references an Auto Scaling Group directly; expected a target group ARN or ID.",
+      "suggestion": "Create a target group for the ASG and reference the target group in the listener."
+    },
+    {
+      "component_id": "autoscaling-group-9",
+      "severity": "error",
+      "field": "launchTemplateName",
+      "message": "Launch template 'my-launch-template' referenced but not defined in architecture.",
+      "suggestion": "Define a launch template component with the given name or reference an existing one."
+    },
+    {
+      "component_id": "ec2-10",
+      "severity": "error",
+      "field": "securityGroups",
+      "message": "EC2 instance has no security groups attached.",
+      "suggestion": "Attach at least one security group to the EC2 instance."
+    },
+    {
+      "component_id": "ec2-11",
+      "severity": "error",
+      "field": "securityGroups",
+      "message": "EC2 instance has no security groups attached.",
+      "suggestion": "Attach at least one security group to the EC2 instance."
+    }
+  ],
+  "security_findings": [
+    {
+      "component_id": "alb-6",
+      "severity": "high",
+      "rule": "AWS-SEC-1",
+      "description": "The Application Load Balancer is only configured with an HTTP listener on port 80. Best practice requires an HTTPS (TLS) listener to protect data in transit.",
+      "remediation": "Add an HTTPS listener on port 443 to the ALB, reference an ACM‑issued certificate, and optionally configure a redirect rule from HTTP to HTTPS. Remove the plain HTTP listener if not needed.",
+      "auto_fixed": false
+    },
+    {
+      "component_id": "vpc-2",
+      "severity": "medium",
+      "rule": "AWS-SEC-4",
+      "description": "VPC Flow Logs are not enabled for the VPC, leaving network traffic unlogged and making detection of suspicious activity difficult.",
+      "remediation": "Create a VPC Flow Log resource (e.g., aws_flow_log) that sends logs to CloudWatch Logs or an S3 bucket, and attach the required IAM role/policy for delivery.",
+      "auto_fixed": false
+    }
+  ],
+  "inferred_resources": [
+    {
+      "id": "internet-gateway-igw",
+      "type": "internet-gateway",
+      "parent_id": "vpc-2",
+      "properties": {
+        "tags": [
+          {
+            "key": "Name",
+            "value": "project-igw"
+          }
+        ],
+        "vpc_id": "vpc-2"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "route-igw-0",
+      "type": "route",
+      "parent_id": "route-table-3",
+      "properties": {
+        "destination_cidr_block": "0.0.0.0/0",
+        "target_id": "internet-gateway-igw",
+        "target_type": "gateway"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "rt-assoc-public-4",
+      "type": "route-table-association",
+      "parent_id": "vpc-2",
+      "properties": {
+        "route_table_id": "route-table-3",
+        "subnet_id": "subnet-4"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "subnet-6",
+      "type": "subnet",
+      "parent_id": "vpc-2",
+      "children": [
+        "alb-6"
+      ],
+      "properties": {
+        "availabilityZoneId": "us-east-1b",
+        "cidr": "10.0.3.0/24",
+        "isPublic": true,
+        "name": "project-subnet-public-us-east-1b"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "rt-assoc-public-6",
+      "type": "route-table-association",
+      "parent_id": "vpc-2",
+      "properties": {
+        "route_table_id": "route-table-3",
+        "subnet_id": "subnet-6"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "security-group-alb",
+      "type": "security-group",
+      "parent_id": "vpc-2",
+      "properties": {
+        "description": "Security group for the ALB allowing inbound HTTP/HTTPS from the internet",
+        "egress": [
+          {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "Allow all outbound",
+            "from_port": 0,
+            "protocol": "-1",
+            "to_port": 0
+          }
+        ],
+        "ingress": [
+          {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "HTTP from internet",
+            "from_port": 80,
+            "protocol": "tcp",
+            "to_port": 80
+          },
+          {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "HTTPS from internet",
+            "from_port": 443,
+            "protocol": "tcp",
+            "to_port": 443
+          }
+        ],
+        "name": "alb-sg",
+        "tags": [
+          {
+            "key": "Name",
+            "value": "alb-sg"
+          }
+        ],
+        "vpc_id": "vpc-2"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "security-group-ec2",
+      "type": "security-group",
+      "parent_id": "vpc-2",
+      "properties": {
+        "description": "Security group for web server instances, allowing inbound traffic from ALB",
+        "egress": [
+          {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "Allow all outbound",
+            "from_port": 0,
+            "protocol": "-1",
+            "to_port": 0
+          }
+        ],
+        "ingress": [
+          {
+            "description": "HTTP from ALB",
+            "from_port": 80,
+            "protocol": "tcp",
+            "security_groups": [
+              "security-group-alb"
+            ],
+            "to_port": 80
+          }
+        ],
+        "name": "ec2-sg",
+        "tags": [
+          {
+            "key": "Name",
+            "value": "ec2-sg"
+          }
+        ],
+        "vpc_id": "vpc-2"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "target-group-1",
+      "type": "target-group",
+      "parent_id": "vpc-2",
+      "properties": {
+        "health_check": {
+          "healthy_threshold": 5,
+          "interval": 30,
+          "path": "/",
+          "protocol": "HTTP",
+          "timeout": 5,
+          "unhealthy_threshold": 2
+        },
+        "name": "my-tg",
+        "port": 80,
+        "protocol": "HTTP",
+        "target_type": "instance",
+        "vpc_id": "vpc-2"
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    },
+    {
+      "id": "launch-template-1",
+      "type": "launch-template",
+      "parent_id": "vpc-2",
+      "properties": {
+        "image_id": "ami-0c02fb55956c7d316",
+        "instance_type": "t3.micro",
+        "key_name": "",
+        "name": "my-launch-template",
+        "security_group_ids": [
+          "security-group-ec2"
+        ],
+        "user_data": ""
+      },
+      "is_visual_only": false,
+      "status": "valid"
+    }
+  ],
+  "generated_code": "terraform {\n  required_version = \"\u003e= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"\u003e= 5.0\"\n    }\n  }\n\n  backend \"local\" {}  # Adjust backend as needed for production\n}\n\nprovider \"aws\" {\n  region = var.region\n}\n\n#########################\n# Variables \u0026 Locals\n#########################\nvariable \"region\" {\n  description = \"AWS region to deploy resources\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"environment\" {\n  description = \"Deployment environment (e.g., prod, dev)\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"project\" {\n  description = \"Project identifier used for tagging\"\n  type        = string\n  default     = \"3-tier-webapp\"\n}\n\nvariable \"vpc_cidr\" {\n  description = \"CIDR block for the VPC\"\n  type        = string\n  default     = \"10.0.0.0/16\"\n}\n\nvariable \"acm_certificate_arn\" {\n  description = \"ARN of the ACM certificate for HTTPS listener\"\n  type        = string\n}\n\nlocals {\n  common_tags = {\n    Name        = \"${var.project}-${var.environment}\"\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n    Project     = var.project\n  }\n\n  # Subnet configurations\n  public_subnets = [\n    {\n      name               = \"project-subnet-public-us-east-1a\"\n      cidr_block         = \"10.0.1.0/24\"\n      availability_zone  = \"us-east-1a\"\n    },\n    {\n      name               = \"project-subnet-public-us-east-1b\"\n      cidr_block         = \"10.0.3.0/24\"\n      availability_zone  = \"us-east-1b\"\n    }\n  ]\n\n  private_subnets = [\n    {\n      name               = \"project-subnet-private-us-east-1a\"\n      cidr_block         = \"10.0.2.0/24\"\n      availability_zone  = \"us-east-1a\"\n    }\n  ]\n}\n\n#########################\n# VPC\n#########################\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = var.vpc_cidr\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"project-vpc\"\n    }\n  )\n}\n\n#########################\n# Internet Gateway\n#########################\nresource \"aws_internet_gateway\" \"igw\" {\n  vpc_id = aws_vpc.main.id\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"project-igw\"\n    }\n  )\n}\n\n#########################\n# Route Table (Public)\n#########################\nresource \"aws_route_table\" \"public\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"public-rt\"\n    }\n  )\n}\n\n#########################\n# Public Subnet Resources \u0026 Associations\n#########################\nresource \"aws_subnet\" \"public\" {\n  for_each = { for s in local.public_subnets : s.name =\u003e s }\n\n  vpc_id                  = aws_vpc.main.id\n  cidr_block              = each.value.cidr_block\n  availability_zone       = each.value.availability_zone\n  map_public_ip_on_launch = true\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = each.value.name\n    }\n  )\n}\n\nresource \"aws_route_table_association\" \"public\" {\n  for_each = aws_subnet.public\n\n  subnet_id      = each.value.id\n  route_table_id = aws_route_table.public.id\n}\n\n#########################\n# Private Subnet Resources\n#########################\nresource \"aws_subnet\" \"private\" {\n  for_each = { for s in local.private_subnets : s.name =\u003e s }\n\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = each.value.cidr_block\n  availability_zone = each.value.availability_zone\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = each.value.name\n    }\n  )\n}\n\n#########################\n# Security Groups\n#########################\nresource \"aws_security_group\" \"alb\" {\n  name        = \"alb-sg\"\n  description = \"Security group for the ALB allowing inbound HTTP/HTTPS from the internet\"\n  vpc_id      = aws_vpc.main.id\n\n  ingress {\n    description = \"HTTP from internet\"\n    from_port   = 80\n    to_port     = 80\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    description = \"HTTPS from internet\"\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  egress {\n    description = \"Allow all outbound\"\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"alb-sg\"\n    }\n  )\n}\n\nresource \"aws_security_group\" \"ec2\" {\n  name        = \"ec2-sg\"\n  description = \"Security group for web server instances, allowing inbound traffic from ALB\"\n  vpc_id      = aws_vpc.main.id\n\n  ingress {\n    description       = \"HTTP from ALB\"\n    from_port         = 80\n    to_port           = 80\n    protocol          = \"tcp\"\n    security_groups   = [aws_security_group.alb.id]\n  }\n\n  egress {\n    description = \"Allow all outbound\"\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"ec2-sg\"\n    }\n  )\n}\n\n#########################\n# Load Balancer \u0026 Target Group\n#########################\nresource \"aws_lb\" \"app_alb\" {\n  name               = \"my-alb\"\n  internal           = false\n  load_balancer_type = \"application\"\n  security_groups    = [aws_security_group.alb.id]\n  subnets            = [for s in aws_subnet.public : s.id]\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"my-alb\"\n    }\n  )\n}\n\nresource \"aws_lb_target_group\" \"app_tg\" {\n  name        = \"my-tg\"\n  port        = 80\n  protocol    = \"HTTP\"\n  target_type = \"instance\"\n  vpc_id      = aws_vpc.main.id\n\n  health_check {\n    path                = \"/\"\n    protocol            = \"HTTP\"\n    interval            = 30\n    timeout             = 5\n    healthy_threshold   = 5\n    unhealthy_threshold = 2\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"my-tg\"\n    }\n  )\n}\n\n# HTTPS Listener (443) with ACM certificate\nresource \"aws_lb_listener\" \"https\" {\n  load_balancer_arn = aws_lb.app_alb.arn\n  port              = \"443\"\n  protocol          = \"HTTPS\"\n  ssl_policy        = \"ELBSecurityPolicy-2016-08\"\n  certificate_arn   = var.acm_certificate_arn\n\n  default_action {\n    type = \"forward\"\n    target_group_arn = aws_lb_target_group.app_tg.arn\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"${aws_lb.app_alb.name}-https\"\n    }\n  )\n}\n\n# HTTP Listener (80) that redirects to HTTPS\nresource \"aws_lb_listener\" \"http_redirect\" {\n  load_balancer_arn = aws_lb.app_alb.arn\n  port              = \"80\"\n  protocol          = \"HTTP\"\n\n  default_action {\n    type = \"redirect\"\n\n    redirect {\n      protocol = \"HTTPS\"\n      port     = \"443\"\n      status_code = \"HTTP_301\"\n    }\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"${aws_lb.app_alb.name}-http-redirect\"\n    }\n  )\n}\n\n#########################\n# Launch Template\n#########################\nresource \"aws_launch_template\" \"app_lt\" {\n  name          = \"my-launch-template\"\n  image_id      = \"ami-0c02fb55956c7d316\"\n  instance_type = \"t3.micro\"\n  key_name      = \"\"  # Add a key pair name if SSH access is required\n\n  network_interfaces {\n    security_groups = [aws_security_group.ec2.id]\n    associate_public_ip_address = false\n  }\n\n  tag_specifications {\n    resource_type = \"instance\"\n\n    tags = merge(\n      local.common_tags,\n      {\n        Name = \"web-server\"\n      }\n    )\n  }\n\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"my-launch-template\"\n    }\n  )\n}\n\n#########################\n# Autoscaling Group\n#########################\nresource \"aws_autoscaling_group\" \"app_asg\" {\n  name                      = \"my-asg\"\n  vpc_zone_identifier       = [for s in aws_subnet.private : s.id]\n  launch_template {\n    id      = aws_launch_template.app_lt.id\n    version = \"$Latest\"\n  }\n\n  min_size                  = 1\n  max_size                  = 3\n  desired_capacity          = 2\n  health_check_type         = \"ELB\"\n  health_check_grace_period = 300\n  termination_policies      = [\"Default\"]\n  target_group_arns         = [aws_lb_target_group.app_tg.arn]\n\n  tag {\n    key                 = \"Name\"\n    value               = \"web-server-asg\"\n    propagate_at_launch = true\n  }\n\n  # Apply common tags to the ASG resource itself\n  tags = merge(\n    local.common_tags,\n    {\n      Name = \"my-asg\"\n    }\n  )\n}\n\n#########################\n# Outputs\n#########################\noutput \"vpc_id\" {\n  description = \"ID of the VPC\"\n  value       = aws_vpc.main.id\n}\n\noutput \"public_subnet_ids\" {\n  description = \"IDs of the public subnets\"\n  value       = [for s in aws_subnet.public : s.id]\n}\n\noutput \"private_subnet_ids\" {\n  description = \"IDs of the private subnets\"\n  value       = [for s in aws_subnet.private : s.id]\n}\n\noutput \"alb_dns_name\" {\n  description = \"DNS name of the ALB\"\n  value       = aws_lb.app_alb.dns_name\n}\n\noutput \"asg_name\" {\n  description = \"Name of the Auto Scaling Group\"\n  value       = aws_autoscaling_group.app_asg.name\n}",
+  "cost_estimate": {
+    "total_monthly_usd": 82.62,
+    "total_yearly_usd": 991.44,
+    "breakdown": [
+      {
+        "component_id": "ec2-10",
+        "resource_type": "ec2",
+        "name": "web-server-1",
+        "monthly_usd": 7.59,
+        "basis": "t3.micro instance @ $0.0104/hr * 730 hrs"
+      },
+      {
+        "component_id": "ec2-11",
+        "resource_type": "ec2",
+        "name": "web-server-2",
+        "monthly_usd": 7.59,
+        "basis": "t3.micro instance @ $0.0104/hr * 730 hrs"
+      },
+      {
+        "component_id": "ebs-10",
+        "resource_type": "ebs",
+        "name": "Root volume for web-server-1",
+        "monthly_usd": 1.6,
+        "basis": "gp3 20 GB @ $0.08/GB‑mo"
+      },
+      {
+        "component_id": "ebs-11",
+        "resource_type": "ebs",
+        "name": "Root volume for web-server-2",
+        "monthly_usd": 1.6,
+        "basis": "gp3 20 GB @ $0.08/GB‑mo"
+      },
+      {
+        "component_id": "alb-6",
+        "resource_type": "alb",
+        "name": "my-alb",
+        "monthly_usd": 64.24,
+        "basis": "ALB $0.008/hr * 730 hrs = $5.84 + 10 LCU avg $0.008 per LCU‑hr * 730 hrs = $58.40"
+      }
+    ],
+    "warnings": [
+      "ALB LCU usage is assumed at 10 LCU. Real traffic may be lower, reducing cost.",
+      "Root EBS volume size is assumed 20 GB gp3 per instance. Actual size may differ.",
+      "No NAT Gateway is defined; if private subnets need outbound internet, add NAT Gateway cost (~$32/mo + data transfer).",
+      "Data transfer out from the ALB to the internet is not accounted for; any outbound traffic will incur $0.09 per GB."
+    ]
+  },
+  "recommendations": [
+    {
+      "type": "cost",
+      "priority": "high",
+      "title": "Use Spot Instances for Web Servers",
+      "description": "Configure the Auto Scaling Group to use EC2 Spot Instances (t3.micro) with a fallback to On‑Demand capacity. Spot pricing in us‑east‑1 is typically 60‑70% lower than On‑Demand, which can reduce the EC2 monthly cost from ~$15 to ~$5 while still maintaining capacity via the existing On‑Demand base.",
+      "saving": "~$10/month"
+    },
+    {
+      "type": "cost",
+      "priority": "medium",
+      "title": "Purchase Compute Savings Plans for EC2",
+      "description": "If Spot is not acceptable for uptime guarantees, commit to a 1‑year or 3‑year Compute Savings Plan for the t3.micro instances. This provides up to 30% discount over On‑Demand rates and does not lock you to a specific instance family.",
+      "saving": "~$4‑5/month"
+    },
+    {
+      "type": "cost",
+      "priority": "medium",
+      "title": "Resize Root EBS Volumes",
+      "description": "The default 20 GB gp3 volume is larger than needed for typical web server OS images (~8 GB). Reducing the volume to 8 GB cuts the EBS cost from $1.60 per instance to $0.64, saving about $1.9 per month across both instances.",
+      "saving": "~$2/month"
+    },
+    {
+      "type": "cost",
+      "priority": "high",
+      "title": "Place CloudFront CDN in Front of the ALB",
+      "description": "Deploy an Amazon CloudFront distribution that points to the ALB as the origin. CloudFront caches static content, reduces the number of requests hitting the ALB, and can lower LCU consumption by 30‑50%, directly reducing the $64 ALB cost.",
+      "saving": "~$15‑20/month (depending on traffic patterns)"
+    },
+    {
+      "type": "security",
+      "priority": "high",
+      "title": "Enable AWS WAF on the ALB",
+      "description": "Attach an AWS Web Application Firewall (WAF) to the ALB with the AWS Managed Rules for common threats (SQLi, XSS, bad bots). This adds a strong layer of protection without operational overhead and can block malicious traffic before it reaches the instances."
+    },
+    {
+      "type": "security",
+      "priority": "medium",
+      "title": "Adopt SSM Session Manager and Remove SSH Keys",
+      "description": "Attach an IAM instance profile with AmazonSSMManagedInstanceCore policy to the EC2 instances and disable inbound SSH (port 22) in the EC2 security group. Use AWS Systems Manager Session Manager for administrative access, eliminating the need for key pairs and reducing exposure."
+    },
+    {
+      "type": "reliability",
+      "priority": "high",
+      "title": "Distribute Auto Scaling Group Across Multiple AZs",
+      "description": "Add a private subnet in us‑east‑1b (or other AZ) and configure the Auto Scaling Group to launch instances in both AZs. This provides HA against AZ‑level failures and improves load distribution."
+    },
+    {
+      "type": "reliability",
+      "priority": "medium",
+      "title": "Enable Automated EBS Snapshots via AWS Backup",
+      "description": "Create an AWS Backup plan that takes daily snapshots of the EC2 root volumes and retains them for 7‑14 days. This ensures rapid recovery from accidental deletion or corruption."
+    },
+    {
+      "type": "performance",
+      "priority": "high",
+      "title": "Move Static Assets to S3 + CloudFront",
+      "description": "Store images, CSS, JS, and other static files in an Amazon S3 bucket and serve them through the CloudFront distribution. This offloads traffic from the EC2 instances, reduces latency for end‑users, and further decreases ALB load.",
+      "saving": "~$5‑10/month (reduced EC2 and ALB usage)"
+    },
+    {
+      "type": "performance",
+      "priority": "medium",
+      "title": "Enable ALB Cross‑Zone Load Balancing",
+      "description": "Verify that cross‑zone load balancing is enabled on the ALB (default is true). If disabled, enable it to ensure even request distribution across instances in different AZs, improving response times and utilization."
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "architecture_id": "arch-demo-001",
+  "name": "3-Tier Web App — us-east-1",
+  "cloud_provider": "aws",
+  "iac_target": "terraform",
+  "constraints": {
+    "compliance": [],
+    "budget_limit_monthly": 500,
+    "regions": ["us-east-1"]
+  },
+  "components": [
+    {
+      "id": "region-1",
+      "type": "region",
+      "properties": {
+        "name": "us-east-1",
+        "label": "US East (N. Virginia)"
+      },
+      "children": ["vpc-2"],
+      "status": "valid"
+    },
+    {
+      "id": "vpc-2",
+      "type": "vpc",
+      "parent_id": "region-1",
+      "children": ["subnet-4", "subnet-5", "route-table-3"],
+      "properties": {
+        "name": "project-vpc",
+        "cidr": "10.0.0.0/16",
+        "enableDnsSupport": true,
+        "enableDnsHostnames": true,
+        "tags": [{ "key": "Name", "value": "project-vpc" }]
+      },
+      "status": "valid"
+    },
+    {
+      "id": "route-table-3",
+      "type": "route-table",
+      "parent_id": "vpc-2",
+      "properties": {
+        "isMain": true,
+        "vpcId": "vpc-2",
+        "routes": [
+          {
+            "destination": { "cidr": "10.0.0.0/16", "isLocal": true },
+            "target": { "type": "Local" }
+          }
+        ]
+      },
+      "status": "valid"
+    },
+    {
+      "id": "subnet-4",
+      "type": "subnet",
+      "parent_id": "vpc-2",
+      "children": ["alb-6"],
+      "properties": {
+        "name": "project-subnet-public-us-east-1a",
+        "cidr": "10.0.1.0/24",
+        "availabilityZoneId": "us-east-1a",
+        "isPublic": true
+      },
+      "status": "valid"
+    },
+    {
+      "id": "subnet-5",
+      "type": "subnet",
+      "parent_id": "vpc-2",
+      "children": ["autoscaling-group-9"],
+      "properties": {
+        "name": "project-subnet-private-us-east-1a",
+        "cidr": "10.0.2.0/24",
+        "availabilityZoneId": "us-east-1a",
+        "isPublic": false
+      },
+      "status": "valid"
+    },
+    {
+      "id": "alb-6",
+      "type": "alb",
+      "parent_id": "subnet-4",
+      "properties": {
+        "name": "my-alb",
+        "internal": false,
+        "scheme": "internet-facing",
+        "type": "application",
+        "listeners": [
+          {
+            "port": 80,
+            "protocol": "HTTP",
+            "target": "autoscaling-group-9"
+          }
+        ]
+      },
+      "status": "valid"
+    },
+    {
+      "id": "autoscaling-group-9",
+      "type": "autoscaling-group",
+      "parent_id": "subnet-5",
+      "children": ["ec2-10", "ec2-11"],
+      "properties": {
+        "name": "my-asg",
+        "minSize": 1,
+        "maxSize": 3,
+        "desiredCapacity": 2,
+        "instanceType": "t3.micro",
+        "ami": "ami-0c02fb55956c7d316",
+        "launchTemplateName": "my-launch-template"
+      },
+      "status": "valid"
+    },
+    {
+      "id": "ec2-10",
+      "type": "ec2",
+      "parent_id": "autoscaling-group-9",
+      "is_visual_only": true,
+      "properties": {
+        "name": "web-server",
+        "instanceType": "t3.micro",
+        "ami": "ami-0c02fb55956c7d316",
+        "securityGroups": []
+      },
+      "status": "valid"
+    },
+    {
+      "id": "ec2-11",
+      "type": "ec2",
+      "parent_id": "autoscaling-group-9",
+      "is_visual_only": true,
+      "properties": {
+        "name": "web-server",
+        "instanceType": "t3.micro",
+        "ami": "ami-0c02fb55956c7d316",
+        "securityGroups": []
+      },
+      "status": "valid"
+    }
+  ],
+  "edges": [],
+  "variables": [],
+  "outputs": []
+}
